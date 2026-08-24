@@ -1,0 +1,24 @@
+BUILD_DIR := build
+BUILD_TYPE := Debug
+
+.PHONY: all configure build test run clean
+
+all: build
+
+configure:
+	cmake -S . -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+build: configure
+	cmake --build $(BUILD_DIR)
+
+test: build
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
+
+run: test
+	./$(BUILD_DIR)/NESferatu
+
+clean:
+	cmake --build $(BUILD_DIR) --target clean
+
+release:
+	$(MAKE) BUILD_TYPE=Release build
