@@ -5,7 +5,7 @@
 namespace TestUtils
 {
 
-System* SetupSystem()
+inline System* SetupSystem()
 {
     CPU* cpu = new CPU();
     Memory* mem = new Memory();

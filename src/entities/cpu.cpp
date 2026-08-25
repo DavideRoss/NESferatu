@@ -24,6 +24,27 @@ u32 CPU::Step()
     u8 instruction = FetchByte();
     switch (instruction)
     {
+        // Add with Carry
+        case Opcodes::ADC_IM: Execute<ADC, Immediate>(); break;
+        case Opcodes::ADC_ZP: Execute<ADC, ZeroPage>(); break;
+        case Opcodes::ADC_ZPX: Execute<ADC, ZeroPageX>(); break;
+        case Opcodes::ADC_ABS: Execute<ADC, Absolute>(); break;
+        case Opcodes::ADC_ABX: Execute<ADC, AbsoluteX>(); break;
+        case Opcodes::ADC_ABY: Execute<ADC, AbsoluteY>(); break;
+        case Opcodes::ADC_IDX: Execute<ADC, IndirectX>(); break;
+        case Opcodes::ADC_IDY: Execute<ADC, IndirectY>(); break;
+
+        // Logical AND
+        case Opcodes::AND_IM: Execute<AND, Immediate>(); break;
+        case Opcodes::AND_ZP: Execute<AND, ZeroPage>(); break;
+        case Opcodes::AND_ZPX: Execute<AND, ZeroPageX>(); break;
+        case Opcodes::AND_ABS: Execute<AND, Absolute>(); break;
+        case Opcodes::AND_ABX: Execute<AND, AbsoluteX>(); break;
+        case Opcodes::AND_ABY: Execute<AND, AbsoluteY>(); break;
+        case Opcodes::AND_IDX: Execute<AND, IndirectX>(); break;
+        case Opcodes::AND_IDY: Execute<AND, IndirectY>(); break;
+
+        // Load Accumulator
         case Opcodes::LDA_IM: Execute<LDA, Immediate>(); break;
         case Opcodes::LDA_ZP: Execute<LDA, ZeroPage>(); break;
         case Opcodes::LDA_ZPX: Execute<LDA, ZeroPageX>(); break;
@@ -54,10 +75,17 @@ u8 CPU::ReadByte(u16 address)
     return data;
 }
 
+u8 CPU::GetFlag(StatusFlag flag)
+{
+    return ((s & flag) > 0) ? 0x1 : 0x0;
+}
+
 void CPU::SetFlag(StatusFlag flag, bool val)
 {
     s = val ? s | flag : s & ~flag;
 }
+
+#pragma region Addressing Modes
 
 DEFINE_ADDRESSING_MODE(Immediate)
 {
@@ -143,10 +171,40 @@ DEFINE_ADDRESSING_MODE(IndirectY)
     return addr;
 }
 
+#pragma endregion
+
+#pragma region Operations
+
 DEFINE_OPERATION(LDA)
 {
     cpu.a = cpu.ReadByte(address);
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
-    cpu.SetFlag(StatusFlag::N, (cpu.a & 0x80) > 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
+
+DEFINE_OPERATION(ADC)
+{
+    u8 data = cpu.ReadByte(address);
+    
+    u16 temp = cpu.a + data + cpu.GetFlag(StatusFlag::C);
+
+    cpu.SetFlag(StatusFlag::C, temp > 255);
+    cpu.SetFlag(StatusFlag::Z, (temp & 0x00ff) == 0);
+    cpu.SetFlag(StatusFlag::V, ((~(cpu.a ^ data) & (cpu.a ^ temp)) & 0x0080) != 0);
+    cpu.SetFlag(StatusFlag::N, temp & 0x80);
+
+    cpu.a = temp & 0x00ff;
+}
+
+DEFINE_OPERATION(AND)
+{
+    u8 data = cpu.ReadByte(address);
+
+    cpu.a &= data;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+#pragma endregion

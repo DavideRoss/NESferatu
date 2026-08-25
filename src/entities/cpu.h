@@ -38,6 +38,27 @@ enum StatusFlag
 
 namespace Opcodes
 {
+    // Add with Carry
+    static constexpr u8 ADC_IM = 0x69;
+    static constexpr u8 ADC_ZP = 0x65;
+    static constexpr u8 ADC_ZPX = 0x75;
+    static constexpr u8 ADC_ABS = 0x6d;
+    static constexpr u8 ADC_ABX = 0x7d;
+    static constexpr u8 ADC_ABY = 0x79;
+    static constexpr u8 ADC_IDX = 0x61;
+    static constexpr u8 ADC_IDY = 0x71;
+
+    // Logical AND
+    static constexpr u8 AND_IM = 0x29;
+    static constexpr u8 AND_ZP = 0x25;
+    static constexpr u8 AND_ZPX = 0x35;
+    static constexpr u8 AND_ABS = 0x2d;
+    static constexpr u8 AND_ABX = 0x3d;
+    static constexpr u8 AND_ABY = 0x39;
+    static constexpr u8 AND_IDX = 0x21;
+    static constexpr u8 AND_IDY = 0x31;
+
+    // Load Accumulator
     static constexpr u8 LDA_IM = 0xa9;
     static constexpr u8 LDA_ZP = 0xa5;
     static constexpr u8 LDA_ZPX = 0xb5;
@@ -59,6 +80,7 @@ public:
     u8 FetchByte();
     u8 ReadByte(u16 address);
 
+    u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
 
 public:
@@ -80,6 +102,8 @@ private:
     ADDRESSING_MODE(IndirectX);
     ADDRESSING_MODE(IndirectY);
 
+    OPERATION(ADC);
+    OPERATION(AND);
     OPERATION(LDA);
 
 #pragma endregion
