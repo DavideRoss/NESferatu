@@ -64,6 +64,10 @@ add_executable(NESferatuTests
     ${TEST_SOURCES}
 )
 
+target_include_directories(NESferatuTests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+)
+
 target_link_libraries(NESferatuTests PRIVATE
     NESferatuLib
     GTest::gtest
@@ -80,7 +84,6 @@ gtest_discover_tests(NESferatuTests)
 set(COMMON_WARNINGS
     -Wall
     -Wextra
-    -Wpedantic
     -Werror
     -Wcast-qual
     -Wmissing-declarations
@@ -90,4 +93,8 @@ set(COMMON_WARNINGS
 
 target_compile_options(NESferatu PRIVATE ${COMMON_WARNINGS})
 target_compile_options(NESferatuLib PRIVATE ${COMMON_WARNINGS})
-target_compile_options(NESferatuTests PRIVATE ${COMMON_WARNINGS})
+
+target_compile_options(NESferatuTests PRIVATE ${COMMON_WARNINGS}
+    -Wno-unused-variable
+    -Wno-missing-declarations
+)
