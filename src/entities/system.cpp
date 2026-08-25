@@ -9,3 +9,8 @@ void System::Reset()
 {
     cpu->Reset();
 }
+
+void System::Execute(const u32 cycles)
+{
+    cpu->Execute(cycles);
+}

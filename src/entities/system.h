@@ -11,6 +11,7 @@ public:
     System(Bus* in_bus, CPU* in_cpu, Memory* in_memory);
 
     void Reset();
+    void Execute(const u32 cycles);
 
 public:
     Bus* bus;
