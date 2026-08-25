@@ -44,6 +44,8 @@ namespace Opcodes
     static constexpr u8 LDA_ABS = 0xad;
     static constexpr u8 LDA_ABX = 0xbd;
     static constexpr u8 LDA_ABY = 0xb9;
+    static constexpr u8 LDA_IDX = 0xa1;
+    static constexpr u8 LDA_IDY = 0xb1;
 }
 
 class CPU
@@ -75,6 +77,8 @@ private:
     ADDRESSING_MODE(Absolute);
     ADDRESSING_MODE(AbsoluteX);
     ADDRESSING_MODE(AbsoluteY);
+    ADDRESSING_MODE(IndirectX);
+    ADDRESSING_MODE(IndirectY);
 
     OPERATION(LDA);
 

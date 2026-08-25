@@ -30,6 +30,8 @@ u32 CPU::Step()
         case Opcodes::LDA_ABS: Execute<LDA, Absolute>(); break;
         case Opcodes::LDA_ABX: Execute<LDA, AbsoluteX>(); break;
         case Opcodes::LDA_ABY: Execute<LDA, AbsoluteY>(); break;
+        case Opcodes::LDA_IDX: Execute<LDA, IndirectX>(); break;
+        case Opcodes::LDA_IDY: Execute<LDA, IndirectY>(); break;
 
         default: throw std::runtime_error("Unimplemented instruction");
     }
@@ -39,7 +41,7 @@ u32 CPU::Step()
 
 u8 CPU::FetchByte()
 {
-    u8 data = bus_->ReadByte(pc);
+    const u8 data = bus_->ReadByte(pc);
     pc++;
     cycles_++;
     return data;
@@ -47,7 +49,7 @@ u8 CPU::FetchByte()
 
 u8 CPU::ReadByte(u16 address)
 {
-    u8 data = bus_->ReadByte(address);
+    const u8 data = bus_->ReadByte(address);
     cycles_++;
     return data;
 }
@@ -77,15 +79,15 @@ DEFINE_ADDRESSING_MODE(ZeroPageX)
 
 DEFINE_ADDRESSING_MODE(Absolute)
 {
-    u8 addr_low = cpu.FetchByte();
-    u8 addr_high = cpu.FetchByte();
+    const u8 addr_low = cpu.FetchByte();
+    const u8 addr_high = cpu.FetchByte();
     return (addr_high << 8) | addr_low;
 }
 
 DEFINE_ADDRESSING_MODE(AbsoluteX)
 {
-    u8 addr_low = cpu.FetchByte();
-    u8 addr_high = cpu.FetchByte();
+    const u8 addr_low = cpu.FetchByte();
+    const u8 addr_high = cpu.FetchByte();
     u16 addr = (addr_high << 8) | addr_low;
 
     addr += cpu.x;
@@ -100,10 +102,37 @@ DEFINE_ADDRESSING_MODE(AbsoluteX)
 
 DEFINE_ADDRESSING_MODE(AbsoluteY)
 {
-    u8 addr_low = cpu.FetchByte();
-    u8 addr_high = cpu.FetchByte();
+    const u8 addr_low = cpu.FetchByte();
+    const u8 addr_high = cpu.FetchByte();
     u16 addr = (addr_high << 8) | addr_low;
 
+    addr += cpu.y;
+
+    if ((addr & 0xff00) != (addr_high << 8))
+    {
+        cycles++;
+    }
+
+    return addr;
+}
+
+DEFINE_ADDRESSING_MODE(IndirectX)
+{
+    const u16 zero_page = cpu.FetchByte();
+    const u16 addr_low = cpu.ReadByte((zero_page + cpu.x) & 0x00ff);
+    const u16 addr_high = cpu.ReadByte((zero_page + cpu.x + 1) & 0x00ff);
+    cycles++;
+
+    return (addr_high << 8) | addr_low;
+}
+
+DEFINE_ADDRESSING_MODE(IndirectY)
+{
+    const u16 zero_page = cpu.FetchByte();
+    const u16 addr_low = cpu.ReadByte(zero_page & 0x00ff);
+    const u16 addr_high = cpu.ReadByte((zero_page + 1) & 0x00ff);
+
+    u16 addr = (addr_high << 8) | addr_low;
     addr += cpu.y;
 
     if ((addr & 0xff00) != (addr_high << 8))
