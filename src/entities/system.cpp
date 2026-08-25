@@ -12,5 +12,9 @@ void System::Reset()
 
 void System::Execute(const u32 cycles)
 {
-    cpu->Execute(cycles);
+    u32 curr_cycles = 0;
+    while (curr_cycles < cycles)
+    {
+        curr_cycles += cpu->Step();
+    }
 }

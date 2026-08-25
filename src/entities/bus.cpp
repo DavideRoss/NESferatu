@@ -1,6 +1,7 @@
 #include "bus.h"
 
 #include <stdexcept>
+#include <format>
 
 Bus::Bus(CPU *in_cpu, Memory *in_memory)
     : cpu_(in_cpu), memory_(in_memory)
@@ -21,36 +22,36 @@ u8 Bus::ReadByte(u16 address)
         // PPU registers
         case 0x2000 ... 0x2007:
         {
-            throw std::logic_error("Not implemented");
+            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
         }
 
         // Mirrors of PPU registers
         case 0x2008 ... 0x3fff:
         {
-            throw std::logic_error("Not implemented");
+            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
         }
 
         // APU and I/O
         case 0x4000 ... 0x4017:
         {
-            throw std::logic_error("Not implemented");
+            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
         }
 
         // CPU test mode
         case 0x4018 ... 0x401f:
         {
-            throw std::logic_error("Not implemented");
+            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
         }
 
         // Cartridge
         case 0x4020 ... 0xffff:
         {
-            throw std::logic_error("Not implemented");
+            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
         }
 
         default:
         {
-            throw std::runtime_error("Unmapped address");
+            throw std::runtime_error(std::format("Unmapped address: 0x{:04x}", address));
         }
     }
 }

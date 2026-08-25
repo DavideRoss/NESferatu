@@ -26,3 +26,11 @@ void Memory::Write(u16 address, u8 value)
     assert(address < 0x800);
     memory_[address] = value;
 }
+
+void Memory::WriteSeq(u16 address, std::vector<u8> data)
+{
+    for (u8 val : data)
+    {
+        Write(address++, val);
+    }
+}

@@ -17,36 +17,38 @@ void CPU::Reset()
     s = 0x00;
 }
 
-void CPU::Execute(const u32 cycles)
+u32 CPU::Step()
 {
-    cycles_ = cycles;
-    while (cycles_ > 0)
+    cycles_ = 0;
+    
+    u8 instruction = FetchByte();
+    switch (instruction)
     {
-        [[maybe_unused]] u8 instruction = FetchByte();
+        case Opcodes::LDA_IM: Execute<LDA, Immediate>(); break;
+        case Opcodes::LDA_ZP: Execute<LDA, ZeroPage>(); break;
+        case Opcodes::LDA_ZPX: Execute<LDA, ZeroPageX>(); break;
+        case Opcodes::LDA_ABS: Execute<LDA, Absolute>(); break;
+        case Opcodes::LDA_ABX: Execute<LDA, AbsoluteX>(); break;
+        case Opcodes::LDA_ABY: Execute<LDA, AbsoluteY>(); break;
 
-        switch (instruction)
-        {
-            case Opcodes::LDA_IM: LDAImmediate(); break;
-            case Opcodes::LDA_ZP: LDAZeroPage(); break;
-            case Opcodes::LDA_ZPX: LDAZeroPageX(); break;
-
-            default: throw std::runtime_error("Unimplemented instruction");
-        }
+        default: throw std::runtime_error("Unimplemented instruction");
     }
+
+    return cycles_;
 }
 
 u8 CPU::FetchByte()
 {
     u8 data = bus_->ReadByte(pc);
     pc++;
-    cycles_--;
+    cycles_++;
     return data;
 }
 
-u8 CPU::PeekByte(u16 address)
+u8 CPU::ReadByte(u16 address)
 {
     u8 data = bus_->ReadByte(address);
-    cycles_--;
+    cycles_++;
     return data;
 }
 
@@ -55,31 +57,67 @@ void CPU::SetFlag(StatusFlag flag, bool val)
     s = val ? s | flag : s & ~flag;
 }
 
-void CPU::LDAImmediate()
+DEFINE_ADDRESSING_MODE(Immediate)
 {
-    u8 data = FetchByte();
-    a = data;
-
-    SetFlag(StatusFlag::Z, a == 0);
-    SetFlag(StatusFlag::N, (a & 0x80) > 0);
+    return cpu.pc++;
 }
 
-void CPU::LDAZeroPage()
+DEFINE_ADDRESSING_MODE(ZeroPage)
 {
-    u8 zero_page = FetchByte();
-    a = PeekByte(zero_page);
-
-    SetFlag(StatusFlag::Z, a == 0);
-    SetFlag(StatusFlag::N, (a & 0x80) > 0);
+    return cpu.FetchByte();
 }
 
-void CPU::LDAZeroPageX()
+DEFINE_ADDRESSING_MODE(ZeroPageX)
 {
-    u8 zero_page = FetchByte();
-    zero_page = (zero_page + x) & 0xff;
-    cycles_--;
-    a = PeekByte(zero_page);
+    u8 zero_page = cpu.FetchByte();
+    zero_page = (zero_page + cpu.x) & 0xff;
+    cycles++;
+    return zero_page;
+}
 
-    SetFlag(StatusFlag::Z, a == 0);
-    SetFlag(StatusFlag::N, (a & 0x80) > 0);
+DEFINE_ADDRESSING_MODE(Absolute)
+{
+    u8 addr_low = cpu.FetchByte();
+    u8 addr_high = cpu.FetchByte();
+    return (addr_high << 8) | addr_low;
+}
+
+DEFINE_ADDRESSING_MODE(AbsoluteX)
+{
+    u8 addr_low = cpu.FetchByte();
+    u8 addr_high = cpu.FetchByte();
+    u16 addr = (addr_high << 8) | addr_low;
+
+    addr += cpu.x;
+
+    if ((addr & 0xff00) != (addr_high << 8))
+    {
+        cycles++;
+    }
+
+    return addr;
+}
+
+DEFINE_ADDRESSING_MODE(AbsoluteY)
+{
+    u8 addr_low = cpu.FetchByte();
+    u8 addr_high = cpu.FetchByte();
+    u16 addr = (addr_high << 8) | addr_low;
+
+    addr += cpu.y;
+
+    if ((addr & 0xff00) != (addr_high << 8))
+    {
+        cycles++;
+    }
+
+    return addr;
+}
+
+DEFINE_OPERATION(LDA)
+{
+    cpu.a = cpu.ReadByte(address);
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, (cpu.a & 0x80) > 0);
 }

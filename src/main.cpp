@@ -17,5 +17,15 @@ int main()
     System* nes = new System(bus, cpu, mem);
     nes->Reset();
 
+    cpu->pc = 0x0000;
+    cpu->x = 0xff;
+    mem->WriteSeq(0x0000, {
+        Opcodes::LDA_ABX, 0x66, 0x05
+    });
+    mem->Write(0x056b, 0x8c);
+
+    u32 cycles = cpu->Step();
+    (void)cycles;
+
     return 0;
 }
