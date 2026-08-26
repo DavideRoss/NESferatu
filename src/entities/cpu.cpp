@@ -29,30 +29,39 @@ u32 CPU::Step()
         case Opcodes::ADC_ZP: Execute<ADC, ZeroPage>(); break;
         case Opcodes::ADC_ZPX: Execute<ADC, ZeroPageX>(); break;
         case Opcodes::ADC_ABS: Execute<ADC, Absolute>(); break;
-        case Opcodes::ADC_ABX: Execute<ADC, AbsoluteX>(); break;
-        case Opcodes::ADC_ABY: Execute<ADC, AbsoluteY>(); break;
+        case Opcodes::ADC_ABX: Execute<ADC, AbsoluteX, 0, true>(); break;
+        case Opcodes::ADC_ABY: Execute<ADC, AbsoluteY, 0, true>(); break;
         case Opcodes::ADC_IDX: Execute<ADC, IndirectX>(); break;
-        case Opcodes::ADC_IDY: Execute<ADC, IndirectY>(); break;
+        case Opcodes::ADC_IDY: Execute<ADC, IndirectY, 0, true>(); break;
 
         // Logical AND
         case Opcodes::AND_IM: Execute<AND, Immediate>(); break;
         case Opcodes::AND_ZP: Execute<AND, ZeroPage>(); break;
         case Opcodes::AND_ZPX: Execute<AND, ZeroPageX>(); break;
         case Opcodes::AND_ABS: Execute<AND, Absolute>(); break;
-        case Opcodes::AND_ABX: Execute<AND, AbsoluteX>(); break;
-        case Opcodes::AND_ABY: Execute<AND, AbsoluteY>(); break;
+        case Opcodes::AND_ABX: Execute<AND, AbsoluteX, 0, true>(); break;
+        case Opcodes::AND_ABY: Execute<AND, AbsoluteY, 0, true>(); break;
         case Opcodes::AND_IDX: Execute<AND, IndirectX>(); break;
-        case Opcodes::AND_IDY: Execute<AND, IndirectY>(); break;
+        case Opcodes::AND_IDY: Execute<AND, IndirectY, 0, true>(); break;
 
         // Load Accumulator
         case Opcodes::LDA_IM: Execute<LDA, Immediate>(); break;
         case Opcodes::LDA_ZP: Execute<LDA, ZeroPage>(); break;
         case Opcodes::LDA_ZPX: Execute<LDA, ZeroPageX>(); break;
         case Opcodes::LDA_ABS: Execute<LDA, Absolute>(); break;
-        case Opcodes::LDA_ABX: Execute<LDA, AbsoluteX>(); break;
-        case Opcodes::LDA_ABY: Execute<LDA, AbsoluteY>(); break;
+        case Opcodes::LDA_ABX: Execute<LDA, AbsoluteX, 0, true>(); break;
+        case Opcodes::LDA_ABY: Execute<LDA, AbsoluteY, 0, true>(); break;
         case Opcodes::LDA_IDX: Execute<LDA, IndirectX>(); break;
-        case Opcodes::LDA_IDY: Execute<LDA, IndirectY>(); break;
+        case Opcodes::LDA_IDY: Execute<LDA, IndirectY, 0, true>(); break;
+
+        // Store Accumulator
+        case Opcodes::STA_ZP: Execute<STA, ZeroPage>(); break;
+        case Opcodes::STA_ZPX: Execute<STA, ZeroPageX>(); break;
+        case Opcodes::STA_ABS: Execute<STA, Absolute>(); break;
+        case Opcodes::STA_ABX: Execute<STA, AbsoluteX, 1>(); break;
+        case Opcodes::STA_ABY: Execute<STA, AbsoluteY, 1>(); break;
+        case Opcodes::STA_IDX: Execute<STA, IndirectX>(); break;
+        case Opcodes::STA_IDY: Execute<STA, IndirectY, 1>(); break;
 
         default: throw std::runtime_error("Unimplemented instruction");
     }
@@ -75,6 +84,12 @@ u8 CPU::ReadByte(u16 address)
     return data;
 }
 
+void CPU::WriteByte(u16 address, u8 data)
+{
+    bus_->WriteByte(address, data);
+    cycles_++;
+}
+
 u8 CPU::GetFlag(StatusFlag flag)
 {
     return ((s & flag) > 0) ? 0x1 : 0x0;
@@ -89,12 +104,20 @@ void CPU::SetFlag(StatusFlag flag, bool val)
 
 DEFINE_ADDRESSING_MODE(Immediate)
 {
-    return cpu.pc++;
+    return
+    {
+        cpu.pc++,
+        false
+    };
 }
 
 DEFINE_ADDRESSING_MODE(ZeroPage)
 {
-    return cpu.FetchByte();
+    return
+    {
+        cpu.FetchByte(),
+        false
+    };
 }
 
 DEFINE_ADDRESSING_MODE(ZeroPageX)
@@ -102,46 +125,53 @@ DEFINE_ADDRESSING_MODE(ZeroPageX)
     u8 zero_page = cpu.FetchByte();
     zero_page = (zero_page + cpu.x) & 0xff;
     cycles++;
-    return zero_page;
+
+    return
+    {
+        zero_page,
+        false
+    };
 }
 
 DEFINE_ADDRESSING_MODE(Absolute)
 {
     const u8 addr_low = cpu.FetchByte();
     const u8 addr_high = cpu.FetchByte();
-    return (addr_high << 8) | addr_low;
+    return
+    {
+        static_cast<u16>((addr_high << 8) | addr_low),
+        false
+    };
 }
 
 DEFINE_ADDRESSING_MODE(AbsoluteX)
 {
     const u8 addr_low = cpu.FetchByte();
     const u8 addr_high = cpu.FetchByte();
-    u16 addr = (addr_high << 8) | addr_low;
+    u16 addr = static_cast<u16>((addr_high << 8) | addr_low);
 
     addr += cpu.x;
 
-    if ((addr & 0xff00) != (addr_high << 8))
+    return
     {
-        cycles++;
-    }
-
-    return addr;
+        addr,
+        (addr & 0xff00) != (addr_high << 8)
+    };
 }
 
 DEFINE_ADDRESSING_MODE(AbsoluteY)
 {
     const u8 addr_low = cpu.FetchByte();
     const u8 addr_high = cpu.FetchByte();
-    u16 addr = (addr_high << 8) | addr_low;
+    u16 addr = static_cast<u16>((addr_high << 8) | addr_low);
 
     addr += cpu.y;
 
-    if ((addr & 0xff00) != (addr_high << 8))
+    return
     {
-        cycles++;
-    }
-
-    return addr;
+        addr,
+        (addr & 0xff00) != (addr_high << 8)
+    };
 }
 
 DEFINE_ADDRESSING_MODE(IndirectX)
@@ -151,7 +181,11 @@ DEFINE_ADDRESSING_MODE(IndirectX)
     const u16 addr_high = cpu.ReadByte((zero_page + cpu.x + 1) & 0x00ff);
     cycles++;
 
-    return (addr_high << 8) | addr_low;
+    return
+    {
+        static_cast<u16>((addr_high << 8) | addr_low),
+        false
+    };
 }
 
 DEFINE_ADDRESSING_MODE(IndirectY)
@@ -163,12 +197,11 @@ DEFINE_ADDRESSING_MODE(IndirectY)
     u16 addr = (addr_high << 8) | addr_low;
     addr += cpu.y;
 
-    if ((addr & 0xff00) != (addr_high << 8))
+    return
     {
-        cycles++;
-    }
-
-    return addr;
+        addr,
+        (addr & 0xff00) != (addr_high << 8)
+    };
 }
 
 #pragma endregion
@@ -205,6 +238,11 @@ DEFINE_OPERATION(AND)
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(STA)
+{
+    cpu.WriteByte(address, cpu.a);
 }
 
 #pragma endregion

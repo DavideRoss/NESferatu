@@ -12,6 +12,7 @@ public:
     Bus(CPU* in_cpu, Memory* in_memory);
 
     u8 ReadByte(u16 address);
+    void WriteByte(u16 address, u8 data);
 
 private:
     CPU* cpu_;

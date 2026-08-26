@@ -6,11 +6,11 @@
 
 #define ADDRESSING_MODE(name) \
     struct name { \
-        static u16 GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles); \
+        static AddressResult GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles); \
     }
 
 #define DEFINE_ADDRESSING_MODE(name) \
-    u16 CPU::name::GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles)
+    CPU::AddressResult CPU::name::GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles)
     
 #define OPERATION(name) \
     struct name { \
@@ -67,6 +67,15 @@ namespace Opcodes
     static constexpr u8 LDA_ABY = 0xb9;
     static constexpr u8 LDA_IDX = 0xa1;
     static constexpr u8 LDA_IDY = 0xb1;
+
+    // Store Accumulator
+    static constexpr u8 STA_ZP = 0x85;
+    static constexpr u8 STA_ZPX = 0x95;
+    static constexpr u8 STA_ABS = 0x8d;
+    static constexpr u8 STA_ABX = 0x9d;
+    static constexpr u8 STA_ABY = 0x99;
+    static constexpr u8 STA_IDX = 0x81;
+    static constexpr u8 STA_IDY = 0x91;
 }
 
 class CPU
@@ -79,6 +88,7 @@ public:
 
     u8 FetchByte();
     u8 ReadByte(u16 address);
+    void WriteByte(u16 address, u8 data);
 
     u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
@@ -89,6 +99,32 @@ public:
     u16 pc;     // Program counter
     u8 sp;      // Stack pointer
     u8 s;       // Program status
+
+private:
+    struct AddressResult
+    {
+        u16 address;
+        bool page_crossed;
+    };
+
+    template<
+        typename Operation,
+        typename AddressingMode,
+        u32 ExtraCycles = 0,
+        bool PageCrossPenalty = false
+    >
+    void Execute()
+    {
+        const AddressResult res = AddressingMode::GetAddress(*this, cycles_);
+
+        cycles_ += ExtraCycles;
+        if constexpr(PageCrossPenalty)
+        {
+            cycles_ += res.page_crossed;
+        }
+
+        Operation::Execute(*this, res.address);
+    }
 
 #pragma region Addressing Modes
 
@@ -105,16 +141,9 @@ private:
     OPERATION(ADC);
     OPERATION(AND);
     OPERATION(LDA);
+    OPERATION(STA);
 
 #pragma endregion
-
-private:
-    template<typename Operation, typename AddressingMode>
-    void Execute()
-    {
-        const u16 address = AddressingMode::GetAddress(*this, cycles_);
-        Operation::Execute(*this, address);
-    }
 
 private:
     Bus* bus_ = nullptr;
