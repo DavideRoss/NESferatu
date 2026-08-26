@@ -82,6 +82,16 @@ namespace Opcodes
     static constexpr u8 LDY_ABS = 0xac;
     static constexpr u8 LDY_ABX = 0xbc;
 
+    // Subtract with Carry
+    static constexpr u8 SBC_IM = 0xe9;
+    static constexpr u8 SBC_ZP = 0xe5;
+    static constexpr u8 SBC_ZPX = 0xf5;
+    static constexpr u8 SBC_ABS = 0xed;
+    static constexpr u8 SBC_ABX = 0xfd;
+    static constexpr u8 SBC_ABY = 0xf0;
+    static constexpr u8 SBC_IDX = 0xe1;
+    static constexpr u8 SBC_IDY = 0xf1;
+
     // Store Accumulator
     static constexpr u8 STA_ZP = 0x85;
     static constexpr u8 STA_ZPX = 0x95;
@@ -181,6 +191,7 @@ private:
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);
+    OPERATION(SBC);
     OPERATION(STA);
     OPERATION(STX);
     OPERATION(STY);

@@ -70,6 +70,16 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LDY_ZPX, LDY, ZeroPageX,  false, 0)
         EXECUTE_OPCODE(LDY_ABS, LDY, Absolute,   false, 0)
         EXECUTE_OPCODE(LDY_ABX, LDY, AbsoluteX,  true,  0)
+        
+        // Subtract with Carry
+        EXECUTE_OPCODE(SBC_IM,  SBC, Immediate,  false, 0)
+        EXECUTE_OPCODE(SBC_ZP,  SBC, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(SBC_ZPX, SBC, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(SBC_ABS, SBC, Absolute,   false, 0)
+        EXECUTE_OPCODE(SBC_ABX, SBC, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(SBC_ABY, SBC, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(SBC_IDX, SBC, IndirectX,  false, 0)
+        EXECUTE_OPCODE(SBC_IDY, SBC, IndirectY,  true,  0)
 
         // Store Accumulator
         EXECUTE_OPCODE(STA_ZP,  STA, ZeroPage,   false, 0)
@@ -268,7 +278,6 @@ DEFINE_ADDRESSING_MODE(IndirectY)
 DEFINE_OPERATION(ADC)
 {
     u8 data = cpu.ReadByte(address);
-    
     u16 temp = cpu.a + data + cpu.GetFlag(StatusFlag::C);
 
     cpu.SetFlag(StatusFlag::C, temp > 255);
@@ -311,6 +320,19 @@ DEFINE_OPERATION(LDY)
 
     cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
+DEFINE_OPERATION(SBC)
+{
+    u8 data = cpu.ReadByte(address) ^ 0x00ff;
+    u16 temp = cpu.a + data + cpu.GetFlag(StatusFlag::C);
+
+    cpu.SetFlag(StatusFlag::C, temp & 0xff00);
+    cpu.SetFlag(StatusFlag::Z, (temp & 0x00ff) == 0);
+    cpu.SetFlag(StatusFlag::V, (temp ^ cpu.a) & (temp ^ data) & 0x0080);
+    cpu.SetFlag(StatusFlag::N, temp & 0x0080);
+
+    cpu.a = temp & 0x00ff;
 }
 
 DEFINE_OPERATION(STA)
