@@ -3,7 +3,7 @@
 #include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
-TEST(LDA, WriteToMemory)
+TEST(STA, WriteToMemory)
 {
     System* nes = TestUtils::SetupSystem();
 
