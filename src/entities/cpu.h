@@ -110,8 +110,8 @@ private:
     template<
         typename Operation,
         typename AddressingMode,
-        u32 ExtraCycles = 0,
-        bool PageCrossPenalty = false
+        bool PageCrossPenalty = false,
+        u32 ExtraCycles = 0
     >
     void Execute()
     {

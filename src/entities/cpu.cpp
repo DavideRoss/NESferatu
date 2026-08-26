@@ -4,6 +4,9 @@
 
 #include "bus.h"
 
+#define EXECUTE_OPCODE(opcode, operation, addressing_mode, page_cross, extra_cycles) \
+    case Opcodes::opcode: Execute<operation, addressing_mode, page_cross, extra_cycles>(); break;
+
 void CPU::ConnectBus(Bus *bus)
 {
     bus_ = bus;
@@ -25,43 +28,43 @@ u32 CPU::Step()
     switch (instruction)
     {
         // Add with Carry
-        case Opcodes::ADC_IM: Execute<ADC, Immediate>(); break;
-        case Opcodes::ADC_ZP: Execute<ADC, ZeroPage>(); break;
-        case Opcodes::ADC_ZPX: Execute<ADC, ZeroPageX>(); break;
-        case Opcodes::ADC_ABS: Execute<ADC, Absolute>(); break;
-        case Opcodes::ADC_ABX: Execute<ADC, AbsoluteX, 0, true>(); break;
-        case Opcodes::ADC_ABY: Execute<ADC, AbsoluteY, 0, true>(); break;
-        case Opcodes::ADC_IDX: Execute<ADC, IndirectX>(); break;
-        case Opcodes::ADC_IDY: Execute<ADC, IndirectY, 0, true>(); break;
+        EXECUTE_OPCODE(ADC_IM,  ADC, Immediate,  false, 0)
+        EXECUTE_OPCODE(ADC_ZP,  ADC, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(ADC_ZPX, ADC, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(ADC_ABS, ADC, Absolute,   false, 0)
+        EXECUTE_OPCODE(ADC_ABX, ADC, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(ADC_ABY, ADC, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(ADC_IDX, ADC, IndirectX,  false, 0)
+        EXECUTE_OPCODE(ADC_IDY, ADC, IndirectY,  true,  0)
 
         // Logical AND
-        case Opcodes::AND_IM: Execute<AND, Immediate>(); break;
-        case Opcodes::AND_ZP: Execute<AND, ZeroPage>(); break;
-        case Opcodes::AND_ZPX: Execute<AND, ZeroPageX>(); break;
-        case Opcodes::AND_ABS: Execute<AND, Absolute>(); break;
-        case Opcodes::AND_ABX: Execute<AND, AbsoluteX, 0, true>(); break;
-        case Opcodes::AND_ABY: Execute<AND, AbsoluteY, 0, true>(); break;
-        case Opcodes::AND_IDX: Execute<AND, IndirectX>(); break;
-        case Opcodes::AND_IDY: Execute<AND, IndirectY, 0, true>(); break;
+        EXECUTE_OPCODE(AND_IM,  AND, Immediate,  false, 0)
+        EXECUTE_OPCODE(AND_ZP,  AND, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(AND_ZPX, AND, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(AND_ABS, AND, Absolute,   false, 0)
+        EXECUTE_OPCODE(AND_ABX, AND, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(AND_ABY, AND, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(AND_IDX, AND, IndirectX,  false, 0)
+        EXECUTE_OPCODE(AND_IDY, AND, IndirectY,  true,  0)
 
         // Load Accumulator
-        case Opcodes::LDA_IM: Execute<LDA, Immediate>(); break;
-        case Opcodes::LDA_ZP: Execute<LDA, ZeroPage>(); break;
-        case Opcodes::LDA_ZPX: Execute<LDA, ZeroPageX>(); break;
-        case Opcodes::LDA_ABS: Execute<LDA, Absolute>(); break;
-        case Opcodes::LDA_ABX: Execute<LDA, AbsoluteX, 0, true>(); break;
-        case Opcodes::LDA_ABY: Execute<LDA, AbsoluteY, 0, true>(); break;
-        case Opcodes::LDA_IDX: Execute<LDA, IndirectX>(); break;
-        case Opcodes::LDA_IDY: Execute<LDA, IndirectY, 0, true>(); break;
+        EXECUTE_OPCODE(LDA_IM,  LDA, Immediate,  false, 0)
+        EXECUTE_OPCODE(LDA_ZP,  LDA, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(LDA_ZPX, LDA, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(LDA_ABS, LDA, Absolute,   false, 0)
+        EXECUTE_OPCODE(LDA_ABX, LDA, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(LDA_ABY, LDA, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(LDA_IDX, LDA, IndirectX,  false, 0)
+        EXECUTE_OPCODE(LDA_IDY, LDA, IndirectY,  true,  0)
 
         // Store Accumulator
-        case Opcodes::STA_ZP: Execute<STA, ZeroPage>(); break;
-        case Opcodes::STA_ZPX: Execute<STA, ZeroPageX>(); break;
-        case Opcodes::STA_ABS: Execute<STA, Absolute>(); break;
-        case Opcodes::STA_ABX: Execute<STA, AbsoluteX, 1>(); break;
-        case Opcodes::STA_ABY: Execute<STA, AbsoluteY, 1>(); break;
-        case Opcodes::STA_IDX: Execute<STA, IndirectX>(); break;
-        case Opcodes::STA_IDY: Execute<STA, IndirectY, 1>(); break;
+        EXECUTE_OPCODE(STA_ZP,  STA, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(STA_ZPX, STA, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(STA_ABS, STA, Absolute,   false, 0)
+        EXECUTE_OPCODE(STA_ABX, STA, AbsoluteX,  false, 1)
+        EXECUTE_OPCODE(STA_ABY, STA, AbsoluteY,  false, 1)
+        EXECUTE_OPCODE(STA_IDX, STA, IndirectX,  false, 0)
+        EXECUTE_OPCODE(STA_IDY, STA, IndirectY,  false, 1)
 
         default: throw std::runtime_error("Unimplemented instruction");
     }
