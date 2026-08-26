@@ -95,6 +95,11 @@ namespace Opcodes
     static constexpr u8 STX_ZP = 0x86;
     static constexpr u8 STX_ZPY = 0x96;
     static constexpr u8 STX_ABS = 0x8e;
+
+    // Store X Register
+    static constexpr u8 STY_ZP = 0x84;
+    static constexpr u8 STY_ZPX = 0x94;
+    static constexpr u8 STY_ABS = 0x8c;
 }
 
 class CPU
@@ -165,6 +170,7 @@ private:
     OPERATION(LDY);
     OPERATION(STA);
     OPERATION(STX);
+    OPERATION(STY);
 
 #pragma endregion
 
