@@ -48,6 +48,12 @@ namespace Opcodes
     static constexpr u8 ADC_IDX = 0x61;
     static constexpr u8 ADC_IDY = 0x71;
 
+    // Increment Memory
+    static constexpr u8 INC_ZP = 0xe6;
+    static constexpr u8 INC_ZPX = 0xf6;
+    static constexpr u8 INC_ABS = 0xee;
+    static constexpr u8 INC_ABX = 0xfe;
+
     // Logical AND
     static constexpr u8 AND_IM = 0x29;
     static constexpr u8 AND_ZP = 0x25;
@@ -188,6 +194,7 @@ private:
 
     OPERATION(ADC);
     OPERATION(AND);
+    OPERATION(INC);
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);

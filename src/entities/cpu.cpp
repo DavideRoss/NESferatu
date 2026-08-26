@@ -37,6 +37,12 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ADC_IDX, ADC, IndirectX,  false, 0)
         EXECUTE_OPCODE(ADC_IDY, ADC, IndirectY,  true,  0)
 
+        // Increment Memory
+        EXECUTE_OPCODE(INC_ZP,  INC, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(INC_ZPX, INC, ZeroPageX,  false, 1)
+        EXECUTE_OPCODE(INC_ABS, INC, Absolute,   false, 1)
+        EXECUTE_OPCODE(INC_ABX, INC, AbsoluteX,  false, 2)
+
         // Logical AND
         EXECUTE_OPCODE(AND_IM,  AND, Immediate,  false, 0)
         EXECUTE_OPCODE(AND_ZP,  AND, ZeroPage,   false, 0)
@@ -296,6 +302,16 @@ DEFINE_OPERATION(AND)
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(INC)
+{
+    u8 data = cpu.ReadByte(address);
+    data = (data + 1) & 0x00ff;
+    cpu.WriteByte(address, data);
+
+    cpu.SetFlag(StatusFlag::Z, data == 0);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
 }
 
 DEFINE_OPERATION(LDA)
