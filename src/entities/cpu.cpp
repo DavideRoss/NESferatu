@@ -73,6 +73,11 @@ u32 CPU::Step()
         EXECUTE_OPCODE(STA_IDX, STA, IndirectX,  false, 0)
         EXECUTE_OPCODE(STA_IDY, STA, IndirectY,  false, 1)
 
+        // Store X Register
+        EXECUTE_OPCODE(STX_ZP,  STX, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(STX_ZPY, STX, ZeroPageY,  false, 0)
+        EXECUTE_OPCODE(STX_ABS, STX, Absolute,   false, 0)
+
         default: throw std::runtime_error("Unimplemented instruction");
     }
 
@@ -274,6 +279,11 @@ DEFINE_OPERATION(LDX)
 DEFINE_OPERATION(STA)
 {
     cpu.WriteByte(address, cpu.a);
+}
+
+DEFINE_OPERATION(STX)
+{
+    cpu.WriteByte(address, cpu.x);
 }
 
 #pragma endregion
