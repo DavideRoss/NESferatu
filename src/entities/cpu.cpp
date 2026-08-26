@@ -90,6 +90,9 @@ u32 CPU::Step()
         EXECUTE_OPCODE(STY_ZPX, STY, ZeroPageX,  false, 0)
         EXECUTE_OPCODE(STY_ABS, STY, Absolute,   false, 0)
 
+        // Transfer Accumulator to X
+        EXECUTE_OPCODE(TAX_IMP, TAX, Implied,    false, 1)
+
         default: throw std::runtime_error("Unimplemented instruction");
     }
 
@@ -128,6 +131,11 @@ void CPU::SetFlag(StatusFlag flag, bool val)
 }
 
 #pragma region Addressing Modes
+
+DEFINE_ADDRESSING_MODE(Implied)
+{
+    return {};
+}
 
 DEFINE_ADDRESSING_MODE(Immediate)
 {
@@ -309,6 +317,12 @@ DEFINE_OPERATION(STX)
 DEFINE_OPERATION(STY)
 {
     cpu.WriteByte(address, cpu.y);
+}
+
+DEFINE_OPERATION(TAX)
+{
+    cpu.x = cpu.a;cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
 }
 
 #pragma endregion

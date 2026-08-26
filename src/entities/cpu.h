@@ -6,19 +6,19 @@
 
 #define ADDRESSING_MODE(name) \
     struct name { \
-        static AddressResult GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles); \
+        static AddressResult GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles); \
     }
 
 #define DEFINE_ADDRESSING_MODE(name) \
-    CPU::AddressResult CPU::name::GetAddress(CPU& cpu, [[maybe_unused]] u32& cycles)
+    CPU::AddressResult CPU::name::GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles)
     
 #define OPERATION(name) \
     struct name { \
-        static void Execute(CPU& cpu, u16 address); \
+        static void Execute([[maybe_unused]] CPU& cpu, [[maybe_unused]] u16 address); \
     }
 
 #define DEFINE_OPERATION(name) \
-    void CPU::name::Execute(CPU& cpu, u16 address)
+    void CPU::name::Execute([[maybe_unused]] CPU& cpu, [[maybe_unused]] u16 address)
 
 #pragma endregion
 
@@ -100,6 +100,9 @@ namespace Opcodes
     static constexpr u8 STY_ZP = 0x84;
     static constexpr u8 STY_ZPX = 0x94;
     static constexpr u8 STY_ABS = 0x8c;
+
+    // Transfer Accumulator to X
+    static constexpr u8 TAX_IMP = 0xaa;
 }
 
 class CPU
@@ -153,6 +156,7 @@ private:
 #pragma region Addressing Modes
 
 private:
+    ADDRESSING_MODE(Implied);
     ADDRESSING_MODE(Immediate);
     ADDRESSING_MODE(ZeroPage);
     ADDRESSING_MODE(ZeroPageX);
@@ -171,6 +175,7 @@ private:
     OPERATION(STA);
     OPERATION(STX);
     OPERATION(STY);
+    OPERATION(TAX);
 
 #pragma endregion
 
