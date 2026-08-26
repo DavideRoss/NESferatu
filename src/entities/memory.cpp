@@ -27,7 +27,7 @@ void Memory::Write(u16 address, u8 value)
     memory_[address] = value;
 }
 
-void Memory::WriteSeq(u16 address, std::vector<u8> data)
+void Memory::WriteSeq(u16 address, std::initializer_list<u8> data)
 {
     for (u8 val : data)
     {

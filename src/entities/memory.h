@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <initializer_list>
 
 #include "utils/types.h"
 
@@ -15,7 +15,7 @@ public:
 
     u8 Read(u16 address) const;
     void Write(u16 address, u8 value);
-    void WriteSeq(u16 address, std::vector<u8> data);
+    void WriteSeq(u16 address, std::initializer_list<u8> data);
 
 private:
     Bus* bus_ = nullptr;
