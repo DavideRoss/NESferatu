@@ -75,6 +75,13 @@ namespace Opcodes
     static constexpr u8 LDX_ABS = 0xae;
     static constexpr u8 LDX_ABY = 0xbe;
 
+    // Load Y Register
+    static constexpr u8 LDY_IM = 0xa0;
+    static constexpr u8 LDY_ZP = 0xa4;
+    static constexpr u8 LDY_ZPX = 0xb4;
+    static constexpr u8 LDY_ABS = 0xac;
+    static constexpr u8 LDY_ABX = 0xbc;
+
     // Store Accumulator
     static constexpr u8 STA_ZP = 0x85;
     static constexpr u8 STA_ZPX = 0x95;
@@ -155,6 +162,7 @@ private:
     OPERATION(AND);
     OPERATION(LDA);
     OPERATION(LDX);
+    OPERATION(LDY);
     OPERATION(STA);
     OPERATION(STX);
 

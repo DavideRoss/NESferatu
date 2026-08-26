@@ -64,6 +64,13 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LDX_ABS, LDX, Absolute,   false, 0)
         EXECUTE_OPCODE(LDX_ABY, LDX, AbsoluteY,  true,  0)
 
+        // Load Y Register
+        EXECUTE_OPCODE(LDY_IM,  LDY, Immediate,  false, 0)
+        EXECUTE_OPCODE(LDY_ZP,  LDY, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(LDY_ZPX, LDY, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(LDY_ABS, LDY, Absolute,   false, 0)
+        EXECUTE_OPCODE(LDY_ABX, LDY, AbsoluteX,  true,  0)
+
         // Store Accumulator
         EXECUTE_OPCODE(STA_ZP,  STA, ZeroPage,   false, 0)
         EXECUTE_OPCODE(STA_ZPX, STA, ZeroPageX,  false, 0)
@@ -274,6 +281,14 @@ DEFINE_OPERATION(LDX)
 
     cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
     cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
+}
+
+DEFINE_OPERATION(LDY)
+{
+    cpu.y = cpu.ReadByte(address);
+
+    cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
 }
 
 DEFINE_OPERATION(STA)
