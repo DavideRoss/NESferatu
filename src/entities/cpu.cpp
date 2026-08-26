@@ -93,6 +93,15 @@ u32 CPU::Step()
         // Transfer Accumulator to X
         EXECUTE_OPCODE(TAX_IMP, TAX, Implied,    false, 1)
 
+        // Transfer Accumulator to Y
+        EXECUTE_OPCODE(TAY_IMP, TAY, Implied,    false, 1)
+        
+        // Transfer X to Accumulator
+        EXECUTE_OPCODE(TXA_IMP, TXA, Implied,    false, 1)
+
+        // Transfer Y to Accumulator
+        EXECUTE_OPCODE(TYA_IMP, TYA, Implied,    false, 1)
+
         default: throw std::runtime_error("Unimplemented instruction");
     }
 
@@ -321,8 +330,30 @@ DEFINE_OPERATION(STY)
 
 DEFINE_OPERATION(TAX)
 {
-    cpu.x = cpu.a;cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.x = cpu.a;
+    cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
     cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
+}
+
+DEFINE_OPERATION(TAY)
+{
+    cpu.y = cpu.a;
+    cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
+DEFINE_OPERATION(TXA)
+{
+    cpu.a = cpu.x;
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(TYA)
+{
+    cpu.a = cpu.y;
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
 #pragma endregion

@@ -103,6 +103,15 @@ namespace Opcodes
 
     // Transfer Accumulator to X
     static constexpr u8 TAX_IMP = 0xaa;
+
+    // Transfer Accumuator to Y
+    static constexpr u8 TAY_IMP = 0xa8;
+
+    // Transfer X to Accumulator
+    static constexpr u8 TXA_IMP = 0xba;
+
+    // Transfer Y to Accumulator
+    static constexpr u8 TYA_IMP = 0x98;
 }
 
 class CPU
@@ -176,6 +185,9 @@ private:
     OPERATION(STX);
     OPERATION(STY);
     OPERATION(TAX);
+    OPERATION(TAY);
+    OPERATION(TXA);
+    OPERATION(TYA);
 
 #pragma endregion
 
