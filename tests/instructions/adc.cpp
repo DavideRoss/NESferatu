@@ -1,31 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "utils.hpp"
-
-// TODO: no need to test functionality over and over again
-// Just test in immediate mode, and check the cycle count for the rest
-
-TEST(ADC, Immediate)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_IM, 0x20
-    });
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 2);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-
-    // Checking flags
-    EXPECT_FALSE(nes->cpu->GetFlag(StatusFlag::C));
-    EXPECT_FALSE(nes->cpu->GetFlag(StatusFlag::Z));
-    EXPECT_FALSE(nes->cpu->GetFlag(StatusFlag::N));
-    EXPECT_FALSE(nes->cpu->GetFlag(StatusFlag::V));
-}
+#include "test-utils/utils.hpp"
+#include "test-utils/instruction-fixture.hpp"
 
 TEST(ADC, SetZeroFlag)
 {
@@ -142,196 +118,17 @@ TEST(ADC, SetOverflowFlagForNegative)
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::V));
 }
 
-TEST(ADC, ZeroPage)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ZP, 0x20
-    });
-
-    nes->mem->Write(0x0020, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 3);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, ZeroPageX)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->x = 0x05;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ZPX, 0x20
-    });
-
-    nes->mem->Write(0x0025, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 4);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, Absolute)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ABS, 0xaa, 0x07
-    });
-
-    nes->mem->Write(0x07aa, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 4);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, AbsoluteX)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->x = 0x05;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ABX, 0xaa, 0x07
-    });
-
-    nes->mem->Write(0x07af, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 4);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, AbsoluteXPageCrossing)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->x = 0x01;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ABX, 0xff, 0x06
-    });
-
-    nes->mem->Write(0x0700, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 5);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, AbsoluteY)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->y = 0x05;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ABY, 0xaa, 0x07
-    });
-
-    nes->mem->Write(0x07af, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 4);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, AbsoluteYPageCrossing)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->y = 0x01;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_ABY, 0xff, 0x06
-    });
-
-    nes->mem->Write(0x0700, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 5);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, IndirectX)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->x = 0x04;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_IDX, 0x20
-    });
-
-    nes->mem->Write(0x0024, 0xaa);
-    nes->mem->Write(0x0025, 0x07);
-    nes->mem->Write(0x07aa, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 6);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, IndirectY)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->y = 0x05;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_IDY, 0x20
-    });
-
-    nes->mem->Write(0x0020, 0xaa);
-    nes->mem->Write(0x0021, 0x07);
-    nes->mem->Write(0x07af, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 5);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
-
-TEST(ADC, IndirectYPageCrossing)
-{
-    System* nes = TestUtils::SetupSystem();
-    nes->cpu->pc = 0x000;
-
-    nes->cpu->a = 0x10;
-    nes->cpu->y = 0x01;
-
-    nes->mem->WriteSeq(0x0000, {
-        Opcodes::ADC_IDY, 0x20
-    });
-
-    nes->mem->Write(0x0020, 0xff);
-    nes->mem->Write(0x0021, 0x06);
-    nes->mem->Write(0x0700, 0x20);
-
-    const u32 cycles = nes->cpu->Step();
-    EXPECT_EQ(cycles, 6);
-    EXPECT_EQ(nes->cpu->a, 0x30);
-}
+INSTANTIATE_INSTRUCTION_TEST(
+    ADC,
+    OpcodeTest { Opcodes::ADC_IM, TestAddressingMode::Immediate, 2 },
+    OpcodeTest { Opcodes::ADC_ZP, TestAddressingMode::ZeroPage, 3 },
+    OpcodeTest { Opcodes::ADC_ZPX, TestAddressingMode::ZeroPageX, 4 },
+    OpcodeTest { Opcodes::ADC_ABS, TestAddressingMode::Absolute, 4 },
+    OpcodeTest { Opcodes::ADC_ABX, TestAddressingMode::AbsoluteX, 4 },
+    OpcodeTest { Opcodes::ADC_ABX, TestAddressingMode::AbsoluteXPageCrossing, 5 },
+    OpcodeTest { Opcodes::ADC_ABY, TestAddressingMode::AbsoluteY, 4 },
+    OpcodeTest { Opcodes::ADC_ABY, TestAddressingMode::AbsoluteYPageCrossing, 5 },
+    OpcodeTest { Opcodes::ADC_IDX, TestAddressingMode::IndirectX, 6 },
+    OpcodeTest { Opcodes::ADC_IDY, TestAddressingMode::IndirectY, 5 },
+    OpcodeTest { Opcodes::ADC_IDY, TestAddressingMode::IndirectYPageCrossing, 6 }
+);
