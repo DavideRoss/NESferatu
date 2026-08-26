@@ -20,6 +20,7 @@ enum class TestAddressingMode
     Immediate,
     ZeroPage,
     ZeroPageX,
+    ZeroPageY,
     Absolute,
     AbsoluteX,
     AbsoluteXPageCrossing,
@@ -37,6 +38,7 @@ constexpr std::string_view AddressingModeName(TestAddressingMode mode)
         case TestAddressingMode::Immediate: return "Immediate";
         case TestAddressingMode::ZeroPage: return "ZeroPage";
         case TestAddressingMode::ZeroPageX: return "ZeroPageX";
+        case TestAddressingMode::ZeroPageY: return "ZeroPageY";
         case TestAddressingMode::Absolute: return "Absolute";
         case TestAddressingMode::AbsoluteX: return "AbsoluteX";
         case TestAddressingMode::AbsoluteXPageCrossing: return "AbsoluteXPageCrossing";
@@ -70,6 +72,7 @@ public:
             case TestAddressingMode::Immediate: SetupImmediate(test.opcode); break;
             case TestAddressingMode::ZeroPage: SetupZeroPage(test.opcode); break;
             case TestAddressingMode::ZeroPageX: SetupZeroPageX(test.opcode); break;
+            case TestAddressingMode::ZeroPageY: SetupZeroPageY(test.opcode); break;
             case TestAddressingMode::Absolute: SetupAbsolute(test.opcode); break;
             case TestAddressingMode::AbsoluteX: SetupAbsoluteX(test.opcode); break;
             case TestAddressingMode::AbsoluteXPageCrossing: SetupAbsoluteXPageCrossing(test.opcode); break;
@@ -110,6 +113,17 @@ protected:
     void SetupZeroPageX(u8 opcode)
     {
         nes->cpu->x = 0x05;
+
+        Load(0x0000, {
+            opcode, 0x20
+        });
+
+        nes->mem->Write(0x0025, 0x42);
+    }
+
+    void SetupZeroPageY(u8 opcode)
+    {
+        nes->cpu->y = 0x05;
 
         Load(0x0000, {
             opcode, 0x20

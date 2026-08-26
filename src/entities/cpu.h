@@ -68,6 +68,13 @@ namespace Opcodes
     static constexpr u8 LDA_IDX = 0xa1;
     static constexpr u8 LDA_IDY = 0xb1;
 
+    // Load X Register
+    static constexpr u8 LDX_IM = 0xa2;
+    static constexpr u8 LDX_ZP = 0xa6;
+    static constexpr u8 LDX_ZPY = 0xb6;
+    static constexpr u8 LDX_ABS = 0xae;
+    static constexpr u8 LDX_ABY = 0xbe;
+
     // Store Accumulator
     static constexpr u8 STA_ZP = 0x85;
     static constexpr u8 STA_ZPX = 0x95;
@@ -132,6 +139,7 @@ private:
     ADDRESSING_MODE(Immediate);
     ADDRESSING_MODE(ZeroPage);
     ADDRESSING_MODE(ZeroPageX);
+    ADDRESSING_MODE(ZeroPageY);
     ADDRESSING_MODE(Absolute);
     ADDRESSING_MODE(AbsoluteX);
     ADDRESSING_MODE(AbsoluteY);
@@ -141,6 +149,7 @@ private:
     OPERATION(ADC);
     OPERATION(AND);
     OPERATION(LDA);
+    OPERATION(LDX);
     OPERATION(STA);
 
 #pragma endregion

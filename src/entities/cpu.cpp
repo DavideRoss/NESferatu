@@ -57,6 +57,13 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LDA_IDX, LDA, IndirectX,  false, 0)
         EXECUTE_OPCODE(LDA_IDY, LDA, IndirectY,  true,  0)
 
+        // Load X Register
+        EXECUTE_OPCODE(LDX_IM,  LDX, Immediate,  false, 0)
+        EXECUTE_OPCODE(LDX_ZP,  LDX, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(LDX_ZPY, LDX, ZeroPageY,  false, 0)
+        EXECUTE_OPCODE(LDX_ABS, LDX, Absolute,   false, 0)
+        EXECUTE_OPCODE(LDX_ABY, LDX, AbsoluteY,  true,  0)
+
         // Store Accumulator
         EXECUTE_OPCODE(STA_ZP,  STA, ZeroPage,   false, 0)
         EXECUTE_OPCODE(STA_ZPX, STA, ZeroPageX,  false, 0)
@@ -127,6 +134,19 @@ DEFINE_ADDRESSING_MODE(ZeroPageX)
 {
     u8 zero_page = cpu.FetchByte();
     zero_page = (zero_page + cpu.x) & 0xff;
+    cycles++;
+
+    return
+    {
+        zero_page,
+        false
+    };
+}
+
+DEFINE_ADDRESSING_MODE(ZeroPageY)
+{
+    u8 zero_page = cpu.FetchByte();
+    zero_page = (zero_page + cpu.y) & 0xff;
     cycles++;
 
     return
@@ -211,14 +231,6 @@ DEFINE_ADDRESSING_MODE(IndirectY)
 
 #pragma region Operations
 
-DEFINE_OPERATION(LDA)
-{
-    cpu.a = cpu.ReadByte(address);
-
-    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
-    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
-}
-
 DEFINE_OPERATION(ADC)
 {
     u8 data = cpu.ReadByte(address);
@@ -241,6 +253,22 @@ DEFINE_OPERATION(AND)
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(LDA)
+{
+    cpu.a = cpu.ReadByte(address);
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(LDX)
+{
+    cpu.x = cpu.ReadByte(address);
+
+    cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
 }
 
 DEFINE_OPERATION(STA)
