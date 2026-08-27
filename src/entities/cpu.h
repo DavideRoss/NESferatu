@@ -48,12 +48,6 @@ namespace Opcodes
     static constexpr u8 ADC_IDX = 0x61;
     static constexpr u8 ADC_IDY = 0x71;
 
-    // Increment Memory
-    static constexpr u8 INC_ZP = 0xe6;
-    static constexpr u8 INC_ZPX = 0xf6;
-    static constexpr u8 INC_ABS = 0xee;
-    static constexpr u8 INC_ABX = 0xfe;
-
     // Logical AND
     static constexpr u8 AND_IM = 0x29;
     static constexpr u8 AND_ZP = 0x25;
@@ -63,6 +57,19 @@ namespace Opcodes
     static constexpr u8 AND_ABY = 0x39;
     static constexpr u8 AND_IDX = 0x21;
     static constexpr u8 AND_IDY = 0x31;
+
+    // Decrement Memory
+    static constexpr u8 DEC_ZP = 0xc6;
+    static constexpr u8 DEC_ZPX = 0xd6;
+    static constexpr u8 DEC_ABS = 0xce;
+    static constexpr u8 DEC_ABX = 0xde;
+
+
+    // Increment Memory
+    static constexpr u8 INC_ZP = 0xe6;
+    static constexpr u8 INC_ZPX = 0xf6;
+    static constexpr u8 INC_ABS = 0xee;
+    static constexpr u8 INC_ABX = 0xfe;
 
     // Load Accumulator
     static constexpr u8 LDA_IM = 0xa9;
@@ -194,6 +201,7 @@ private:
 
     OPERATION(ADC);
     OPERATION(AND);
+    OPERATION(DEC);
     OPERATION(INC);
     OPERATION(LDA);
     OPERATION(LDX);
