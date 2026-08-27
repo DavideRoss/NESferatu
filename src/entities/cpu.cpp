@@ -53,11 +53,23 @@ u32 CPU::Step()
         EXECUTE_OPCODE(DEC_ABS, DEC, Absolute,   false, 1)
         EXECUTE_OPCODE(DEC_ABX, DEC, AbsoluteX,  false, 2)
 
+        // Decrement X Register
+        EXECUTE_OPCODE(DEX_IMP, DEX, Implied,    false, 1)
+
+        // Decrement Y Register
+        EXECUTE_OPCODE(DEY_IMP, DEY, Implied,    false, 1)
+
         // Increment Memory
         EXECUTE_OPCODE(INC_ZP,  INC, ZeroPage,   false, 1)
         EXECUTE_OPCODE(INC_ZPX, INC, ZeroPageX,  false, 1)
         EXECUTE_OPCODE(INC_ABS, INC, Absolute,   false, 1)
         EXECUTE_OPCODE(INC_ABX, INC, AbsoluteX,  false, 2)
+
+        // Increment X Register
+        EXECUTE_OPCODE(INX_IMP, INX, Implied,    false, 1)
+
+        // Increment Y Register
+        EXECUTE_OPCODE(INY_IMP, INY, Implied,    false, 1)
 
         // Load Accumulator
         EXECUTE_OPCODE(LDA_IM,  LDA, Immediate,  false, 0)
@@ -320,6 +332,22 @@ DEFINE_OPERATION(DEC)
     cpu.SetFlag(StatusFlag::N, data & 0x80);
 }
 
+DEFINE_OPERATION(DEX)
+{
+    cpu.x = (cpu.x - 1) & 0x00ff;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
+}
+
+DEFINE_OPERATION(DEY)
+{
+    cpu.y = (cpu.y - 1) & 0x00ff;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
 DEFINE_OPERATION(INC)
 {
     u8 data = cpu.ReadByte(address);
@@ -328,6 +356,22 @@ DEFINE_OPERATION(INC)
 
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(INX)
+{
+    cpu.x = (cpu.x + 1) & 0x00ff;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
+}
+
+DEFINE_OPERATION(INY)
+{
+    cpu.y = (cpu.y + 1) & 0x00ff;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
 }
 
 DEFINE_OPERATION(LDA)

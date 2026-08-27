@@ -64,12 +64,23 @@ namespace Opcodes
     static constexpr u8 DEC_ABS = 0xce;
     static constexpr u8 DEC_ABX = 0xde;
 
+    // Decrement X Registry
+    static constexpr u8 DEX_IMP = 0xca;
+
+    // Decrement Y Registry
+    static constexpr u8 DEY_IMP = 0x88;
 
     // Increment Memory
     static constexpr u8 INC_ZP = 0xe6;
     static constexpr u8 INC_ZPX = 0xf6;
     static constexpr u8 INC_ABS = 0xee;
     static constexpr u8 INC_ABX = 0xfe;
+
+    // Increment X Registry
+    static constexpr u8 INX_IMP = 0xe8;
+
+    // Increment Y Registry
+    static constexpr u8 INY_IMP = 0xc8;
 
     // Load Accumulator
     static constexpr u8 LDA_IM = 0xa9;
@@ -202,7 +213,11 @@ private:
     OPERATION(ADC);
     OPERATION(AND);
     OPERATION(DEC);
+    OPERATION(DEX);
+    OPERATION(DEY);
     OPERATION(INC);
+    OPERATION(INX);
+    OPERATION(INY);
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);
