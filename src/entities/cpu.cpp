@@ -114,6 +114,20 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LSR_ZPX, LSR, ZeroPageX,  false, 1)
         EXECUTE_OPCODE(LSR_ABS, LSR, Absolute,   false, 1)
         EXECUTE_OPCODE(LSR_ABX, LSR, AbsoluteX,  false, 2)
+
+        // Rotate Left
+        EXECUTE_OPCODE_NO_ADDRESS(ROL_ACC, ROL,         1)
+        EXECUTE_OPCODE(ROL_ZP,  ROL, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(ROL_ZPX, ROL, ZeroPageX,  false, 1)
+        EXECUTE_OPCODE(ROL_ABS, ROL, Absolute,   false, 1)
+        EXECUTE_OPCODE(ROL_ABX, ROL, AbsoluteX,  false, 2)
+
+        // Rotate Right
+        EXECUTE_OPCODE_NO_ADDRESS(ROR_ACC, ROR,         1)
+        EXECUTE_OPCODE(ROR_ZP,  ROR, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(ROR_ZPX, ROR, ZeroPageX,  false, 1)
+        EXECUTE_OPCODE(ROR_ABS, ROR, Absolute,   false, 1)
+        EXECUTE_OPCODE(ROR_ABX, ROR, AbsoluteX,  false, 2)
         
         // Subtract with Carry
         EXECUTE_OPCODE(SBC_IM,  SBC, Immediate,  false, 0)
@@ -459,6 +473,52 @@ DEFINE_OPERATION(LSR)
 
     cpu.WriteByte(address, data);
 
+    cpu.SetFlag(StatusFlag::Z, data == 0);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(ROL)
+{
+    const bool carry = cpu.a >> 7;
+    cpu.a = ((cpu.a << 1) | cpu.GetFlag(StatusFlag::C)) & 0xff;
+
+    cpu.SetFlag(StatusFlag::C, carry);
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(ROL)
+{
+    u8 data = cpu.ReadByte(address);
+    const bool carry = data >> 7;
+    data = ((data << 1) | cpu.GetFlag(StatusFlag::C)) & 0xff;
+
+    cpu.WriteByte(address, data);
+
+    cpu.SetFlag(StatusFlag::C, carry);
+    cpu.SetFlag(StatusFlag::Z, data == 0);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(ROR)
+{
+    const bool carry = cpu.a & 0x01;
+    cpu.a = (cpu.a >> 1) | (cpu.GetFlag(StatusFlag::C) << 7);
+
+    cpu.SetFlag(StatusFlag::C, carry);
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(ROR)
+{
+    u8 data = cpu.ReadByte(address);
+    const bool carry = data & 0x01;
+    data = (data >> 1) | (cpu.GetFlag(StatusFlag::C) << 7);
+    
+    cpu.WriteByte(address, data);
+
+    cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
 }

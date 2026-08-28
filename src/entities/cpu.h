@@ -124,6 +124,20 @@ namespace Opcodes
     static constexpr u8 LSR_ABS = 0x4e;
     static constexpr u8 LSR_ABX = 0x5e;
 
+    // Rotate Left
+    static constexpr u8 ROL_ACC = 0x2a;
+    static constexpr u8 ROL_ZP = 0x26;
+    static constexpr u8 ROL_ZPX = 0x36;
+    static constexpr u8 ROL_ABS = 0x2e;
+    static constexpr u8 ROL_ABX = 0x3e;
+
+    // Rotate Right
+    static constexpr u8 ROR_ACC = 0x6a;
+    static constexpr u8 ROR_ZP = 0x66;
+    static constexpr u8 ROR_ZPX = 0x76;
+    static constexpr u8 ROR_ABS = 0x6e;
+    static constexpr u8 ROR_ABX = 0x7e;
+
     // Subtract with Carry
     static constexpr u8 SBC_IM = 0xe9;
     static constexpr u8 SBC_ZP = 0xe5;
@@ -252,6 +266,8 @@ private:
     OPERATION(LDX);
     OPERATION(LDY);
     OPERATION(LSR);
+    OPERATION(ROL);
+    OPERATION(ROR);
     OPERATION(SBC);
     OPERATION(STA);
     OPERATION(STX);
