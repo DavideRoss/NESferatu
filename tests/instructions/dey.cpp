@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(DEY, BasicYDecrement)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->y = 0x42;
@@ -21,7 +20,7 @@ TEST(DEY, BasicYDecrement)
 
 TEST(DEY, SetZeroFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->y = 0x01;
@@ -38,7 +37,7 @@ TEST(DEY, SetZeroFlag)
 
 TEST(DEY, SetNegativeFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->y = 0x00;

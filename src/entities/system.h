@@ -8,7 +8,7 @@ class System
 {
 
 public:
-    System(Bus* in_bus, CPU* in_cpu, Memory* in_memory);
+    System();
 
     void Reset();
     void Execute(const u32 cycles);

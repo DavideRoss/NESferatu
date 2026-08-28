@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(SBC, BasicSubtraction)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x50;
@@ -22,7 +21,7 @@ TEST(SBC, BasicSubtraction)
 
 TEST(SBC, WithBorrow)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x50;
@@ -39,7 +38,7 @@ TEST(SBC, WithBorrow)
 
 TEST(SBC, NoBorrowSetCarryFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x50;
@@ -56,7 +55,7 @@ TEST(SBC, NoBorrowSetCarryFlag)
 
 TEST(SBC, BorrowClearCarryFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x20;
@@ -74,7 +73,7 @@ TEST(SBC, BorrowClearCarryFlag)
 
 TEST(SBC, SetZeroFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x42;
@@ -91,7 +90,7 @@ TEST(SBC, SetZeroFlag)
 
 TEST(SBC, SetNegativeFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x20;
@@ -108,7 +107,7 @@ TEST(SBC, SetNegativeFlag)
 
 TEST(SBC, SetOverflowFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x7f;
@@ -125,7 +124,7 @@ TEST(SBC, SetOverflowFlag)
 
 TEST(SBC, SetNegativeOverflowFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x80;

@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(ADC, SetZeroFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x00;
@@ -25,7 +24,7 @@ TEST(ADC, SetZeroFlag)
 
 TEST(ADC, SetCarryOutFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0xff;
@@ -45,7 +44,7 @@ TEST(ADC, SetCarryOutFlag)
 
 TEST(ADC, UsesCarryInFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x10;
@@ -62,7 +61,7 @@ TEST(ADC, UsesCarryInFlag)
 
 TEST(ADC, SetNegativeFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x40;
@@ -80,7 +79,7 @@ TEST(ADC, SetNegativeFlag)
 
 TEST(ADC, SetOverflowFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x7f;
@@ -100,7 +99,7 @@ TEST(ADC, SetOverflowFlag)
 
 TEST(ADC, SetOverflowFlagForNegative)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0x80;

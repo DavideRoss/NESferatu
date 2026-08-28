@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(AND, SetZeroFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0xf0;
@@ -24,7 +23,7 @@ TEST(AND, SetZeroFlag)
 
 TEST(AND, SetNegativeFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     nes->cpu->pc = 0x000;
 
     nes->cpu->a = 0xcc;

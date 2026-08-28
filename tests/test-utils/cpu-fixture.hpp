@@ -9,14 +9,7 @@ protected:
 
     void SetUp() override
     {
-        CPU* cpu = new CPU();
-        Memory* mem = new Memory();
-        Bus* bus = new Bus(cpu, mem);
-
-        cpu->ConnectBus(bus);
-        mem->ConnectBus(bus);
-
-        nes = new System(bus, cpu, mem);
+        nes = new System();
         nes->Reset();
         nes->cpu->pc = 0x0000;
     }

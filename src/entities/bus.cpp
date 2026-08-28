@@ -6,6 +6,8 @@
 Bus::Bus(CPU *in_cpu, Memory *in_memory)
     : cpu_(in_cpu), memory_(in_memory)
 {
+    cpu_->ConnectBus(this);
+    memory_->ConnectBus(this);
 }
 
 u8 Bus::ReadByte(u16 address)

@@ -1,8 +1,10 @@
 #include "system.h"
 
-System::System(Bus *in_bus, CPU *in_cpu, Memory *in_memory)
-    : bus(in_bus), cpu(in_cpu), mem(in_memory)
+System::System()
 {
+    cpu = new CPU();
+    mem = new Memory();
+    bus = new Bus(cpu, mem);
 }
 
 void System::Reset()

@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "test-utils/utils.hpp"
+#include "entities/system.h"
 
 TEST(TAY, TransferAToY)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
     
     nes->cpu->pc = 0x000;
     nes->cpu->a = 0x10;
@@ -18,7 +18,7 @@ TEST(TAY, TransferAToY)
 
 TEST(TAY, SetZeroFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
 
     nes->cpu->pc = 0x000;
     nes->cpu->a = 0x00;
@@ -31,7 +31,7 @@ TEST(TAY, SetZeroFlag)
 
 TEST(TAY, SetNegativeFlag)
 {
-    System* nes = TestUtils::SetupSystem();
+    System* nes = new System();
 
     nes->cpu->pc = 0x000;
     nes->cpu->a = 0x8a;
