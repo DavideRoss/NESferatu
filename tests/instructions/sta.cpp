@@ -6,7 +6,7 @@ TEST(STA, WriteToMemory)
 {
     System* nes = new System();
 
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x10;
 
     nes->mem->WriteSeq(0x0000,

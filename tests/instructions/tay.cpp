@@ -6,7 +6,7 @@ TEST(TAY, TransferAToY)
 {
     System* nes = new System();
     
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x10;
 
     nes->mem->Write(0x0000, Opcodes::TAY_IMP);
@@ -20,7 +20,7 @@ TEST(TAY, SetZeroFlag)
 {
     System* nes = new System();
 
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x00;
 
     nes->mem->Write(0x0000, Opcodes::TAY_IMP);
@@ -33,7 +33,7 @@ TEST(TAY, SetNegativeFlag)
 {
     System* nes = new System();
 
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x8a;
 
     nes->mem->Write(0x0000, Opcodes::TAY_IMP);

@@ -5,7 +5,7 @@
 TEST(INY, BasicYIncrement)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->y = 0x42;
 
@@ -21,7 +21,7 @@ TEST(INY, BasicYIncrement)
 TEST(INY, SetZeroFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->y = 0xff;
 
@@ -38,7 +38,7 @@ TEST(INY, SetZeroFlag)
 TEST(INY, SetNegativeFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->y = 0x7f;
 

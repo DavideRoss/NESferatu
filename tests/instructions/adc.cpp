@@ -5,7 +5,7 @@
 TEST(ADC, SetZeroFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x00;
 
@@ -25,7 +25,7 @@ TEST(ADC, SetZeroFlag)
 TEST(ADC, SetCarryOutFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0xff;
 
@@ -45,7 +45,7 @@ TEST(ADC, SetCarryOutFlag)
 TEST(ADC, UsesCarryInFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x10;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -62,7 +62,7 @@ TEST(ADC, UsesCarryInFlag)
 TEST(ADC, SetNegativeFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x40;
 
@@ -80,7 +80,7 @@ TEST(ADC, SetNegativeFlag)
 TEST(ADC, SetOverflowFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x7f;
 
@@ -100,7 +100,7 @@ TEST(ADC, SetOverflowFlag)
 TEST(ADC, SetOverflowFlagForNegative)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x80;
 

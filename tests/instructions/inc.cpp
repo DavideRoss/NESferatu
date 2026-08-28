@@ -5,7 +5,7 @@
 TEST(INC, BasicIncrement)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
     {
@@ -21,7 +21,7 @@ TEST(INC, BasicIncrement)
 TEST(INC, SetZeroFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
     {
@@ -38,7 +38,7 @@ TEST(INC, SetZeroFlag)
 TEST(INC, SetNegativeFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
     {

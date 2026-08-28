@@ -6,7 +6,7 @@ TEST(LDX, SetZeroFlag)
 {
     System* nes = new System();
 
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
     {
@@ -22,7 +22,7 @@ TEST(LDX, SetNegativeFlag)
 {
     System* nes = new System();
 
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
     {

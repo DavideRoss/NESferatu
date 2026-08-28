@@ -5,7 +5,7 @@
 TEST(SBC, BasicSubtraction)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -22,7 +22,7 @@ TEST(SBC, BasicSubtraction)
 TEST(SBC, WithBorrow)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, false);
@@ -39,7 +39,7 @@ TEST(SBC, WithBorrow)
 TEST(SBC, NoBorrowSetCarryFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -56,7 +56,7 @@ TEST(SBC, NoBorrowSetCarryFlag)
 TEST(SBC, BorrowClearCarryFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x20;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -74,7 +74,7 @@ TEST(SBC, BorrowClearCarryFlag)
 TEST(SBC, SetZeroFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x42;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -91,7 +91,7 @@ TEST(SBC, SetZeroFlag)
 TEST(SBC, SetNegativeFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x20;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -108,7 +108,7 @@ TEST(SBC, SetNegativeFlag)
 TEST(SBC, SetOverflowFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x7f;
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -125,7 +125,7 @@ TEST(SBC, SetOverflowFlag)
 TEST(SBC, SetNegativeOverflowFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x80;
     nes->cpu->SetFlag(StatusFlag::C, true);

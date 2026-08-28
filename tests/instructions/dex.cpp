@@ -5,7 +5,7 @@
 TEST(DEX, BasicXDecrement)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0x42;
 
@@ -21,7 +21,7 @@ TEST(DEX, BasicXDecrement)
 TEST(DEX, SetZeroFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0x01;
 
@@ -38,7 +38,7 @@ TEST(DEX, SetZeroFlag)
 TEST(DEX, SetNegativeFlag)
 {
     System* nes = new System();
-    nes->cpu->pc = 0x000;
+    nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0x00;
 
