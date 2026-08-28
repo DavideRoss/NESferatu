@@ -17,6 +17,7 @@
 
 enum class TestAddressingMode
 {
+    Accumulator,
     Implied,
     Immediate,
     ZeroPage,
@@ -36,6 +37,7 @@ constexpr std::string_view AddressingModeName(TestAddressingMode mode)
 {
     switch (mode)
     {
+        case TestAddressingMode::Accumulator: return "Accumulator";
         case TestAddressingMode::Implied: return "Implied";
         case TestAddressingMode::Immediate: return "Immediate";
         case TestAddressingMode::ZeroPage: return "ZeroPage";
@@ -71,7 +73,8 @@ public:
     {
         switch (test.mode)
         {
-            case TestAddressingMode::Implied: break;
+            case TestAddressingMode::Accumulator:
+            case TestAddressingMode::Implied: SetupImplied(test.opcode); break;
             case TestAddressingMode::Immediate: SetupImmediate(test.opcode); break;
             case TestAddressingMode::ZeroPage: SetupZeroPage(test.opcode); break;
             case TestAddressingMode::ZeroPageX: SetupZeroPageX(test.opcode); break;
@@ -97,6 +100,13 @@ public:
     }
 
 protected:
+    void SetupImplied(u8 opcode)
+    {
+        Load(0x0000, {
+            opcode,
+        });
+    }
+
     void SetupImmediate(u8 opcode)
     {
         Load(0x0000, {

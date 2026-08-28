@@ -1,11 +1,15 @@
 #include "cpu.h"
 
 #include <stdexcept>
+#include <format>
 
 #include "bus.h"
 
 #define EXECUTE_OPCODE(opcode, operation, addressing_mode, page_cross, extra_cycles) \
     case Opcodes::opcode: Execute<operation, addressing_mode, page_cross, extra_cycles>(); break;
+
+#define EXECUTE_OPCODE_NO_ADDRESS(opcode, operation, extra_cycles) \
+    case Opcodes::opcode: Execute<operation, extra_cycles>(); break;
 
 void CPU::ConnectBus(Bus *bus)
 {
@@ -24,6 +28,8 @@ u32 CPU::Step()
 {
     cycles_ = 0;
     
+    // TODO: use DEFINE_OPERATION_NO_ADDRESS for opcodes with implied operands
+    // TODO: cleanup implied addressing mode afterwards
     u8 instruction = FetchByte();
     switch (instruction)
     {
@@ -46,6 +52,13 @@ u32 CPU::Step()
         EXECUTE_OPCODE(AND_ABY, AND, AbsoluteY,  true,  0)
         EXECUTE_OPCODE(AND_IDX, AND, IndirectX,  false, 0)
         EXECUTE_OPCODE(AND_IDY, AND, IndirectY,  true,  0)
+
+        // Arithmetic Shift Left
+        EXECUTE_OPCODE_NO_ADDRESS(ASL_ACC, ASL,         1)
+        EXECUTE_OPCODE(ASL_ZP,  ASL, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(ASL_ZPX, ASL, ZeroPageX,  false, 1)
+        EXECUTE_OPCODE(ASL_ABS, ASL, Absolute,   false, 1)
+        EXECUTE_OPCODE(ASL_ABX, ASL, AbsoluteX,  false, 2)
 
         // Decrement Memory
         EXECUTE_OPCODE(DEC_ZP,  DEC, ZeroPage,   false, 1)
@@ -94,6 +107,13 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LDY_ZPX, LDY, ZeroPageX,  false, 0)
         EXECUTE_OPCODE(LDY_ABS, LDY, Absolute,   false, 0)
         EXECUTE_OPCODE(LDY_ABX, LDY, AbsoluteX,  true,  0)
+
+        // Logical Shift Right
+        EXECUTE_OPCODE_NO_ADDRESS(LSR_ACC, LSR,         1)
+        EXECUTE_OPCODE(LSR_ZP,  LSR, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(LSR_ZPX, LSR, ZeroPageX,  false, 1)
+        EXECUTE_OPCODE(LSR_ABS, LSR, Absolute,   false, 1)
+        EXECUTE_OPCODE(LSR_ABX, LSR, AbsoluteX,  false, 2)
         
         // Subtract with Carry
         EXECUTE_OPCODE(SBC_IM,  SBC, Immediate,  false, 0)
@@ -136,7 +156,7 @@ u32 CPU::Step()
         // Transfer Y to Accumulator
         EXECUTE_OPCODE(TYA_IMP, TYA, Implied,    false, 1)
 
-        default: throw std::runtime_error("Unimplemented instruction");
+        default: throw std::runtime_error(std::format("Unimplemented instruction: 0x{:02x}", instruction));
     }
 
     return cycles_;
@@ -322,6 +342,28 @@ DEFINE_OPERATION(AND)
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
+DEFINE_OPERATION(ASL)
+{
+    u8 data = cpu.ReadByte(address);
+    const u8 carry = data >> 7;
+    data = (data << 1) & 0x00ff;
+    cpu.WriteByte(address, data);
+
+    cpu.SetFlag(StatusFlag::C, carry);
+    cpu.SetFlag(StatusFlag::Z, data == 0);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(ASL)
+{
+    u8 carry = cpu.a >> 7;
+    cpu.a = (cpu.a << 1) & 0x00ff;
+
+    cpu.SetFlag(StatusFlag::C, carry);
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
 DEFINE_OPERATION(DEC)
 {
     u8 data = cpu.ReadByte(address);
@@ -396,6 +438,29 @@ DEFINE_OPERATION(LDY)
 
     cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(LSR)
+{
+    cpu.SetFlag(StatusFlag::C, cpu.a & 0x01);
+
+    cpu.a >>= 1;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION(LSR)
+{
+    u8 data = cpu.ReadByte(address);
+    
+    cpu.SetFlag(StatusFlag::C, data & 0x01);
+    data >>= 1;
+
+    cpu.WriteByte(address, data);
+
+    cpu.SetFlag(StatusFlag::Z, data == 0);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
 }
 
 DEFINE_OPERATION(SBC)

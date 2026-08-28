@@ -15,10 +15,14 @@
 #define OPERATION(name) \
     struct name { \
         static void Execute([[maybe_unused]] CPU& cpu, [[maybe_unused]] u16 address); \
+        static void Execute([[maybe_unused]] CPU& cpu); \
     }
 
 #define DEFINE_OPERATION(name) \
     void CPU::name::Execute([[maybe_unused]] CPU& cpu, [[maybe_unused]] u16 address)
+
+#define DEFINE_OPERATION_NO_ADDRESS(name) \
+    void CPU::name::Execute([[maybe_unused]] CPU& cpu)
 
 #pragma endregion
 
@@ -57,6 +61,13 @@ namespace Opcodes
     static constexpr u8 AND_ABY = 0x39;
     static constexpr u8 AND_IDX = 0x21;
     static constexpr u8 AND_IDY = 0x31;
+
+    // Arithmetic Shift Left
+    static constexpr u8 ASL_ACC = 0x0a;
+    static constexpr u8 ASL_ZP = 0x06;
+    static constexpr u8 ASL_ZPX = 0x16;
+    static constexpr u8 ASL_ABS = 0x0e;
+    static constexpr u8 ASL_ABX = 0x1e;
 
     // Decrement Memory
     static constexpr u8 DEC_ZP = 0xc6;
@@ -105,6 +116,13 @@ namespace Opcodes
     static constexpr u8 LDY_ZPX = 0xb4;
     static constexpr u8 LDY_ABS = 0xac;
     static constexpr u8 LDY_ABX = 0xbc;
+
+    // Logical Shift Right
+    static constexpr u8 LSR_ACC = 0x4a;
+    static constexpr u8 LSR_ZP = 0x46;
+    static constexpr u8 LSR_ZPX = 0x56;
+    static constexpr u8 LSR_ABS = 0x4e;
+    static constexpr u8 LSR_ABX = 0x5e;
 
     // Subtract with Carry
     static constexpr u8 SBC_IM = 0xe9;
@@ -179,6 +197,16 @@ private:
 
     template<
         typename Operation,
+        u32 ExtraCycles = 0
+    >
+    void Execute()
+    {
+        cycles_ += ExtraCycles;
+        Operation::Execute(*this);
+    }
+
+    template<
+        typename Operation,
         typename AddressingMode,
         bool PageCrossPenalty = false,
         u32 ExtraCycles = 0
@@ -199,6 +227,7 @@ private:
 #pragma region Addressing Modes
 
 private:
+    // TODO: cleanup implied addressing mode after using NO_ADDRESS macro
     ADDRESSING_MODE(Implied);
     ADDRESSING_MODE(Immediate);
     ADDRESSING_MODE(ZeroPage);
@@ -212,6 +241,7 @@ private:
 
     OPERATION(ADC);
     OPERATION(AND);
+    OPERATION(ASL);
     OPERATION(DEC);
     OPERATION(DEX);
     OPERATION(DEY);
@@ -221,6 +251,7 @@ private:
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);
+    OPERATION(LSR);
     OPERATION(SBC);
     OPERATION(STA);
     OPERATION(STX);
