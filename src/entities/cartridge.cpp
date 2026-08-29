@@ -31,8 +31,7 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     }
 
     LoadMetadata();
-    SelectMapper();
-
+    
     // Initialize memories
     const std::size_t prg_offset = 16 + (metadata.trainer ? 512 : 0);
     prg_rom_ = std::span<const u8>(
@@ -41,6 +40,8 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     );
 
     prg_ram_ = std::vector<u8>(metadata.prg_ram_size);
+
+    SelectMapper();
 }
 
 Cartridge::Cartridge(std::span<const u8> data)

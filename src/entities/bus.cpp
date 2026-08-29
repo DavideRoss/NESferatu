@@ -48,7 +48,7 @@ u8 Bus::ReadByte(u16 address)
         // Cartridge
         case 0x4020 ... 0xffff:
         {
-            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
+            return cartridge_.CPURead(address);
         }
 
         default:
@@ -96,8 +96,8 @@ void Bus::WriteByte(u16 address, u8 data)
         // Cartridge
         case 0x4020 ... 0xffff:
         {
-            throw std::logic_error(std::format("Not implemented. Address 0x{:04x}", address));
-        }
+            cartridge_.CPUWrite(address, data);
+        }; break;
 
         default:
         {
