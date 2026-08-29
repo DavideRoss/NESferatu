@@ -124,6 +124,16 @@ namespace Opcodes
     static constexpr u8 LSR_ABS = 0x4e;
     static constexpr u8 LSR_ABX = 0x5e;
 
+    // Logical Inclusive OR
+    static constexpr u8 ORA_IM = 0x09;
+    static constexpr u8 ORA_ZP = 0x05;
+    static constexpr u8 ORA_ZPX = 0x15;
+    static constexpr u8 ORA_ABS = 0x0d;
+    static constexpr u8 ORA_ABX = 0x1d;
+    static constexpr u8 ORA_ABY = 0x19;
+    static constexpr u8 ORA_IDX = 0x01;
+    static constexpr u8 ORA_IDY = 0x11;
+
     // Rotate Left
     static constexpr u8 ROL_ACC = 0x2a;
     static constexpr u8 ROL_ZP = 0x26;
@@ -266,6 +276,7 @@ private:
     OPERATION(LDX);
     OPERATION(LDY);
     OPERATION(LSR);
+    OPERATION(ORA);
     OPERATION(ROL);
     OPERATION(ROR);
     OPERATION(SBC);

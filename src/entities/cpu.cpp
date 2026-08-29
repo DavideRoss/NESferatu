@@ -120,6 +120,16 @@ u32 CPU::Step()
         EXECUTE_OPCODE(LSR_ABS, LSR, Absolute,   false, 1)
         EXECUTE_OPCODE(LSR_ABX, LSR, AbsoluteX,  false, 2)
 
+        // Logical Inclusive OR
+        EXECUTE_OPCODE(ORA_IM,  ORA, Immediate,  false, 0)
+        EXECUTE_OPCODE(ORA_ZP,  ORA, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(ORA_ZPX, ORA, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(ORA_ABS, ORA, Absolute,   false, 0)
+        EXECUTE_OPCODE(ORA_ABX, ORA, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(ORA_ABY, ORA, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(ORA_IDX, ORA, IndirectX,  false, 0)
+        EXECUTE_OPCODE(ORA_IDY, ORA, IndirectY,  true,  0)
+
         // Rotate Left
         EXECUTE_OPCODE_NO_ADDRESS(ROL_ACC, ROL,         1)
         EXECUTE_OPCODE(ROL_ZP,  ROL, ZeroPage,   false, 1)
@@ -480,6 +490,16 @@ DEFINE_OPERATION(LSR)
 
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(ORA)
+{
+    u8 data = cpu.ReadByte(address);
+
+    cpu.a |= data;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
 DEFINE_OPERATION_NO_ADDRESS(ROL)
