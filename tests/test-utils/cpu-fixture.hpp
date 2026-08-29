@@ -12,7 +12,6 @@ protected:
     void SetUp() override
     {
         nes = TestUtils::CreateTestSystem();
-        nes->Reset();
         nes->cpu->pc = 0x0000;
     }
 

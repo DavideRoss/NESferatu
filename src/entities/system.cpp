@@ -5,8 +5,6 @@ System::System(Cartridge& cartridge)
     cpu = std::make_unique<CPU>();
     mem = std::make_unique<Memory>();
     bus = std::make_unique<Bus>(*cpu, *mem, cartridge);
-
-    Reset();
 }
 
 void System::Reset()
