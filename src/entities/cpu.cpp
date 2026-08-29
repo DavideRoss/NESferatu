@@ -22,6 +22,11 @@ void CPU::Reset()
     pc = 0xfffc;
     sp = 0xfd;
     s = 0x00;
+
+    // Read reset vector
+    u8 reset_low = ReadByte(0xfffc);
+    u8 reset_high = ReadByte(0xfffd);
+    pc = (reset_high << 8) | reset_low;
 }
 
 u32 CPU::Step()

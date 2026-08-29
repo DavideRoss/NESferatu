@@ -12,6 +12,7 @@ public:
 
     void Reset();
     void Execute(const u32 cycles);
+    u32 Step();
 
 public:
     std::unique_ptr<Bus> bus;
