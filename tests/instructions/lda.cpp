@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(LDA, SetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
 
     nes->cpu->pc = 0x0000;
 
@@ -20,7 +21,7 @@ TEST(LDA, SetZeroFlag)
 
 TEST(LDA, SetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
 
     nes->cpu->pc = 0x0000;
 

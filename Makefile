@@ -14,7 +14,7 @@ build: configure
 test: build
 	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
-run: test
+run: build
 	./$(BUILD_DIR)/NESferatu
 
 clean:

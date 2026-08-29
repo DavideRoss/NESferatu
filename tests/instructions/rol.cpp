@@ -1,8 +1,9 @@
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(ROL, LeftRotateAccumulator)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x21;
@@ -18,7 +19,7 @@ TEST(ROL, LeftRotateAccumulator)
 
 TEST(ROL, AcccumulatorGetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x42;
@@ -35,7 +36,7 @@ TEST(ROL, AcccumulatorGetCarryFlag)
 
 TEST(ROL, AcccumulatorSetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x80;
@@ -52,7 +53,7 @@ TEST(ROL, AcccumulatorSetCarryFlag)
 
 TEST(ROL, AcccumulatorSetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x00;
@@ -69,7 +70,7 @@ TEST(ROL, AcccumulatorSetZeroFlag)
 
 TEST(ROL, AcccumulatorSetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x40;
@@ -86,7 +87,7 @@ TEST(ROL, AcccumulatorSetNegativeFlag)
 
 TEST(ROL, LeftRotateZeropage)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -102,7 +103,7 @@ TEST(ROL, LeftRotateZeropage)
 
 TEST(ROL, ZeroPageGetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->SetFlag(StatusFlag::C, true);
@@ -120,7 +121,7 @@ TEST(ROL, ZeroPageGetCarryFlag)
 
 TEST(ROL, ZeroPageSetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -137,7 +138,7 @@ TEST(ROL, ZeroPageSetCarryFlag)
 
 TEST(ROL, ZeroPageSetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -154,7 +155,7 @@ TEST(ROL, ZeroPageSetZeroFlag)
 
 TEST(ROL, ZeroPageSetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 

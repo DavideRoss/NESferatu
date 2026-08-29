@@ -1,10 +1,10 @@
 #include "system.h"
 
-System::System()
+System::System(Cartridge& cartridge)
 {
-    cpu = new CPU();
-    mem = new Memory();
-    bus = new Bus(cpu, mem);
+    cpu = std::make_unique<CPU>();
+    mem = std::make_unique<Memory>();
+    bus = std::make_unique<Bus>(*cpu, *mem, cartridge);
 }
 
 void System::Reset()

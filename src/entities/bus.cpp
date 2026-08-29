@@ -3,11 +3,11 @@
 #include <stdexcept>
 #include <format>
 
-Bus::Bus(CPU *in_cpu, Memory *in_memory)
-    : cpu_(in_cpu), memory_(in_memory)
+Bus::Bus(CPU& cpu, Memory& memory, Cartridge& cartridge)
+    : cpu_(cpu), memory_(memory), cartridge_(cartridge)
 {
-    cpu_->ConnectBus(this);
-    memory_->ConnectBus(this);
+    cpu_.ConnectBus(this);
+    memory_.ConnectBus(this);
 }
 
 u8 Bus::ReadByte(u16 address)
@@ -18,7 +18,7 @@ u8 Bus::ReadByte(u16 address)
         case 0x000 ... 0x1fff:
         {
             u16 unmirrored_address = address & 0x07ff;
-            return memory_->Read(unmirrored_address);
+            return memory_.Read(unmirrored_address);
         }
 
         // PPU registers
@@ -66,7 +66,7 @@ void Bus::WriteByte(u16 address, u8 data)
         case 0x000 ... 0x1fff:
         {
             u16 unmirrored_address = address & 0x07ff;
-            memory_->Write(unmirrored_address, data);
+            memory_.Write(unmirrored_address, data);
         }; break;
 
         // PPU registers

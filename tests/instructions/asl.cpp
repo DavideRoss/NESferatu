@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(ASL, LeftShiftAccumulator)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x21;
@@ -20,7 +21,7 @@ TEST(ASL, LeftShiftAccumulator)
 
 TEST(ASL, AcccumulatorSetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x80;
@@ -37,7 +38,7 @@ TEST(ASL, AcccumulatorSetCarryFlag)
 
 TEST(ASL, AcccumulatorSetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x00;
@@ -54,7 +55,7 @@ TEST(ASL, AcccumulatorSetZeroFlag)
 
 TEST(ASL, AcccumulatorSetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x40;
@@ -71,7 +72,7 @@ TEST(ASL, AcccumulatorSetNegativeFlag)
 
 TEST(ASL, LeftShiftZeroPage)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -87,7 +88,7 @@ TEST(ASL, LeftShiftZeroPage)
 
 TEST(ASL, ZeroPageSetCarryFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -104,7 +105,7 @@ TEST(ASL, ZeroPageSetCarryFlag)
 
 TEST(ASL, ZeroPageSetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 
@@ -121,7 +122,7 @@ TEST(ASL, ZeroPageSetZeroFlag)
 
 TEST(ASL, ZeroPageSetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000, 

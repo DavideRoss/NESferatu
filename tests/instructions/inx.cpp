@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(INX, BasicXIncrement)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0x42;
@@ -20,7 +21,7 @@ TEST(INX, BasicXIncrement)
 
 TEST(INX, SetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0xff;
@@ -37,7 +38,7 @@ TEST(INX, SetZeroFlag)
 
 TEST(INX, SetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->x = 0x7f;

@@ -8,13 +8,13 @@ class System
 {
 
 public:
-    System();
+    System(Cartridge& cartridge);
 
     void Reset();
     void Execute(const u32 cycles);
 
 public:
-    Bus* bus;
-    CPU* cpu;
-    Memory* mem;
+    std::unique_ptr<Bus> bus;
+    std::unique_ptr<CPU> cpu;
+    std::unique_ptr<Memory> mem;
 };

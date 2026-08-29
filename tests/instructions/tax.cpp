@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
+
 #include "entities/system.h"
 
 TEST(TAX, TransferAToX)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     
     nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x10;
@@ -18,7 +20,7 @@ TEST(TAX, TransferAToX)
 
 TEST(TAX, SetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
 
     nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x00;
@@ -31,7 +33,7 @@ TEST(TAX, SetZeroFlag)
 
 TEST(TAX, SetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
 
     nes->cpu->pc = 0x0000;
     nes->cpu->a = 0x8a;

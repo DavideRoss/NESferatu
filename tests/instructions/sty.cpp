@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(STY, WriteToMemory)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
 
     nes->cpu->pc = 0x0000;
     nes->cpu->y = 0x10;

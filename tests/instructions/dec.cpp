@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 TEST(DEC, BasicDecrement)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
@@ -20,7 +21,7 @@ TEST(DEC, BasicDecrement)
 
 TEST(DEC, SetZeroFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,
@@ -37,7 +38,7 @@ TEST(DEC, SetZeroFlag)
 
 TEST(DEC, SetNegativeFlag)
 {
-    System* nes = new System();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->mem->WriteSeq(0x0000,

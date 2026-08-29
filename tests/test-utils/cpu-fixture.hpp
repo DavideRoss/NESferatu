@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "test-utils/utils.hpp"
+
 #include "entities/system.h"
 
 class CPUTest : public ::testing::Test
@@ -9,7 +11,7 @@ protected:
 
     void SetUp() override
     {
-        nes = new System();
+        nes = TestUtils::CreateTestSystem();
         nes->Reset();
         nes->cpu->pc = 0x0000;
     }

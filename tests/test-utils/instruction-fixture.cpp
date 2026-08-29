@@ -1,3 +1,4 @@
+#include "test-utils/utils.hpp"
 #include "test-utils/instruction-fixture.hpp"
 
 namespace TestUtils
