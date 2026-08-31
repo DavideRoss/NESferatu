@@ -25,3 +25,24 @@ u32 System::Step()
 {
     return cpu->Step();
 }
+
+std::span<const Pixel> System::GetFramebuffer()
+{
+    // TODO: get framebuffer from PPU
+
+    Pixel pixels[] = {
+        { 0xff, 0x00, 0x00 },
+        { 0x00, 0xff, 0x00 },
+        { 0x00, 0x00, 0xff },
+        { 0xff, 0xff, 0x00 },
+        { 0xff, 0x00, 0xff },
+        { 0x00, 0xff, 0xff }
+    };
+
+    for (u32 i = 0; i < 256 * 240; i++)
+    {
+        framebuffer_[i] = pixels[i % 6];
+    }
+
+    return framebuffer_;
+}
