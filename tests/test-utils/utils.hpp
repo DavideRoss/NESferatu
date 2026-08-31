@@ -28,7 +28,7 @@ namespace TestUtils
 
     inline const Cartridge GetDummyCartridge()
     {
-        static const std::vector<u8> dummy_data = GetDummyCartridgeData("../tests/test-roms/basic-parsing.nes");
+        static const std::vector<u8> dummy_data = GetDummyCartridgeData("../../tests/test-roms/basic-parsing.nes");
         Cartridge cartridge(dummy_data);
         return cartridge;
     }

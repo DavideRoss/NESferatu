@@ -9,7 +9,8 @@ int main()
 
     Cartridge cart("roms/Excitebike (Europe).nes");
     System* nes = new System(cart);
-    (void)nes;
+    nes->Reset();
+    nes->Step();
 
     return 0;
 }

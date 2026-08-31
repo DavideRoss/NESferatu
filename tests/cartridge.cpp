@@ -7,13 +7,13 @@
 TEST(Cartridge, BasicParse)
 {
     EXPECT_NO_THROW({
-        Cartridge* cart = new Cartridge("../tests/test-roms/basic-parsing.nes");
+        Cartridge* cart = new Cartridge("../../tests/test-roms/basic-parsing.nes");
     });
 }
 
 TEST(Cartridge, MissingFile)
 {
-    const std::filesystem::path path = "../tests/test-roms/not-existant.nes";
+    const std::filesystem::path path = "../../tests/test-roms/not-existant.nes";
 
     try
     {
@@ -31,7 +31,7 @@ TEST(Cartridge, MissingFile)
 
 TEST(Cartridge, ShortHeader)
 {
-    const std::filesystem::path path = "../tests/test-roms/short-header.nes";
+    const std::filesystem::path path = "../../tests/test-roms/short-header.nes";
 
     try
     {
@@ -49,7 +49,7 @@ TEST(Cartridge, ShortHeader)
 
 TEST(Cartridge, WrongHeader)
 {
-    const std::filesystem::path path = "../tests/test-roms/wrong-header.nes";
+    const std::filesystem::path path = "../../tests/test-roms/wrong-header.nes";
 
     try
     {
@@ -67,7 +67,7 @@ TEST(Cartridge, WrongHeader)
 
 TEST(Cartridge, MissingNES2Flags)
 {
-    const std::filesystem::path path = "../tests/test-roms/wrong-nes-flag.nes";
+    const std::filesystem::path path = "../../tests/test-roms/wrong-nes-flag.nes";
 
     try
     {
