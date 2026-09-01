@@ -25,6 +25,10 @@ target_compile_options(NESferatuCompileOptions INTERFACE
     -Wmissing-declarations
     -Woverlength-strings
     -Wwrite-strings
+    
+    # TODO: enable unused check for final compilation
+    -Wno-unused-parameter
+    -Wno-unused-variable
 )
 
 include(GoogleTest)

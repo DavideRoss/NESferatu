@@ -18,17 +18,21 @@ target_link_libraries(NESferatuTests PRIVATE
     GTest::gtest_main
 )
 
-target_compile_options(NESferatuTests PRIVATE
-        -Wall
-        -Wextra
-        -Werror
-        -Wcast-qual
-        -Wmissing-declarations
-        -Woverlength-strings
-        -Wwrite-strings
+target_precompile_headers(NESferatuTests PRIVATE
+    <gtest/gtest.h>
+)
 
-        -Wno-unused-variable
-        -Wno-missing-declarations
+target_compile_options(NESferatuTests PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -Wcast-qual
+    -Wmissing-declarations
+    -Woverlength-strings
+    -Wwrite-strings
+
+    -Wno-unused-variable
+    -Wno-missing-declarations
 )
 
 gtest_discover_tests(NESferatuTests)
