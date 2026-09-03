@@ -19,6 +19,7 @@ int main()
     {
         sdl->PollEvents();
 
+        nes->StepFrame();
         std::span<const Pixel> framebuffer = nes->GetFramebuffer();
         sdl->Render(framebuffer);
 

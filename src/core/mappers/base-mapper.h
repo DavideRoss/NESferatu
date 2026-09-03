@@ -7,14 +7,23 @@
 class BaseMapper
 {
 public:
-    BaseMapper(std::span<const u8> prg_rom, std::span<u8> prg_ram);
+    BaseMapper(
+        std::span<const u8> prg_rom, std::span<u8> prg_ram,
+        std::span<const u8> chr_rom, std::span<u8> chr_ram
+    );
 
     virtual u8 CPURead(u16 address) = 0;
     virtual void CPUWrite(u16 address, u8 data) = 0;
+
+    virtual u8 PPURead(u16 address) = 0;
+    virtual void PPUWrite(u16 address, u8 data) = 0;
 
     virtual ~BaseMapper() = default;
 
 protected:
     std::span<const u8> prg_rom_;
     std::span<u8> prg_ram_;
+    
+    std::span<const u8> chr_rom_;
+    std::span<u8> chr_ram_;
 };

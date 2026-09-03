@@ -193,7 +193,7 @@ u32 CPU::Step()
 
 u8 CPU::FetchByte()
 {
-    const u8 data = bus_->ReadByte(pc);
+    const u8 data = bus_->CPURead(pc);
     pc++;
     cycles_++;
     return data;
@@ -201,14 +201,14 @@ u8 CPU::FetchByte()
 
 u8 CPU::ReadByte(u16 address)
 {
-    const u8 data = bus_->ReadByte(address);
+    const u8 data = bus_->CPURead(address);
     cycles_++;
     return data;
 }
 
 void CPU::WriteByte(u16 address, u8 data)
 {
-    bus_->WriteByte(address, data);
+    bus_->CPUWrite(address, data);
     cycles_++;
 }
 

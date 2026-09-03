@@ -5,18 +5,23 @@
 #include "cartridge.h"
 #include "cpu.h"
 #include "memory.h"
+#include "ppu.h"
 
 class Bus
 {
 
 public:
-    Bus(CPU& cpu, Memory& memory, Cartridge& cartridge);
+    Bus(CPU& cpu, Memory& memory, PPU& ppu, Cartridge& cartridge);
 
-    u8 ReadByte(u16 address);
-    void WriteByte(u16 address, u8 data);
+    u8 CPURead(u16 address);
+    void CPUWrite(u16 address, u8 data);
+
+    u8 PPURead(u16 address);
+    void PPUWrite(u16 address, u8 data);
 
 private:
     CPU& cpu_;
     Memory& memory_;
+    PPU& ppu_;
     Cartridge& cartridge_;
 };

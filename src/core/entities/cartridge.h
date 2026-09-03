@@ -56,7 +56,8 @@ public:
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
 
-
+    u8 PPURead(u16 address);
+    void PPUWrite(u16 address, u8 data);
 
 public:
     CartridgeMetadata metadata;
@@ -71,10 +72,9 @@ private:
 
     std::shared_ptr<BaseMapper> mapper_;
 
-    // TODO: possible removal
-    u32 prg_banks_ = 0;
-    u32 chr_banks = 0;
-
     std::span<const u8> prg_rom_;
     std::vector<u8> prg_ram_;
+
+    std::span<const u8> chr_rom_;
+    std::vector<u8> chr_ram_;
 };
