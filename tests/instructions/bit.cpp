@@ -5,7 +5,7 @@
 
 TEST(BIT, SetZeroFlag)
 {
-    System *nes = TestUtils::CreateTestSystem();
+    System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
     nes->cpu->a = 0x0f;

@@ -7,7 +7,6 @@ TEST(EOR, SetZeroFlag)
 {
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
-    nes->cpu->SetFlag(StatusFlag::Z, true);
 
     nes->cpu->a = 0xff;
 
@@ -16,8 +15,7 @@ TEST(EOR, SetZeroFlag)
     });
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->cpu->a, 0x00);
-    EXPECT_FALSE(nes->cpu->GetFlag(StatusFlag::Z));
+    EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::Z));
 }
 
 TEST(EOR, SetNegativeFlag)

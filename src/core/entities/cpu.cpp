@@ -66,8 +66,28 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ASL_ABX, ASL, AbsoluteX,  false, 2)
 
         // Bit Test
-        EXECUTE_OPCODE(BIT_ZP,  BIT, ZeroPage,   false, 1)
-        EXECUTE_OPCODE(BIT_ABS, BIT, Absolute,   false, 1)
+        EXECUTE_OPCODE(BIT_ZP,  BIT, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(BIT_ABS, BIT, Absolute,   false, 0)
+
+        // Compare
+        EXECUTE_OPCODE(CMP_IM,  CMP, Immediate,  false, 0)
+        EXECUTE_OPCODE(CMP_ZP,  CMP, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(CMP_ZPX, CMP, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(CMP_ABS, CMP, Absolute,   false, 0)
+        EXECUTE_OPCODE(CMP_ABX, CMP, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(CMP_ABY, CMP, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(CMP_IDX, CMP, IndirectX,  false, 0)
+        EXECUTE_OPCODE(CMP_IDY, CMP, IndirectY,  true,  0)
+
+        // Compare X Register
+        EXECUTE_OPCODE(CPX_IM,  CPX, Immediate,  false, 0)
+        EXECUTE_OPCODE(CPX_ZP,  CPX, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(CPX_ABS, CPX, Absolute,   false, 0)
+
+        // Compare Y Register
+        EXECUTE_OPCODE(CPY_IM,  CPY, Immediate,  false, 0)
+        EXECUTE_OPCODE(CPY_ZP,  CPY, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(CPY_ABS, CPY, Absolute,   false, 0)
 
         // Decrement Memory
         EXECUTE_OPCODE(DEC_ZP,  DEC, ZeroPage,   false, 1)
@@ -410,10 +430,40 @@ DEFINE_OPERATION_NO_ADDRESS(ASL)
 DEFINE_OPERATION(BIT)
 {
     u8 data = cpu.ReadByte(address);
-    
-    cpu.SetFlag(StatusFlag::Z, data & cpu.a);
+
+    cpu.SetFlag(StatusFlag::Z, !(data & cpu.a));
     cpu.SetFlag(StatusFlag::V, data & 0x40);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(CMP)
+{
+    const u8 data = cpu.ReadByte(address);
+    const u8 result = cpu.a - data;
+
+    cpu.SetFlag(StatusFlag::C, cpu.a >= data);
+    cpu.SetFlag(StatusFlag::Z, cpu.a == data);
+    cpu.SetFlag(StatusFlag::N, result & 0x80);
+}
+
+DEFINE_OPERATION(CPX)
+{
+    const u8 data = cpu.ReadByte(address);
+    const u8 result = cpu.x - data;
+
+    cpu.SetFlag(StatusFlag::C, cpu.x >= data);
+    cpu.SetFlag(StatusFlag::Z, cpu.x == data);
+    cpu.SetFlag(StatusFlag::N, result & 0x80);
+}
+
+DEFINE_OPERATION(CPY)
+{
+    const u8 data = cpu.ReadByte(address);
+    const u8 result = cpu.y - data;
+
+    cpu.SetFlag(StatusFlag::C, cpu.y >= data);
+    cpu.SetFlag(StatusFlag::Z, cpu.y == data);
+    cpu.SetFlag(StatusFlag::N, result & 0x80);
 }
 
 DEFINE_OPERATION(DEC)

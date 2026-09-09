@@ -73,6 +73,26 @@ namespace Opcodes
     static constexpr u8 BIT_ZP = 0x24;
     static constexpr u8 BIT_ABS = 0x2c;
 
+    // Compare
+    static constexpr u8 CMP_IM = 0xc9;
+    static constexpr u8 CMP_ZP = 0xc5;
+    static constexpr u8 CMP_ZPX = 0xd5;
+    static constexpr u8 CMP_ABS = 0xcd;
+    static constexpr u8 CMP_ABX = 0xdd;
+    static constexpr u8 CMP_ABY = 0xd9;
+    static constexpr u8 CMP_IDX = 0xc1;
+    static constexpr u8 CMP_IDY = 0xd1;
+
+    // Compare X Register
+    static constexpr u8 CPX_IM = 0xe0;
+    static constexpr u8 CPX_ZP = 0xe4;
+    static constexpr u8 CPX_ABS = 0xec;
+
+    // Compare Y Register
+    static constexpr u8 CPY_IM = 0xc0;
+    static constexpr u8 CPY_ZP = 0xc4;
+    static constexpr u8 CPY_ABS = 0xcc;
+
     // Decrement Memory
     static constexpr u8 DEC_ZP = 0xc6;
     static constexpr u8 DEC_ZPX = 0xd6;
@@ -281,6 +301,9 @@ private:
     OPERATION(AND);
     OPERATION(ASL);
     OPERATION(BIT);
+    OPERATION(CMP);
+    OPERATION(CPX);
+    OPERATION(CPY);
     OPERATION(DEC);
     OPERATION(DEX);
     OPERATION(DEY);
