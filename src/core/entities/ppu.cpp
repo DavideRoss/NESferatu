@@ -40,16 +40,79 @@ void PPU::Step()
 {
     frame_complete_ = false;
 
-    switch (scanline_)
+    if (scanline_ == 261)
     {
-        case 0 ... 239: StepVisibleScanline(); break;
-        case 240: StepPostRenderScanline(); break;
-        case 241 ... 260: StepBlankScanline(); break;
-        case 261: StepPreRenderScanline(); break;
+        if (GetFlag(mask, PPUMaskFlag::EnableBackground) || GetFlag(mask, PPUMaskFlag::EnableSprites))
+        {
+            // Background rendering/fetching
+            if (cycle_ >= 1 && cycle_ <= 256)
+            {
+                BackgroundRenderFetch();
+            }
+
+            // Background rendering/fetching
+            if (cycle_ >= 321 && cycle_ <= 336)
+            {
+                BackgroundRenderFetch();
+            }
+
+            // Increment coarse and fine Y
+            if (cycle_ == 256)
+            {
+                if ((v_ & 0x7000) != 0x7000)
+                {
+                    v_ += 0x1000;
+                }
+                else
+                {
+                    v_ &= ~0x7000;
+
+                    u16 coarse_y = (v_ & 0x03e0) >> 5;
+                    if (coarse_y == 29)
+                    {
+                        coarse_y = 0;
+                        v_ ^= 0x0800;
+                    }
+                    else if (coarse_y == 31)
+                    {
+                        v_ &= ~0x03e0;
+                    }
+                    else
+                    {
+                        v_ += 0x0020;
+                    }
+                }
+            }
+
+            // Copy horizontal scroll bits from temporary register
+            if (cycle_ == 257)
+            {
+                v_ = (v_ & 0xfbe0) | (t_ & 0x041f);
+            }
+
+            // Sprite evaluation/fetching
+            if (cycle_ >= 257 && cycle_ <= 320)
+            {
+                // TODO: fill
+            }
+
+            // Copy vertical scroll bits from temporary register
+            if (cycle_ >= 280 && cycle_ <= 304)
+            {
+                v_ = (v_ & 0x041f) | (t_ & 0x7be0);
+            }
+
+            // Nabletable fetches
+            if (cycle_ >= 337 && cycle_ <= 340)
+            {
+                const u16 address = (0x2000 | (v_ & 0x0fff));
+                next_tile_id_ = PPURead(address);
+            }
+        }
     }
 
+    // Cycle increment
     ++cycle_;
-
     if (cycle_ >= CYCLES_PER_SCANLINE)
     {
         cycle_ = 0;
@@ -186,52 +249,25 @@ constexpr void PPU::SetFlag(u8 reg, u8 flag, bool val)
     reg = val ? reg | flag : reg & ~flag;
 }
 
-void PPU::StepVisibleScanline()
+void PPU::BackgroundRenderFetch()
 {
-    // Visible dots
-    if (cycle_ >= 1 && cycle_ <= 256)
-    {
-        StepBackground();
-    }
-
-    // Load tiles for next scanline
-    if (cycle_ >= 321 && cycle_ <= 336)
-    {
-        StepBackground();
-    }
-}
-
-void PPU::StepBackground()
-{
-    // Background is disabled, nothing to do here
-    if (!GetFlag(mask, PPUMaskFlag::EnableBackground))
-    {
-        return;
-    }
-
-    if (cycle_ >= 1 && cycle_ <= 256)
-    {
-        const u8 pattern_low = (pattern_shift_low_ >> (15 - x_)) & 0x01;
-        const u8 pattern_high = (pattern_shift_high_ >> (15 - x_)) & 0x01;
-        const u8 pattern = pattern_low | (pattern_high << 1);
-
-        const u8 palette_low = (attribute_shift_low_ >> (15 - x_)) & 0x01;
-        const u8 palette_high = (attribute_shift_high_ >> (15 - x_)) & 0x01;
-        const u8 palette = palette_low | (palette_high << 1);
-
-        const u8 color = pattern == 0 ? palettes_[0] : palettes_[palette * 4 + pattern];
-        framebuffer_[scanline_ * SCREEN_WIDTH + cycle_] = NESColor(color);
-
-        pattern_shift_low_ <<= 1;
-        pattern_shift_high_ <<= 1;
-        attribute_shift_low_ <<= 1;
-        attribute_shift_high_ <<= 1;
-    }
-
-    // Step background fetch
     const u8 phase = cycle_ % 8;
     switch (phase)
     {
+        case 0:
+        {
+            // Increment coarse X
+            if ((v_ & 0x001f) == 31)
+            {
+                v_ &= ~0x001f;
+                v_ ^= 0x0400;
+            }
+            else
+            {
+                ++v_;
+            }
+        }; break;
+
         case 1:
         {
             // Load shift registers
@@ -269,15 +305,10 @@ void PPU::StepBackground()
         case 7:
         {
             // Fetch pattern high
-            const u16 address = GetBackgroundPatternTableAddress() + next_tile_id_ * 16 + ((v_ >> 12) && 0x0007) + 8;
+            const u16 address = GetBackgroundPatternTableAddress() + next_tile_id_ * 16 + ((v_ >> 12) & 0x0007) + 8;
             next_tile_pattern_high_ = PPURead(address);
         }; break;
     }
-
-    // TODO: increment horizontal scrolling
-    // TODO: increment vertical scrolling
-    // TODO: copy horizontal scroll
-    // TODO: copy vertical scroll
 }
 
 u16 PPU::GetBackgroundPatternTableAddress() const

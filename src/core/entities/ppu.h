@@ -87,13 +87,8 @@ private:
     constexpr u8 GetFlag(u8 reg, u8 flag) const;
     constexpr void SetFlag(u8 reg, u8 flag, bool val);
 
-    // PPU State machine
-    void StepVisibleScanline();
-    void StepPostRenderScanline();
-    void StepBlankScanline();
-    void StepPreRenderScanline();
-
-    void StepBackground();
+    // NOTE: cleanup functions
+    void BackgroundRenderFetch();
 
     u16 GetBackgroundPatternTableAddress() const;
 
