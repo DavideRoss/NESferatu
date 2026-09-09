@@ -65,6 +65,10 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ASL_ABS, ASL, Absolute,   false, 1)
         EXECUTE_OPCODE(ASL_ABX, ASL, AbsoluteX,  false, 2)
 
+        // Bit Test
+        EXECUTE_OPCODE(BIT_ZP,  BIT, ZeroPage,   false, 1)
+        EXECUTE_OPCODE(BIT_ABS, BIT, Absolute,   false, 1)
+
         // Decrement Memory
         EXECUTE_OPCODE(DEC_ZP,  DEC, ZeroPage,   false, 1)
         EXECUTE_OPCODE(DEC_ZPX, DEC, ZeroPageX,  false, 1)
@@ -76,6 +80,16 @@ u32 CPU::Step()
 
         // Decrement Y Register
         EXECUTE_OPCODE(DEY_IMP, DEY, Implied,    false, 1)
+
+        // Exclusive OR
+        EXECUTE_OPCODE(EOR_IM,  EOR, Immediate,  false, 0)
+        EXECUTE_OPCODE(EOR_ZP,  EOR, ZeroPage,   false, 0)
+        EXECUTE_OPCODE(EOR_ZPX, EOR, ZeroPageX,  false, 0)
+        EXECUTE_OPCODE(EOR_ABS, EOR, Absolute,   false, 0)
+        EXECUTE_OPCODE(EOR_ABX, EOR, AbsoluteX,  true,  0)
+        EXECUTE_OPCODE(EOR_ABY, EOR, AbsoluteY,  true,  0)
+        EXECUTE_OPCODE(EOR_IDX, EOR, IndirectX,  false, 0)
+        EXECUTE_OPCODE(EOR_IDY, EOR, IndirectY,  true,  0)
 
         // Increment Memory
         EXECUTE_OPCODE(INC_ZP,  INC, ZeroPage,   false, 1)
@@ -393,6 +407,15 @@ DEFINE_OPERATION_NO_ADDRESS(ASL)
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
+DEFINE_OPERATION(BIT)
+{
+    u8 data = cpu.ReadByte(address);
+    
+    cpu.SetFlag(StatusFlag::Z, data & cpu.a);
+    cpu.SetFlag(StatusFlag::V, data & 0x40);
+    cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
 DEFINE_OPERATION(DEC)
 {
     u8 data = cpu.ReadByte(address);
@@ -417,6 +440,16 @@ DEFINE_OPERATION(DEY)
 
     cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
+DEFINE_OPERATION(EOR)
+{
+    u8 data = cpu.ReadByte(address);
+
+    cpu.a ^= data;
+
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
 DEFINE_OPERATION(INC)

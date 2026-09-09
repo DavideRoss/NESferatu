@@ -69,6 +69,10 @@ namespace Opcodes
     static constexpr u8 ASL_ABS = 0x0e;
     static constexpr u8 ASL_ABX = 0x1e;
 
+    // Bit Test
+    static constexpr u8 BIT_ZP = 0x24;
+    static constexpr u8 BIT_ABS = 0x2c;
+
     // Decrement Memory
     static constexpr u8 DEC_ZP = 0xc6;
     static constexpr u8 DEC_ZPX = 0xd6;
@@ -80,6 +84,16 @@ namespace Opcodes
 
     // Decrement Y Registry
     static constexpr u8 DEY_IMP = 0x88;
+
+    // Exclusive OR
+    static constexpr u8 EOR_IM = 0x49;
+    static constexpr u8 EOR_ZP = 0x45;
+    static constexpr u8 EOR_ZPX = 0x55;
+    static constexpr u8 EOR_ABS = 0x4d;
+    static constexpr u8 EOR_ABX = 0x5d;
+    static constexpr u8 EOR_ABY = 0x59;
+    static constexpr u8 EOR_IDX = 0x41;
+    static constexpr u8 EOR_IDY = 0x51;
 
     // Increment Memory
     static constexpr u8 INC_ZP = 0xe6;
@@ -266,9 +280,11 @@ private:
     OPERATION(ADC);
     OPERATION(AND);
     OPERATION(ASL);
+    OPERATION(BIT);
     OPERATION(DEC);
     OPERATION(DEX);
     OPERATION(DEY);
+    OPERATION(EOR);
     OPERATION(INC);
     OPERATION(INX);
     OPERATION(INY);
