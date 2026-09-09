@@ -24,17 +24,11 @@ u8 Bus::CPURead(u16 address)
             return memory_.Read(unmirrored_address);
         }
 
-        // PPU registers
-        case 0x2000 ... 0x2007:
+        // PPU registers + mirrors
+        case 0x2000 ... 0x3fff:
         {
-            u16 unmirrored_address = address & 0x0007;
-            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
-        }
-
-        // Mirrors of PPU registers
-        case 0x2008 ... 0x3fff:
-        {
-            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
+            u16 unmirrored_address = (address & 0x0007) | 0x2000;
+            return ppu_.CPURead(unmirrored_address);
         }
 
         // APU and I/O
@@ -73,17 +67,12 @@ void Bus::CPUWrite(u16 address, u8 data)
             memory_.Write(unmirrored_address, data);
         }; break;
 
-        // PPU registers
-        case 0x2000 ... 0x2007:
+        // PPU registers + mirrors
+        case 0x2000 ... 0x3fff:
         {
-            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
-        }
-
-        // Mirrors of PPU registers
-        case 0x2008 ... 0x3fff:
-        {
-            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
-        }
+            u16 unmirrored_address = (address & 0x0007) | 0x2000;
+            ppu_.CPUWrite(unmirrored_address, data);
+        }; break;
 
         // APU and I/O
         case 0x4000 ... 0x4017:

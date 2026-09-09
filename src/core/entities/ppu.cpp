@@ -42,6 +42,11 @@ void PPU::Step()
 
     if (scanline_ == 261)
     {
+        if (cycle_ == 1)
+        {
+            status &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
+        }
+
         if (GetFlag(mask, PPUMaskFlag::EnableBackground) || GetFlag(mask, PPUMaskFlag::EnableSprites))
         {
             // Background rendering/fetching
@@ -111,6 +116,41 @@ void PPU::Step()
         }
     }
 
+    if (scanline_ <= 239)
+    {
+        if (GetFlag(mask, PPUMaskFlag::EnableBackground))
+        {
+            if (cycle_ >= 1 && cycle_ <= 256)
+            {
+                // Generate background pixel
+                // TODO: move them somewhere else
+                constexpr u16 FRAMEBUFFER_WIDTH  = 256;
+                constexpr u16 FRAMEBUFFER_HEIGHT = 240;
+
+                const u8 pattern_low = (pattern_shift_low_ >> (15 - fine_x_)) & 0x01;
+                const u8 pattern_high = (pattern_shift_high_ >> (15 - fine_x_)) & 0x01;
+                const u8 pattern = (pattern_high << 1) | pattern_low;
+
+                const u8 palette_low = (attribute_shift_low_ >> (15 - fine_x_)) & 0x01;
+                const u8 palette_high = (attribute_shift_high_ >> (15 - fine_x_)) & 0x01;
+                const u8 palette = (palette_high << 1) | palette_low;
+
+                const u8 palette_index = pattern == 0 ? palettes_[0] : palettes_[palette * 4 + pattern];
+
+                const std::size_t framebuffer_index =
+                    static_cast<std::size_t>(scanline_) * FRAMEBUFFER_WIDTH +
+                    static_cast<std::size_t>(cycle_) - 1;
+
+                framebuffer_[framebuffer_index] = NESColor(palette_index);
+
+                pattern_shift_low_ <<= 1;
+                pattern_shift_high_ <<= 1;
+                attribute_shift_low_ <<= 1;
+                attribute_shift_high_ <<= 1;
+            }
+        }
+    }
+    
     // Cycle increment
     ++cycle_;
     if (cycle_ >= CYCLES_PER_SCANLINE)
@@ -135,64 +175,47 @@ u8 PPU::CPURead(u16 address)
 {
     switch (address)
     {
-        case 0x0000: // PPUCTRL
-        case 0x0001: // PPUMASK
-        case 0x0003: // OAMADDR
-        case 0x0005: // PPUSCROLL
-        case 0x0006: // PPUADDR
+        case 0x2000: // PPUCTRL
+        case 0x2001: // PPUMASK
+        case 0x2003: // OAMADDR
+        case 0x2005: // PPUSCROLL
+        case 0x2006: // PPUADDR
         case 0x2014: // OAM DMA
-            throw std::runtime_error(std::format("[PPU] Address is write-only: 0x{:04x}", address));
+            NESFERATU_THROW("Address is write-only: 0x{:04x}", address);
 
-        case 0x0002: return status; // TODO: implement open-bus behavior (random on lower bits)
-        case 0x0004: return oam_data;
-        case 0x0007: return data;
+        case 0x2002: return status; // TODO: implement open-bus behavior (random on lower bits)
+        case 0x2004: return oam_data;
+        case 0x2007: return data;
 
-        default: throw std::runtime_error(std::format("[PPU] Unmapped address: 0x{:04x}", address));
+        default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
     }
 }
 
 void PPU::CPUWrite(u16 address, u8 val)
 {
-    throw std::logic_error(std::format("[PPU] Writing not implemented. Address 0x{:04x}", address));
-}
+    switch (address)
+    {
+        // Scroll register
+        case 0x2005:
+        {
+            if (!w_)
+            {
+                // First write
+                t_ = (t_ & 0x7fe0) | (val >> 3);
+                fine_x_ = val & 0x07;
+            }
+            else
+            {
+                // Second write
+                t_ = (t_ & 0x0c1f) | (((val & 0x07) << 12) | ((val & 0xf8) << 2));
+            }
 
-Pixel PPU::RenderPixel(u32 x, u32 y)
-{
-    constexpr u16 NAMETABLE_BASE = 0x2000;
-    constexpr u16 PATTERN_TABLE_BASE = 0x0000;
+            w_ = !w_;
+            return;
+        }
 
-    constexpr u32 TILE_SIZE = 8;
-    constexpr u32 NAMETABLE_WIDTH = 32;
-
-    const u32 tile_x = x / TILE_SIZE;
-    const u32 tile_y = y / TILE_SIZE;
-
-    const u32 pixel_x = x % TILE_SIZE;
-    const u32 pixel_y = y % TILE_SIZE;
-
-    const u16 nametable_address = NAMETABLE_BASE + tile_y * NAMETABLE_WIDTH + tile_x;
-    const u8 tile_index = PPURead(nametable_address);
-    const u16 pattern_address = PATTERN_TABLE_BASE + static_cast<u16>(tile_index) * 16;
-
-    const u8 plane0 = PPURead(pattern_address + pixel_y);
-    const u8 plane1 = PPURead(pattern_address + pixel_y + 8);
-
-    const u8 low = (plane0 >> (7 - pixel_x)) & 1;
-    const u8 high = (plane1 >> (7 - pixel_x)) & 1;
-    const u8 color_index = low | (high << 1);
-
-    const u16 attr_address = 0x23c0 + (tile_y / 4) * 8 + (tile_x / 4);
-    const u8 attribute = PPURead(attr_address);
-
-    const u8 quadrant_x = (tile_x % 4) / 2;
-    const u8 quadrant_y = (tile_y % 4) / 2;
-    const u8 shift = (quadrant_y * 4 + quadrant_x * 2);
-    const u8 palette = (attribute >> shift) & 0x03;
-
-    const u16 palette_address = color_index == 0 ? 0x3f00 : 0x3f00 + palette * 4 + color_index;
-    const u8 nes_color = PPURead(palette_address);
-
-    return NESColor(nes_color);
+        default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
+    }
 }
 
 u8 PPU::PPURead(u16 address)

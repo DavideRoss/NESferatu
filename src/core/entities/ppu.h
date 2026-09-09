@@ -65,7 +65,7 @@ public:
     std::span<const Pixel> GetFramebuffer();
 
 private:
-    Pixel RenderPixel(u32 x, u32 y);
+    // Pixel RenderPixel(u32 x, u32 y);
 
     u8 PPURead(u16 address);
     void PPUWrite(u16 address, u8 val);
@@ -78,7 +78,6 @@ public:
     u8 status;
     u8 oam_addr;
     u8 oam_data;
-    u8 scroll;
     u8 addr;
     u8 data;
     u8 oam_dma;
@@ -158,9 +157,10 @@ private:
     // NOTE: NEEDED:
     u16 pattern_shift_low_ = 0;
     u16 pattern_shift_high_ = 0;
-
     u16 attribute_shift_low_ = 0;
     u16 attribute_shift_high_ = 0;
+
+    u8 fine_x_ = 0;
 
     // Framebuffer and memories
     std::array<Pixel, SCREEN_WIDTH * SCREEN_HEIGHT> framebuffer_;
