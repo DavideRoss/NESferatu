@@ -64,10 +64,22 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ASL_ZPX, ASL, ZeroPageX,  false, 1)
         EXECUTE_OPCODE(ASL_ABS, ASL, Absolute,   false, 1)
         EXECUTE_OPCODE(ASL_ABX, ASL, AbsoluteX,  false, 2)
+        
+        // Branch if Carry Clear
+        EXECUTE_OPCODE(BCC_REL, BCC, Relative,   true,  0)
+        
+        // Branch if Carry Set
+        EXECUTE_OPCODE(BCS_REL, BCS, Relative,   true,  0)
 
+        // Branch if Equal
+        EXECUTE_OPCODE(BEQ_REL, BEQ, Relative,   true,  0)
+        
         // Bit Test
         EXECUTE_OPCODE(BIT_ZP,  BIT, ZeroPage,   false, 0)
         EXECUTE_OPCODE(BIT_ABS, BIT, Absolute,   false, 0)
+        
+        // Branch if Not Equal
+        EXECUTE_OPCODE(BNE_REL, BNE, Relative,   true,  0)
 
         // Compare
         EXECUTE_OPCODE(CMP_IM,  CMP, Immediate,  false, 0)
@@ -225,6 +237,11 @@ u32 CPU::Step()
     return cycles_;
 }
 
+u8 CPU::PeekByte()
+{
+    return bus_->ReadByte(pc);
+}
+
 u8 CPU::FetchByte()
 {
     const u8 data = bus_->ReadByte(pc);
@@ -269,6 +286,19 @@ DEFINE_ADDRESSING_MODE(Immediate)
     {
         cpu.pc++,
         false
+    };
+}
+
+DEFINE_ADDRESSING_MODE(Relative)
+{
+    const s8 offset = static_cast<s8>(cpu.PeekByte());
+    const u16 target = cpu.pc + offset;
+    const bool page_cross = (cpu.pc & 0xff00) != (target & 0xff00);
+
+    return
+    {
+        cpu.pc++,
+        page_cross
     };
 }
 
@@ -427,6 +457,36 @@ DEFINE_OPERATION_NO_ADDRESS(ASL)
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
+DEFINE_OPERATION(BCC)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (!cpu.GetFlag(StatusFlag::C))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
+DEFINE_OPERATION(BCS)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (cpu.GetFlag(StatusFlag::C))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
+DEFINE_OPERATION(BEQ)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (cpu.GetFlag(StatusFlag::Z))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
 DEFINE_OPERATION(BIT)
 {
     u8 data = cpu.ReadByte(address);
@@ -434,6 +494,16 @@ DEFINE_OPERATION(BIT)
     cpu.SetFlag(StatusFlag::Z, !(data & cpu.a));
     cpu.SetFlag(StatusFlag::V, data & 0x40);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(BNE)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (!cpu.GetFlag(StatusFlag::Z))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
 }
 
 DEFINE_OPERATION(CMP)

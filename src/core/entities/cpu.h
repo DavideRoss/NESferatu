@@ -69,9 +69,21 @@ namespace Opcodes
     static constexpr u8 ASL_ABS = 0x0e;
     static constexpr u8 ASL_ABX = 0x1e;
 
+    // Branch if Carry Clear
+    static constexpr u8 BCC_REL = 0x90;
+    
+    // Branch if Carry Set
+    static constexpr u8 BCS_REL = 0xb0;
+    
+    // Branch if Equal
+    static constexpr u8 BEQ_REL = 0xf0;
+
     // Bit Test
     static constexpr u8 BIT_ZP = 0x24;
     static constexpr u8 BIT_ABS = 0x2c;
+
+    // Branch if Not Equal
+    static constexpr u8 BNE_REL = 0xd0;
 
     // Compare
     static constexpr u8 CMP_IM = 0xc9;
@@ -188,7 +200,7 @@ namespace Opcodes
     static constexpr u8 SBC_ZPX = 0xf5;
     static constexpr u8 SBC_ABS = 0xed;
     static constexpr u8 SBC_ABX = 0xfd;
-    static constexpr u8 SBC_ABY = 0xf0;
+    static constexpr u8 SBC_ABY = 0xf9;
     static constexpr u8 SBC_IDX = 0xe1;
     static constexpr u8 SBC_IDY = 0xf1;
 
@@ -232,6 +244,7 @@ public:
 
     u32 Step();
 
+    u8 PeekByte();
     u8 FetchByte();
     u8 ReadByte(u16 address);
     void WriteByte(u16 address, u8 data);
@@ -288,6 +301,7 @@ private:
     // TODO: cleanup implied addressing mode after using NO_ADDRESS macro
     ADDRESSING_MODE(Implied);
     ADDRESSING_MODE(Immediate);
+    ADDRESSING_MODE(Relative);
     ADDRESSING_MODE(ZeroPage);
     ADDRESSING_MODE(ZeroPageX);
     ADDRESSING_MODE(ZeroPageY);
@@ -300,7 +314,11 @@ private:
     OPERATION(ADC);
     OPERATION(AND);
     OPERATION(ASL);
+    OPERATION(BCC);
+    OPERATION(BCS);
+    OPERATION(BEQ);
     OPERATION(BIT);
+    OPERATION(BNE);
     OPERATION(CMP);
     OPERATION(CPX);
     OPERATION(CPY);
