@@ -154,6 +154,9 @@ namespace Opcodes
     // Jump
     static constexpr u8 JMP_ABS = 0x4c;
     static constexpr u8 JMP_IND = 0x6c;
+    
+    // Jump to Subroutine
+    static constexpr u8 JSR_ABS = 0x20;
 
     // Load Accumulator
     static constexpr u8 LDA_IM = 0xa9;
@@ -209,6 +212,9 @@ namespace Opcodes
     static constexpr u8 ROR_ZPX = 0x76;
     static constexpr u8 ROR_ABS = 0x6e;
     static constexpr u8 ROR_ABX = 0x7e;
+    
+    // Return from Subroutine
+    static constexpr u8 RTS_IMP = 0x60;
 
     // Subtract with Carry
     static constexpr u8 SBC_IM = 0xe9;
@@ -268,6 +274,9 @@ public:
     u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
 
+    void PushToStack(const u8 data);
+    u8 PullFromStack();
+
 public:
     u8 a;       // Accumulator
     u8 x, y;    // GP registers
@@ -311,8 +320,6 @@ private:
         Operation::Execute(*this, res.address);
     }
 
-#pragma region Addressing Modes
-
 private:
     // TODO: cleanup implied addressing mode after using NO_ADDRESS macro
     ADDRESSING_MODE(Implied);
@@ -351,6 +358,7 @@ private:
     OPERATION(INX);
     OPERATION(INY);
     OPERATION(JMP);
+    OPERATION(JSR);
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);
@@ -358,6 +366,7 @@ private:
     OPERATION(ORA);
     OPERATION(ROL);
     OPERATION(ROR);
+    OPERATION(RTS);
     OPERATION(SBC);
     OPERATION(STA);
     OPERATION(STX);
@@ -366,8 +375,6 @@ private:
     OPERATION(TAY);
     OPERATION(TXA);
     OPERATION(TYA);
-
-#pragma endregion
 
 private:
     Bus* bus_ = nullptr;

@@ -20,7 +20,7 @@ void CPU::Reset()
 {
     a = x = y = 0x0;
     pc = 0xfffc;
-    sp = 0xfd;
+    sp = 0xff;
     s = 0x00;
 
     // Read reset vector
@@ -150,6 +150,9 @@ u32 CPU::Step()
         // Jump
         EXECUTE_OPCODE(JMP_ABS, JMP, Absolute,   false, 0)
         EXECUTE_OPCODE(JMP_IND, JMP, Indirect,   false, 0)
+        
+        // Jump to Subroutine
+        EXECUTE_OPCODE(JSR_ABS, JSR, Absolute,   false, 1)
 
         // Load Accumulator
         EXECUTE_OPCODE(LDA_IM,  LDA, Immediate,  false, 0)
@@ -205,6 +208,9 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ROR_ZPX, ROR, ZeroPageX,  false, 1)
         EXECUTE_OPCODE(ROR_ABS, ROR, Absolute,   false, 1)
         EXECUTE_OPCODE(ROR_ABX, ROR, AbsoluteX,  false, 2)
+
+        // Return from Subroutine
+        EXECUTE_OPCODE(RTS_IMP, RTS, Implied,    false, 3)
         
         // Subtract with Carry
         EXECUTE_OPCODE(SBC_IM,  SBC, Immediate,  false, 0)
@@ -287,6 +293,21 @@ u8 CPU::GetFlag(StatusFlag flag)
 void CPU::SetFlag(StatusFlag flag, bool val)
 {
     s = val ? s | flag : s & ~flag;
+}
+
+void CPU::PushToStack(const u8 data)
+{
+    bus_->WriteByte(0x0100 | sp, data);
+    --sp;
+    cycles_++;
+}
+
+u8 CPU::PullFromStack()
+{
+    ++sp;
+    const u8 data = bus_->ReadByte(0x0100 | sp);
+    cycles_++;
+    return data;
 }
 
 #pragma region Addressing Modes
@@ -676,6 +697,13 @@ DEFINE_OPERATION(JMP)
     cpu.pc = address;
 }
 
+DEFINE_OPERATION(JSR)
+{
+    cpu.PushToStack((cpu.pc - 1) >> 8);
+    cpu.PushToStack((cpu.pc - 1) & 0x00ff);
+    cpu.pc = address;
+}
+
 DEFINE_OPERATION(LDA)
 {
     cpu.a = cpu.ReadByte(address);
@@ -777,6 +805,14 @@ DEFINE_OPERATION(ROR)
     cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(RTS)
+{
+    const u8 pc_low = cpu.PullFromStack();
+    const u8 pc_high = cpu.PullFromStack();
+
+    cpu.pc = static_cast<u16>((pc_high << 8) | pc_low) + 1;
 }
 
 DEFINE_OPERATION(SBC)
