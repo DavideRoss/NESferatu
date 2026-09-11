@@ -150,6 +150,10 @@ namespace Opcodes
 
     // Increment Y Registry
     static constexpr u8 INY_IMP = 0xc8;
+    
+    // Jump
+    static constexpr u8 JMP_ABS = 0x4c;
+    static constexpr u8 JMP_IND = 0x6c;
 
     // Load Accumulator
     static constexpr u8 LDA_IM = 0xa9;
@@ -320,6 +324,7 @@ private:
     ADDRESSING_MODE(Absolute);
     ADDRESSING_MODE(AbsoluteX);
     ADDRESSING_MODE(AbsoluteY);
+    ADDRESSING_MODE(Indirect);
     ADDRESSING_MODE(IndirectX);
     ADDRESSING_MODE(IndirectY);
 
@@ -345,6 +350,7 @@ private:
     OPERATION(INC);
     OPERATION(INX);
     OPERATION(INY);
+    OPERATION(JMP);
     OPERATION(LDA);
     OPERATION(LDX);
     OPERATION(LDY);

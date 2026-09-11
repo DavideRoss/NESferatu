@@ -146,6 +146,10 @@ u32 CPU::Step()
 
         // Increment Y Register
         EXECUTE_OPCODE(INY_IMP, INY, Implied,    false, 1)
+        
+        // Jump
+        EXECUTE_OPCODE(JMP_ABS, JMP, Absolute,   false, 0)
+        EXECUTE_OPCODE(JMP_IND, JMP, Indirect,   false, 0)
 
         // Load Accumulator
         EXECUTE_OPCODE(LDA_IM,  LDA, Immediate,  false, 0)
@@ -387,6 +391,23 @@ DEFINE_ADDRESSING_MODE(AbsoluteY)
     {
         addr,
         (addr & 0xff00) != (addr_high << 8)
+    };
+}
+
+// NOTE: describe 6502 address bug behaviour
+DEFINE_ADDRESSING_MODE(Indirect)
+{
+    const u8 target_low = cpu.FetchByte();
+    const u8 target_high = cpu.FetchByte();
+    const u16 target = static_cast<u16>((target_high << 8) | target_low);
+
+    const u8 addr_low = cpu.ReadByte(target);
+    const u8 addr_high = cpu.ReadByte((target & 0xff00) | ((target + 1) & 0x00ff));
+
+    return 
+    {
+        static_cast<u16>((addr_high << 8) | addr_low),
+        false
     };
 }
 
@@ -648,6 +669,11 @@ DEFINE_OPERATION(INY)
 
     cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
+}
+
+DEFINE_OPERATION(JMP)
+{
+    cpu.pc = address;
 }
 
 DEFINE_OPERATION(LDA)
