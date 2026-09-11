@@ -73,6 +73,9 @@ u32 CPU::Step()
 
         // Branch if Equal
         EXECUTE_OPCODE(BEQ_REL, BEQ, Relative,   true,  0)
+
+        // Branch if Minus
+        EXECUTE_OPCODE(BMI_REL, BMI, Relative,   true,  0)
         
         // Bit Test
         EXECUTE_OPCODE(BIT_ZP,  BIT, ZeroPage,   false, 0)
@@ -80,6 +83,15 @@ u32 CPU::Step()
         
         // Branch if Not Equal
         EXECUTE_OPCODE(BNE_REL, BNE, Relative,   true,  0)
+
+        // Branch if Positive
+        EXECUTE_OPCODE(BPL_REL, BPL, Relative,   true,  0)
+
+        // Branch of Overflow Clear
+        EXECUTE_OPCODE(BVC_REL, BVC, Relative,   true,  0)
+
+        // Branch of Overflow Set
+        EXECUTE_OPCODE(BVS_REL, BVS, Relative,   true,  0)
 
         // Compare
         EXECUTE_OPCODE(CMP_IM,  CMP, Immediate,  false, 0)
@@ -487,6 +499,16 @@ DEFINE_OPERATION(BEQ)
     }
 }
 
+DEFINE_OPERATION(BMI)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (cpu.GetFlag(StatusFlag::N))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
 DEFINE_OPERATION(BIT)
 {
     u8 data = cpu.ReadByte(address);
@@ -500,6 +522,36 @@ DEFINE_OPERATION(BNE)
 {
     s8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (!cpu.GetFlag(StatusFlag::Z))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
+DEFINE_OPERATION(BPL)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (!cpu.GetFlag(StatusFlag::N))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
+DEFINE_OPERATION(BVC)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (!cpu.GetFlag(StatusFlag::V))
+    {
+        cpu.pc += offset;
+        ++cpu.cycles_;
+    }
+}
+
+DEFINE_OPERATION(BVS)
+{
+    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    if (cpu.GetFlag(StatusFlag::V))
     {
         cpu.pc += offset;
         ++cpu.cycles_;

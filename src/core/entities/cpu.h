@@ -81,9 +81,21 @@ namespace Opcodes
     // Bit Test
     static constexpr u8 BIT_ZP = 0x24;
     static constexpr u8 BIT_ABS = 0x2c;
+    
+    // Branch if Minus
+    static constexpr u8 BMI_REL = 0x30;
 
     // Branch if Not Equal
     static constexpr u8 BNE_REL = 0xd0;
+    
+    // Branch if Positive
+    static constexpr u8 BPL_REL = 0x10;
+    
+    // Branch of Overflow Clear
+    static constexpr u8 BVC_REL = 0x50;
+
+    // Branch of Overflow Set
+    static constexpr u8 BVS_REL = 0x70;
 
     // Compare
     static constexpr u8 CMP_IM = 0xc9;
@@ -318,7 +330,11 @@ private:
     OPERATION(BCS);
     OPERATION(BEQ);
     OPERATION(BIT);
+    OPERATION(BMI);
     OPERATION(BNE);
+    OPERATION(BPL);
+    OPERATION(BVC);
+    OPERATION(BVS);
     OPERATION(CMP);
     OPERATION(CPX);
     OPERATION(CPY);
