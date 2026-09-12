@@ -310,7 +310,7 @@ u32 CPU::Step()
 
 u8 CPU::PeekByte()
 {
-    return bus_->ReadByte(pc);
+    return bus_->CPURead(pc);
 }
 
 u8 CPU::FetchByte()
@@ -346,7 +346,7 @@ void CPU::SetFlag(StatusFlag flag, bool val)
 
 void CPU::PushToStack(const u8 data)
 {
-    bus_->WriteByte(0x0100 | sp, data);
+    bus_->CPUWrite(0x0100 | sp, data);
     --sp;
     cycles_++;
 }
@@ -354,7 +354,7 @@ void CPU::PushToStack(const u8 data)
 u8 CPU::PullFromStack()
 {
     ++sp;
-    const u8 data = bus_->ReadByte(0x0100 | sp);
+    const u8 data = bus_->CPURead(0x0100 | sp);
     cycles_++;
     return data;
 }
