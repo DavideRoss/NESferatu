@@ -29,6 +29,8 @@ target_compile_options(NESferatuCompileOptions INTERFACE
     # TODO: enable unused check for final compilation
     -Wno-unused-parameter
     -Wno-unused-variable
+
+    -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
 )
 
 include(GoogleTest)

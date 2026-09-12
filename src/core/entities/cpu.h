@@ -28,7 +28,7 @@
 
 class Bus;
 
-enum StatusFlag
+enum StatusFlag : u8
 {
     C = (1 << 0),   // Carry
     Z = (1 << 1),   // Zero
