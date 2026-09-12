@@ -213,6 +213,9 @@ namespace Opcodes
     static constexpr u8 ORA_ABY = 0x19;
     static constexpr u8 ORA_IDX = 0x01;
     static constexpr u8 ORA_IDY = 0x11;
+    
+    // No Operation
+    static constexpr u8 NOP_IMP = 0xea;
 
     // Push Accumulator
     static constexpr u8 PHA_IMP = 0x48;
@@ -414,6 +417,7 @@ private:
     OPERATION(LDY);
     OPERATION(LSR);
     OPERATION(ORA);
+    OPERATION(NOP);
     OPERATION(PHA);
     OPERATION(PHP);
     OPERATION(PLA);

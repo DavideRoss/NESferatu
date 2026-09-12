@@ -211,6 +211,9 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ORA_IDX, ORA, IndirectX,  false, 0)
         EXECUTE_OPCODE(ORA_IDY, ORA, IndirectY,  true,  0)
 
+        // No Operation
+        EXECUTE_OPCODE_NO_ADDRESS(NOP_IMP, NOP,         1)
+
         // Push Accumulator
         EXECUTE_OPCODE_NO_ADDRESS(PHA_IMP, PHA,         1)
 
@@ -840,6 +843,11 @@ DEFINE_OPERATION(ORA)
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(NOP)
+{
+    // Silence is golden.
 }
 
 DEFINE_OPERATION_NO_ADDRESS(PHA)
