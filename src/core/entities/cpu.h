@@ -215,6 +215,9 @@ namespace Opcodes
     static constexpr u8 ROR_ZPX = 0x76;
     static constexpr u8 ROR_ABS = 0x6e;
     static constexpr u8 ROR_ABX = 0x7e;
+
+    // Return from Interrupt
+    static constexpr u8 RTI_IMP = 0x40;
     
     // Return from Subroutine
     static constexpr u8 RTS_IMP = 0x60;
@@ -370,6 +373,7 @@ private:
     OPERATION(ORA);
     OPERATION(ROL);
     OPERATION(ROR);
+    OPERATION(RTI);
     OPERATION(RTS);
     OPERATION(SBC);
     OPERATION(STA);

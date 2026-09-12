@@ -1,5 +1,6 @@
 #include "cpu.h"
 
+// TODO: use NESFERATU_THROW after the merge with PPU
 #include <stdexcept>
 #include <format>
 
@@ -211,6 +212,9 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ROR_ZPX, ROR, ZeroPageX,  false, 1)
         EXECUTE_OPCODE(ROR_ABS, ROR, Absolute,   false, 1)
         EXECUTE_OPCODE(ROR_ABX, ROR, AbsoluteX,  false, 2)
+
+        // Return from Interrupt
+        EXECUTE_OPCODE(RTI_IMP, RTI, Implied,    false, 2)
 
         // Return from Subroutine
         EXECUTE_OPCODE(RTS_IMP, RTS, Implied,    false, 3)
@@ -821,6 +825,15 @@ DEFINE_OPERATION(ROR)
     cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
+}
+
+DEFINE_OPERATION(RTI)
+{
+    cpu.s = cpu.PullFromStack();
+
+    const u8 pc_low = cpu.PullFromStack();
+    const u8 pc_high = cpu.PullFromStack();
+    cpu.pc = static_cast<u16>((pc_high << 8) | pc_low);
 }
 
 DEFINE_OPERATION(RTS)
