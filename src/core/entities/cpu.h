@@ -91,6 +91,9 @@ namespace Opcodes
     // Branch if Positive
     static constexpr u8 BPL_REL = 0x10;
     
+    // Force Interrupt
+    static constexpr u8 BRK_IMP = 0x00;
+    
     // Branch of Overflow Clear
     static constexpr u8 BVC_REL = 0x50;
 
@@ -345,6 +348,7 @@ private:
     OPERATION(BMI);
     OPERATION(BNE);
     OPERATION(BPL);
+    OPERATION(BRK);
     OPERATION(BVC);
     OPERATION(BVS);
     OPERATION(CMP);

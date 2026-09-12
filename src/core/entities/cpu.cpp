@@ -21,7 +21,7 @@ void CPU::Reset()
     a = x = y = 0x0;
     pc = 0xfffc;
     sp = 0xff;
-    s = 0x00;
+    s = 0x20;
 
     // Read reset vector
     u8 reset_low = ReadByte(0xfffc);
@@ -86,6 +86,9 @@ u32 CPU::Step()
 
         // Branch if Positive
         EXECUTE_OPCODE(BPL_REL, BPL, Relative,   true,  0)
+
+        // Force Interrupt
+        EXECUTE_OPCODE(BRK_IMP, BRK, Implied,    false, 1)
 
         // Branch of Overflow Clear
         EXECUTE_OPCODE(BVC_REL, BVC, Relative,   true,  0)
@@ -578,6 +581,19 @@ DEFINE_OPERATION(BPL)
         cpu.pc += offset;
         ++cpu.cycles_;
     }
+}
+
+DEFINE_OPERATION(BRK)
+{
+    cpu.PushToStack((cpu.pc + 1) >> 8);
+    cpu.PushToStack((cpu.pc + 1) & 0x00ff);
+    cpu.PushToStack(cpu.s);
+
+    const u8 addr_low = cpu.ReadByte(0xfffe);
+    const u8 addr_high = cpu.ReadByte(0xffff);
+    cpu.pc = static_cast<u16>((addr_high << 8) | addr_low);
+
+    cpu.SetFlag(StatusFlag::I, true);
 }
 
 DEFINE_OPERATION(BVC)
