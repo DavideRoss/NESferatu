@@ -199,6 +199,18 @@ u32 CPU::Step()
         EXECUTE_OPCODE(ORA_IDX, ORA, IndirectX,  false, 0)
         EXECUTE_OPCODE(ORA_IDY, ORA, IndirectY,  true,  0)
 
+        // Push Accumulator
+        EXECUTE_OPCODE_NO_ADDRESS(PHA_IMP, PHA,         1)
+
+        // Push Processor Status
+        EXECUTE_OPCODE_NO_ADDRESS(PHP_IMP, PHP,         1)
+
+        // Pull Accumulator
+        EXECUTE_OPCODE_NO_ADDRESS(PLA_IMP, PLA,         2)
+
+        // Pull Processor Status
+        EXECUTE_OPCODE_NO_ADDRESS(PLP_IMP, PLP,         2)
+
         // Rotate Left
         EXECUTE_OPCODE_NO_ADDRESS(ROL_ACC, ROL,         1)
         EXECUTE_OPCODE(ROL_ZP,  ROL, ZeroPage,   false, 1)
@@ -253,9 +265,15 @@ u32 CPU::Step()
 
         // Transfer Accumulator to Y
         EXECUTE_OPCODE(TAY_IMP, TAY, Implied,    false, 1)
+
+        // Transfer Stack Pointer to X
+        EXECUTE_OPCODE_NO_ADDRESS(TSX_IMP, TSX,         1)
         
         // Transfer X to Accumulator
         EXECUTE_OPCODE(TXA_IMP, TXA, Implied,    false, 1)
+
+        // Transfer X to Stack Pointer
+        EXECUTE_OPCODE_NO_ADDRESS(TXS_IMP, TXS,         1)
 
         // Transfer Y to Accumulator
         EXECUTE_OPCODE(TYA_IMP, TYA, Implied,    false, 1)
@@ -781,6 +799,30 @@ DEFINE_OPERATION(ORA)
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
 }
 
+DEFINE_OPERATION_NO_ADDRESS(PHA)
+{
+    cpu.PushToStack(cpu.a);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(PHP)
+{
+    cpu.PushToStack(cpu.s | StatusFlag::B);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(PLA)
+{
+    cpu.a = cpu.PullFromStack();
+    cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+// TODO: the I flag should be set 1 instruction later
+// Check if it can cause issues
+DEFINE_OPERATION_NO_ADDRESS(PLP)
+{
+    cpu.s = cpu.PullFromStack();
+}
+
 DEFINE_OPERATION_NO_ADDRESS(ROL)
 {
     const bool carry = cpu.a >> 7;
@@ -886,11 +928,23 @@ DEFINE_OPERATION(TAY)
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
 }
 
+DEFINE_OPERATION_NO_ADDRESS(TSX)
+{
+    cpu.x = cpu.sp;
+    cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
+    cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
+}
+
 DEFINE_OPERATION(TXA)
 {
     cpu.a = cpu.x;
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(TXS)
+{
+    cpu.sp = cpu.x;
 }
 
 DEFINE_OPERATION(TYA)

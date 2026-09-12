@@ -202,6 +202,18 @@ namespace Opcodes
     static constexpr u8 ORA_IDX = 0x01;
     static constexpr u8 ORA_IDY = 0x11;
 
+    // Push Accumulator
+    static constexpr u8 PHA_IMP = 0x48;
+    
+    // Push Processor Status
+    static constexpr u8 PHP_IMP = 0x08;
+
+    // Pull Accumulator
+    static constexpr u8 PLA_IMP = 0x68;
+
+    // Pull Processor Status
+    static constexpr u8 PLP_IMP = 0x28;
+
     // Rotate Left
     static constexpr u8 ROL_ACC = 0x2a;
     static constexpr u8 ROL_ZP = 0x26;
@@ -256,9 +268,15 @@ namespace Opcodes
 
     // Transfer Accumuator to Y
     static constexpr u8 TAY_IMP = 0xa8;
+    
+    // Transfer Stack Pointer to X
+    static constexpr u8 TSX_IMP = 0xba;
 
     // Transfer X to Accumulator
-    static constexpr u8 TXA_IMP = 0xba;
+    static constexpr u8 TXA_IMP = 0x8a;
+
+    // Transfer X to Stack Pointer
+    static constexpr u8 TXS_IMP = 0x9a;
 
     // Transfer Y to Accumulator
     static constexpr u8 TYA_IMP = 0x98;
@@ -371,6 +389,10 @@ private:
     OPERATION(LDY);
     OPERATION(LSR);
     OPERATION(ORA);
+    OPERATION(PHA);
+    OPERATION(PHP);
+    OPERATION(PLA);
+    OPERATION(PLP);
     OPERATION(ROL);
     OPERATION(ROR);
     OPERATION(RTI);
@@ -381,7 +403,9 @@ private:
     OPERATION(STY);
     OPERATION(TAX);
     OPERATION(TAY);
+    OPERATION(TSX);
     OPERATION(TXA);
+    OPERATION(TXS);
     OPERATION(TYA);
 
 private:
