@@ -97,6 +97,18 @@ u32 CPU::Step()
         // Branch of Overflow Set
         EXECUTE_OPCODE(BVS_REL, BVS, Relative,   true,  0)
 
+        // Clear Carry
+        EXECUTE_OPCODE_NO_ADDRESS(CLC_IMP, CLC,         1)
+
+        // Clear Decimal Mode
+        EXECUTE_OPCODE_NO_ADDRESS(CLD_IMP, CLD,         1)
+
+        // Clear Interrupt Disable
+        EXECUTE_OPCODE_NO_ADDRESS(CLI_IMP, CLI,         1)
+
+        // Clear Overflow
+        EXECUTE_OPCODE_NO_ADDRESS(CLV_IMP, CLV,         1)
+
         // Compare
         EXECUTE_OPCODE(CMP_IM,  CMP, Immediate,  false, 0)
         EXECUTE_OPCODE(CMP_ZP,  CMP, ZeroPage,   false, 0)
@@ -240,6 +252,15 @@ u32 CPU::Step()
         EXECUTE_OPCODE(SBC_ABY, SBC, AbsoluteY,  true,  0)
         EXECUTE_OPCODE(SBC_IDX, SBC, IndirectX,  false, 0)
         EXECUTE_OPCODE(SBC_IDY, SBC, IndirectY,  true,  0)
+
+        // Set Carry
+        EXECUTE_OPCODE_NO_ADDRESS(SEC_IMP, SEC,         1)
+
+        // Set Decimal Mode
+        EXECUTE_OPCODE_NO_ADDRESS(SED_IMP, SED,         1)
+
+        // Set Interrupt Disable
+        EXECUTE_OPCODE_NO_ADDRESS(SEI_IMP, SEI,         1)
 
         // Store Accumulator
         EXECUTE_OPCODE(STA_ZP,  STA, ZeroPage,   false, 0)
@@ -638,6 +659,28 @@ DEFINE_OPERATION(BVS)
     }
 }
 
+DEFINE_OPERATION_NO_ADDRESS(CLC)
+{
+    cpu.SetFlag(StatusFlag::C, false);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(CLD)
+{
+    cpu.SetFlag(StatusFlag::D, false);
+}
+
+// TODO: the I flag should be set 1 instruction later
+// Check if it can cause issues
+DEFINE_OPERATION_NO_ADDRESS(CLI)
+{
+    cpu.SetFlag(StatusFlag::I, false);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(CLV)
+{
+    cpu.SetFlag(StatusFlag::V, false);
+}
+
 DEFINE_OPERATION(CMP)
 {
     const u8 data = cpu.ReadByte(address);
@@ -897,6 +940,23 @@ DEFINE_OPERATION(SBC)
     cpu.SetFlag(StatusFlag::N, temp & 0x0080);
 
     cpu.a = temp & 0x00ff;
+}
+
+DEFINE_OPERATION_NO_ADDRESS(SEC)
+{
+    cpu.SetFlag(StatusFlag::C, true);
+}
+
+DEFINE_OPERATION_NO_ADDRESS(SED)
+{
+    cpu.SetFlag(StatusFlag::D, true);
+}
+
+// TODO: the I flag should be set 1 instruction later
+// Check if it can cause issues
+DEFINE_OPERATION_NO_ADDRESS(SEI)
+{
+    cpu.SetFlag(StatusFlag::I, true);
 }
 
 DEFINE_OPERATION(STA)

@@ -100,6 +100,18 @@ namespace Opcodes
     // Branch of Overflow Set
     static constexpr u8 BVS_REL = 0x70;
 
+    // Clear Carry
+    static constexpr u8 CLC_IMP = 0x18;
+
+    // Clear Decimal Mode
+    static constexpr u8 CLD_IMP = 0xd8;
+    
+    // Crear Interrupt Disable
+    static constexpr u8 CLI_IMP = 0x58;
+    
+    // Clear Overflow
+    static constexpr u8 CLV_IMP = 0xb8;
+
     // Compare
     static constexpr u8 CMP_IM = 0xc9;
     static constexpr u8 CMP_ZP = 0xc5;
@@ -243,6 +255,15 @@ namespace Opcodes
     static constexpr u8 SBC_ABY = 0xf9;
     static constexpr u8 SBC_IDX = 0xe1;
     static constexpr u8 SBC_IDY = 0xf1;
+    
+    // Set Carry
+    static constexpr u8 SEC_IMP = 0x38;
+    
+    // Set Decimal Mode
+    static constexpr u8 SED_IMP = 0xf8;
+    
+    // Set Interrupt Disable
+    static constexpr u8 SEI_IMP = 0x78;
 
     // Store Accumulator
     static constexpr u8 STA_ZP = 0x85;
@@ -372,6 +393,10 @@ private:
     OPERATION(BRK);
     OPERATION(BVC);
     OPERATION(BVS);
+    OPERATION(CLC);
+    OPERATION(CLD);
+    OPERATION(CLI);
+    OPERATION(CLV);
     OPERATION(CMP);
     OPERATION(CPX);
     OPERATION(CPY);
@@ -398,6 +423,9 @@ private:
     OPERATION(RTI);
     OPERATION(RTS);
     OPERATION(SBC);
+    OPERATION(SEC);
+    OPERATION(SED);
+    OPERATION(SEI);
     OPERATION(STA);
     OPERATION(STX);
     OPERATION(STY);
