@@ -2,8 +2,8 @@
 
 #include "utils/exception.h"
 
-Bus::Bus(CPU& cpu, Memory& memory, PPU& ppu, Cartridge& cartridge)
-    : cpu_(cpu), memory_(memory), ppu_(ppu), cartridge_(cartridge)
+Bus::Bus(CPU& cpu, Memory& memory, PPU& ppu, APU& apu, Cartridge& cartridge)
+    : cpu_(cpu), memory_(memory), ppu_(ppu), apu_(apu), cartridge_(cartridge)
 {
     cpu_.ConnectBus(this);
     memory_.ConnectBus(this);
@@ -28,8 +28,26 @@ u8 Bus::CPURead(u16 address)
             return ppu_.CPURead(unmirrored_address);
         }
 
-        // APU and I/O
-        case 0x4000 ... 0x4017:
+        // APU registers
+        case 0x4000 ... 0x4013:
+        {
+            return apu_.CPURead(address);
+        }
+
+        // APU status
+        case 0x4015:
+        {
+            return apu_.CPURead(address);
+        }
+
+        // Controller 1
+        case 0x4016:
+        {
+            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
+        }
+
+        // Controller 2
+        case 0x4017:
         {
             NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
         }
@@ -71,10 +89,34 @@ void Bus::CPUWrite(u16 address, u8 data)
             ppu_.CPUWrite(unmirrored_address, data);
         }; break;
 
-        // APU and I/O
-        case 0x4000 ... 0x4017:
+        // APU registers
+        case 0x4000 ... 0x4013:
+        {
+            apu_.CPUWrite(address, data);
+        }; break;
+
+        // PPU Sprite DMA
+        case 0x4014:
         {
             NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
+        }
+
+        // APU status
+        case 0x4015:
+        {
+            apu_.CPUWrite(address, data);
+        }; break;
+
+        // Controllers strobe
+        case 0x4016:
+        {
+            NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
+        }
+        
+        // APU frame counter
+        case 0x4017:
+        {
+            apu_.CPUWrite(address, data);
         }; break;
 
         // CPU test mode

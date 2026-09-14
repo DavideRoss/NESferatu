@@ -5,14 +5,16 @@ System::System(Cartridge& cartridge)
     cpu = std::make_unique<CPU>();
     mem = std::make_unique<Memory>();
     ppu = std::make_unique<PPU>(cartridge);
+    apu = std::make_unique<APU>();
     
-    bus = std::make_unique<Bus>(*cpu, *mem, *ppu, cartridge);
+    bus = std::make_unique<Bus>(*cpu, *mem, *ppu, *apu, cartridge);
 }
 
 void System::Reset()
 {
     cpu->Reset();
     ppu->Reset();
+    apu->Reset();
 }
 
 void System::Execute(const u32 cycles)
