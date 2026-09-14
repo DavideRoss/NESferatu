@@ -1,10 +1,7 @@
 #include "ppu.h"
-
-#include <stdexcept>
-#include <format>
+#include "bus.h"
 
 #include "utils/exception.h"
-#include "bus.h"
 
 PPU::PPU(Cartridge &cartridge)
     : cartridge_(cartridge)
@@ -18,20 +15,25 @@ void PPU::ConnectBus(Bus *bus)
 
 void PPU::Reset()
 {
+    scanline_ = 0;
+    cycle_ = 0;
+
+    frame_complete_ = false;
+    nmi_requested_ = false;
+
+    ctrl = 0;
+    mask = 0;
+    status = 0;
+
     v_ = 0;
     t_ = 0;
-    x_ = 0;
+    fine_x_ = 0;
     w_ = false;
 
-    // Reset background pipeline
-    nametable_byte_ = 0;
-    attribute_byte_ = 0;
-    pattern_low_ = 0;
-    pattern_high_ = 0;
+    read_buffer_ = 0;
 
     pattern_shift_low_ = 0;
     pattern_shift_high_ = 0;
-
     attribute_shift_low_ = 0;
     attribute_shift_high_ = 0;
 }
@@ -40,6 +42,11 @@ void PPU::Step()
 {
     frame_complete_ = false;
 
+    const bool render_enabled =
+        GetFlag(mask, PPUMaskFlag::EnableBackground) ||
+        GetFlag(mask, PPUMaskFlag::EnableSprites);
+
+    // Pre-render scanline
     if (scanline_ == 261)
     {
         // Clear vblank interrupt
@@ -48,16 +55,10 @@ void PPU::Step()
             status &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
         }
 
-        if (GetFlag(mask, PPUMaskFlag::EnableBackground) || GetFlag(mask, PPUMaskFlag::EnableSprites))
+        if (render_enabled)
         {
             // Background rendering/fetching
             if (cycle_ >= 1 && cycle_ <= 256)
-            {
-                BackgroundRenderFetch();
-            }
-
-            // Background rendering/fetching
-            if (cycle_ >= 321 && cycle_ <= 336)
             {
                 BackgroundRenderFetch();
             }
@@ -65,90 +66,78 @@ void PPU::Step()
             // Increment coarse and fine Y
             if (cycle_ == 256)
             {
-                if ((v_ & 0x7000) != 0x7000)
-                {
-                    v_ += 0x1000;
-                }
-                else
-                {
-                    v_ &= ~0x7000;
-
-                    u16 coarse_y = (v_ & 0x03e0) >> 5;
-                    if (coarse_y == 29)
-                    {
-                        coarse_y = 0;
-                        v_ ^= 0x0800;
-                    }
-                    else if (coarse_y == 31)
-                    {
-                        v_ &= ~0x03e0;
-                    }
-                    else
-                    {
-                        v_ += 0x0020;
-                    }
-                }
+                IncrementY();
             }
 
             // Copy horizontal scroll bits from temporary register
             if (cycle_ == 257)
             {
-                v_ = (v_ & 0xfbe0) | (t_ & 0x041f);
+                HorizontalTransfer();
             }
 
             // Sprite evaluation/fetching
             if (cycle_ >= 257 && cycle_ <= 320)
             {
-                // TODO: fill
+                EvaluateSprites();
             }
 
             // Copy vertical scroll bits from temporary register
             if (cycle_ >= 280 && cycle_ <= 304)
             {
-                v_ = (v_ & 0x041f) | (t_ & 0x7be0);
+                VerticalTransfer();
             }
 
-            // Nabletable fetches
+            // Nabletable dummy fetches
             if (cycle_ >= 337 && cycle_ <= 340)
             {
-                const u16 address = (0x2000 | (v_ & 0x0fff));
-                next_tile_id_ = PPURead(address);
+                DummyFetches();
             }
         }
     }
 
+    // Visible scanlines
     if (scanline_ <= 239)
     {
-        if (GetFlag(mask, PPUMaskFlag::EnableBackground))
+        if (render_enabled)
         {
             if (cycle_ >= 1 && cycle_ <= 256)
             {
-                // Generate background pixel
-                // TODO: move them somewhere else
-                constexpr u16 FRAMEBUFFER_WIDTH  = 256;
-                constexpr u16 FRAMEBUFFER_HEIGHT = 240;
-
-                const u8 pattern_low = (pattern_shift_low_ >> (15 - fine_x_)) & 0x01;
-                const u8 pattern_high = (pattern_shift_high_ >> (15 - fine_x_)) & 0x01;
-                const u8 pattern = (pattern_high << 1) | pattern_low;
-
-                const u8 palette_low = (attribute_shift_low_ >> (15 - fine_x_)) & 0x01;
-                const u8 palette_high = (attribute_shift_high_ >> (15 - fine_x_)) & 0x01;
-                const u8 palette = (palette_high << 1) | palette_low;
-
-                const u8 palette_index = pattern == 0 ? palettes_[0] : palettes_[palette * 4 + pattern];
-
-                const std::size_t framebuffer_index =
-                    static_cast<std::size_t>(scanline_) * FRAMEBUFFER_WIDTH +
-                    static_cast<std::size_t>(cycle_) - 1;
-
-                framebuffer_[framebuffer_index] = NESColor(palette_index);
-
-                pattern_shift_low_ <<= 1;
-                pattern_shift_high_ <<= 1;
-                attribute_shift_low_ <<= 1;
-                attribute_shift_high_ <<= 1;
+                BackgroundRenderFetch();
             }
+
+            // Increment coarse and fine Y
+            if (cycle_ == 256)
+            {
+                IncrementY();
+            }
+
+            // Copy horizontal scroll bits from temporary register
+            if (cycle_ == 257)
+            {
+                HorizontalTransfer();
+            }
+
+            // Sprite evaluation/fetching
+            if (cycle_ >= 257 && cycle_ <= 320)
+            {
+                EvaluateSprites();
+            }
+
+            if (cycle_ >= 321 && cycle_ <= 336)
+            {
+                BackgroundRenderFetch();
+            }
+
+            // Nabletable dummy fetches
+            if (cycle_ >= 337 && cycle_ <= 340)
+            {
+                DummyFetches();
+            }
+        }
+
+        if (GetFlag(mask, PPUMaskFlag::EnableBackground) && cycle_ >= 1 && cycle_ <= 256)
+        {
+            RenderPixel();
         }
     }
 
@@ -201,7 +190,7 @@ u8 PPU::CPURead(u16 address)
             return stat;
         }
 
-        case 0x2004: return oam_data;
+        case 0x2004: return oam_[oam_addr];
 
         // VRAM data
         case 0x2007:
@@ -241,7 +230,7 @@ void PPU::CPUWrite(u16 address, u8 val)
 
             ctrl = val;
 
-            // TODO: handle scroll behaviour
+            t_ = (t_ & 0xf3ff) | ((val & 0x03) << 10);
 
             // Trigger NMI request if NMI is enable while vblank is active
             const bool nmi_enable = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
@@ -261,6 +250,13 @@ void PPU::CPUWrite(u16 address, u8 val)
         case 0x2003:
         {
             oam_addr = val;
+        }; break;
+
+        // OAM Data
+        case 0x2004:
+        {
+            oam_[oam_addr] = val;
+            ++oam_addr;
         }; break;
 
         // Scroll register
@@ -310,6 +306,7 @@ void PPU::CPUWrite(u16 address, u8 val)
 
 u8 PPU::PPURead(u16 address)
 {
+    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -328,6 +325,7 @@ u8 PPU::PPURead(u16 address)
 
 void PPU::PPUWrite(u16 address, u8 val)
 {
+    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -452,7 +450,83 @@ void PPU::BackgroundRenderFetch()
     }
 }
 
+void PPU::IncrementY()
+{
+    if ((v_ & 0x7000) != 0x7000)
+    {
+        v_ += 0x1000;
+    }
+    else
+    {
+        v_ &= ~0x7000;
+
+        u16 coarse_y = (v_ & 0x03e0) >> 5;
+        if (coarse_y == 29)
+        {
+            coarse_y = 0;
+            v_ ^= 0x0800;
+        }
+        else if (coarse_y == 31)
+        {
+            v_ &= ~0x03e0;
+        }
+        else
+        {
+            v_ += 0x0020;
+        }
+    }
+}
+
+void PPU::HorizontalTransfer()
+{
+    v_ = (v_ & 0xfbe0) | (t_ & 0x041f);
+}
+
+void PPU::VerticalTransfer()
+{
+    v_ = (v_ & 0x041f) | (t_ & 0x7be0);
+}
+
+void PPU::EvaluateSprites()
+{
+}
+
+void PPU::DummyFetches()
+{
+    const u16 address = (0x2000 | (v_ & 0x0fff));
+    next_tile_id_ = PPURead(address);
+}
+
+void PPU::RenderPixel()
+{
+    // Generate background pixel
+    // TODO: move them somewhere else
+    constexpr u16 FRAMEBUFFER_WIDTH  = 256;
+    constexpr u16 FRAMEBUFFER_HEIGHT = 240;
+
+    const u8 pattern_low = (pattern_shift_low_ >> (15 - fine_x_)) & 0x01;
+    const u8 pattern_high = (pattern_shift_high_ >> (15 - fine_x_)) & 0x01;
+    const u8 pattern = (pattern_high << 1) | pattern_low;
+
+    const u8 palette_low = (attribute_shift_low_ >> (15 - fine_x_)) & 0x01;
+    const u8 palette_high = (attribute_shift_high_ >> (15 - fine_x_)) & 0x01;
+    const u8 palette = (palette_high << 1) | palette_low;
+
+    const u8 palette_index = pattern == 0 ? palettes_[0] : palettes_[palette * 4 + pattern];
+
+    const std::size_t framebuffer_index =
+        static_cast<std::size_t>(scanline_) * FRAMEBUFFER_WIDTH +
+        static_cast<std::size_t>(cycle_) - 1;
+
+    framebuffer_[framebuffer_index] = NESColor(palette_index);
+
+    pattern_shift_low_ <<= 1;
+    pattern_shift_high_ <<= 1;
+    attribute_shift_low_ <<= 1;
+    attribute_shift_high_ <<= 1;
+}
+
 u16 PPU::GetBackgroundPatternTableAddress() const
 {
-    return GetFlag(ctrl, PPUCtrlFlag::BackgroundPattern) ? 0x0000 : 0x1000;
+    return GetFlag(ctrl, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000;
 }

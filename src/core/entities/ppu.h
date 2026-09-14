@@ -80,7 +80,6 @@ public:
     u8 mask;
     u8 status;
     u8 oam_addr;
-    u8 oam_data;
     u8 addr;
     u8 data;
     u8 oam_dma;
@@ -89,8 +88,14 @@ private:
     constexpr u8 GetFlag(u8 reg, u8 flag) const;
     constexpr void SetFlag(u8& reg, u8 flag, bool val);
 
-    // NOTE: cleanup functions
     void BackgroundRenderFetch();
+    void IncrementY();
+    void HorizontalTransfer();
+    void VerticalTransfer();
+    void EvaluateSprites();
+    void DummyFetches();
+
+    void RenderPixel();
 
     u16 GetBackgroundPatternTableAddress() const;
 
@@ -137,41 +142,31 @@ private:
     u32 cycle_ = 0;
     u32 scanline_ = 0;
     bool frame_complete_ = false;
+    bool nmi_requested_ = false;
 
     // PPU registers    During rendering        Outside rendering
     u16 v_;          // Scroll position         Current VRAM address
     u16 t_;          // Coarse X + start y      Temporary VRAM address
     u8 x_;           // Fine X during scroll
     bool w_;         // Write latch
-
-    // Background pipeline
-    // TODO: surely some of those are unused, discover which ones
-    u8 nametable_byte_;
-    u8 attribute_byte_;
-    u8 pattern_low_;
-    u8 pattern_high_;
     
-    // TODO: lot of stuff here, simplify later. Move to a struct?
     u8 next_tile_id_ = 0;
     u8 next_tile_attribute_ = 0;
     u8 next_tile_pattern_low_ = 0;
     u8 next_tile_pattern_high_ = 0;
 
-    // NOTE: NEEDED:
     u16 pattern_shift_low_ = 0;
     u16 pattern_shift_high_ = 0;
     u16 attribute_shift_low_ = 0;
     u16 attribute_shift_high_ = 0;
 
     u8 fine_x_ = 0;
+    u8 read_buffer_ = 0x00;
 
     // Framebuffer and memories
     std::array<Pixel, SCREEN_WIDTH * SCREEN_HEIGHT> framebuffer_;
 
     std::array<u8, 0x800> vram_;
     std::array<u8, 0x20> palettes_;
-    
-    bool nmi_requested_ = false;
-
-    u8 read_buffer_ = 0x00;
+    std::array<u8, 256> oam_;
 };
