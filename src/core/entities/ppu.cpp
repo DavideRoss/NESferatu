@@ -42,6 +42,7 @@ void PPU::Step()
 
     if (scanline_ == 261)
     {
+        // Clear vblank interrupt
         if (cycle_ == 1)
         {
             status &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
@@ -150,6 +151,16 @@ void PPU::Step()
             }
         }
     }
+
+    // trigger vblank interrupt
+    if (scanline_ == 241 && cycle_ == 1)
+    {
+        SetFlag(status, PPUStatusFlag::VerticalBlank, true);
+        if (GetFlag(ctrl, PPUCtrlFlag::NMIEnable))
+        {
+            nmi_requested_ = true;
+        }
+    }
     
     // Cycle increment
     ++cycle_;
@@ -183,9 +194,37 @@ u8 PPU::CPURead(u16 address)
         case 0x2014: // OAM DMA
             NESFERATU_THROW("Address is write-only: 0x{:04x}", address);
 
-        case 0x2002: return status; // TODO: implement open-bus behavior (random on lower bits)
+        case 0x2002: {
+            const u8 stat = status;
+            SetFlag(status, PPUStatusFlag::VerticalBlank, false);
+            w_ = false;
+            return stat;
+        }
+
         case 0x2004: return oam_data;
-        case 0x2007: return data;
+
+        // VRAM data
+        case 0x2007:
+        {
+            const u16 address = v_ & 0x3fff;
+            u8 result = 0x00;
+
+            if (address >= 0x3f00)
+            {
+                result = PPURead(address);
+                read_buffer_ = PPURead(address & 0x2fff);
+            }
+            else
+            {
+                result = read_buffer_;
+                read_buffer_ = PPURead(address);
+            }
+
+            v_ += GetFlag(ctrl, PPUCtrlFlag::IncrementMode) ? 32 : 1;
+            v_ &= 0x7fff;
+
+            return result;
+        }
 
         default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
     }
@@ -195,6 +234,35 @@ void PPU::CPUWrite(u16 address, u8 val)
 {
     switch (address)
     {
+        // PPU control
+        case 0x2000:
+        {
+            const bool prev_nmi = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
+
+            ctrl = val;
+
+            // TODO: handle scroll behaviour
+
+            // Trigger NMI request if NMI is enable while vblank is active
+            const bool nmi_enable = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
+            if (!prev_nmi && nmi_enable && GetFlag(status, PPUStatusFlag::VerticalBlank))
+            {
+                nmi_requested_ = true;
+            }
+        }; break;
+
+        // PPU mask
+        case 0x2001: 
+        {
+            mask = val;
+        }; break;
+
+        // OAM Address
+        case 0x2003:
+        {
+            oam_addr = val;
+        }; break;
+
         // Scroll register
         case 0x2005:
         {
@@ -211,8 +279,30 @@ void PPU::CPUWrite(u16 address, u8 val)
             }
 
             w_ = !w_;
-            return;
-        }
+        }; break;
+
+        // VRAM address
+        case 0x2006:
+        {
+            if (w_)
+            {
+                t_ = (t_ & 0x7f00) | val;
+                v_ = t_;
+            }
+            else
+            {
+                t_ = (t_ & 0x00ff) | (static_cast<u16>(val & 0x3f) << 8);
+            }
+
+            w_ = !w_;
+        }; break;
+
+        // VRAM data
+        case 0x2007:
+        {
+            PPUWrite(v_, val);
+            v_ += GetFlag(ctrl, PPUCtrlFlag::IncrementMode) ? 32 : 1;
+        }; break;
 
         default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
     }
@@ -225,7 +315,7 @@ u8 PPU::PPURead(u16 address)
         // Cartridge CHR ROM/RAM
         case 0x0000 ... 0x1fff: return bus_->PPURead(address);
 
-        // Internal VRAM + mirror
+        // Nametable RAM
         case 0x2000 ... 0x3eff: return vram_[MapNametableAddress(address)];
 
         // Palette RAM
@@ -238,12 +328,40 @@ u8 PPU::PPURead(u16 address)
 
 void PPU::PPUWrite(u16 address, u8 val)
 {
-    NESFERATU_THROW("Not implemented.");
+    switch (address)
+    {
+        // Cartridge CHR ROM/RAM
+        // TODO: I should not be able to write into ROM
+        case 0x0000 ... 0x1fff: bus_->PPUWrite(address, val); break;
+
+        // Nametable RAM
+        case 0x2000 ... 0x3eff: vram_[MapNametableAddress(address)] = val; break;
+
+        // Palette RAM
+        case 0x3f00 ... 0x3fff: palettes_[address - 0x3f00] = val; break;
+
+        default: NESFERATU_THROW("Unmapped PPU address: 0x{:04x}", address);
+    }
 }
 
-bool PPU::IsFrameComplete()
+bool PPU::IsNMIRequested() const
+{
+    return nmi_requested_;
+}
+
+bool PPU::IsFrameComplete() const
 {
     return frame_complete_;
+}
+
+void PPU::ClearNMIRequest()
+{
+    nmi_requested_ = false;
+}
+
+void PPU::ClearFrameComplete()
+{
+    frame_complete_ = false;
 }
 
 u16 PPU::MapNametableAddress(u16 address)
@@ -267,7 +385,7 @@ constexpr u8 PPU::GetFlag(u8 reg, u8 flag) const
     return ((reg & flag) > 0) ? 0x01 : 0x00;
 }
 
-constexpr void PPU::SetFlag(u8 reg, u8 flag, bool val)
+constexpr void PPU::SetFlag(u8& reg, u8 flag, bool val)
 {
     reg = val ? reg | flag : reg & ~flag;
 }

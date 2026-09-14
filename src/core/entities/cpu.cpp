@@ -5,6 +5,7 @@
 #include <format>
 
 #include "bus.h"
+#include "utils/log.h"
 
 #define EXECUTE_OPCODE(opcode, operation, addressing_mode, page_cross, extra_cycles) \
     case Opcodes::opcode: Execute<operation, addressing_mode, page_cross, extra_cycles>(); break;
@@ -21,7 +22,7 @@ void CPU::Reset()
 {
     a = x = y = 0x0;
     pc = 0xfffc;
-    sp = 0xff;
+    sp = 0xfd;
     s = 0x20;
 
     // Read reset vector
@@ -33,10 +34,28 @@ void CPU::Reset()
 u32 CPU::Step()
 {
     cycles_ = 0;
+
+    if (nmi_pending_)
+    {
+        nmi_pending_ = false;
+
+        PushToStack(pc >> 8);
+        PushToStack(pc & 0xff);
+        PushToStack(s & ~StatusFlag::B);
+
+        SetFlag(StatusFlag::I, true);
+
+        pc = static_cast<u16>((ReadByte(0xfffb) << 8) | ReadByte(0xfffa));
+        cycles_ += 2;
+
+        return cycles_;
+    }
     
     // TODO: use DEFINE_OPERATION_NO_ADDRESS for opcodes with implied operands
     // TODO: cleanup implied addressing mode afterwards
+    u16 prev_pc = pc;
     u8 instruction = FetchByte();
+
     switch (instruction)
     {
         // Add with Carry
@@ -305,6 +324,14 @@ u32 CPU::Step()
         default: throw std::runtime_error(std::format("Unimplemented instruction: 0x{:02x}", instruction));
     }
 
+    if (logging_)
+    {
+        NESFERATU_LOG(
+            "0x{:04x}: 0x{:02x} - A: 0x{:02x} X 0x{:02x} Y 0x{:02x} SP 0x{:02x} S 0b{:08b} PC 0x{:04x}",
+            prev_pc, instruction, a, x, y, sp, s, pc
+        );
+    }
+
     return cycles_;
 }
 
@@ -357,6 +384,11 @@ u8 CPU::PullFromStack()
     const u8 data = bus_->CPURead(0x0100 | sp);
     cycles_++;
     return data;
+}
+
+void CPU::RequestNMI()
+{
+    nmi_pending_ = true;
 }
 
 #pragma region Addressing Modes

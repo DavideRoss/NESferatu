@@ -61,12 +61,15 @@ public:
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 val);
 
-    bool IsFrameComplete();
+    bool IsNMIRequested() const;
+    bool IsFrameComplete() const;
+
+    void ClearNMIRequest();
+    void ClearFrameComplete();
+
     std::span<const Pixel> GetFramebuffer();
 
 private:
-    // Pixel RenderPixel(u32 x, u32 y);
-
     u8 PPURead(u16 address);
     void PPUWrite(u16 address, u8 val);
 
@@ -84,7 +87,7 @@ public:
 
 private:
     constexpr u8 GetFlag(u8 reg, u8 flag) const;
-    constexpr void SetFlag(u8 reg, u8 flag, bool val);
+    constexpr void SetFlag(u8& reg, u8 flag, bool val);
 
     // NOTE: cleanup functions
     void BackgroundRenderFetch();
@@ -167,4 +170,8 @@ private:
 
     std::array<u8, 0x800> vram_;
     std::array<u8, 0x20> palettes_;
+    
+    bool nmi_requested_ = false;
+
+    u8 read_buffer_ = 0x00;
 };

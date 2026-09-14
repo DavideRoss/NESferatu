@@ -26,21 +26,36 @@ void System::Execute(const u32 cycles)
 
 u32 System::Step()
 {
-    return cpu->Step();
+    const u32 cycles = cpu->Step();
+
+    for (u32 i = 0; i < cycles * 3; ++i)
+    {
+        ppu->Step();
+        if (ppu->IsNMIRequested())
+        {
+            cpu->RequestNMI();
+            ppu->ClearNMIRequest();
+        }
+    }    
+
+    return cycles;
 }
 
-void System::StepFrame()
+u32 System::StepFrame()
 {
+    u32 cycles = 0;
     while (!ppu->IsFrameComplete())
     {
-        // TODO: enable CPU again when all instructions are implemented
-        // const u32 cpu_cycles = cpu->Step();
-        const u32 cpu_cycles = 10;
-        for (u32 i = 0; i < cpu_cycles; i++)
-        {
-            ppu->Step();
-        }
+        cycles += Step();
     }
+
+    ppu->ClearFrameComplete();
+    return cycles;
+}
+
+bool System::IsFrameComplete() const
+{
+    return ppu->IsFrameComplete();
 }
 
 std::span<const Pixel> System::GetFramebuffer()

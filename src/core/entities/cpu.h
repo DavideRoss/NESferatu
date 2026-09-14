@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/types.h"
+#include "utils/log.h"
 
 #pragma region Definitions
 
@@ -325,6 +326,15 @@ public:
     void PushToStack(const u8 data);
     u8 PullFromStack();
 
+    void RequestNMI();
+
+    // Debug function
+    void ToggleLogging()
+    {
+        logging_ = !logging_;
+        NESFERATU_LOG("Logging: {}", logging_);
+    }
+
 public:
     u8 a;       // Accumulator
     u8 x, y;    // GP registers
@@ -443,4 +453,9 @@ private:
 private:
     Bus* bus_ = nullptr;
     u32 cycles_ = 0;
+
+    bool nmi_pending_ = false;
+
+    // Debug
+    bool logging_ = false;
 };

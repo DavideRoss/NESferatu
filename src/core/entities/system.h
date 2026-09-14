@@ -13,11 +13,11 @@ public:
 
     void Reset();
     void Execute(const u32 cycles);
+
     u32 Step();
+    u32 StepFrame();
 
-    // TODO: remove when proper timing is implemeted
-    void StepFrame();
-
+    bool IsFrameComplete() const;
     std::span<const Pixel> GetFramebuffer();
 
 public:

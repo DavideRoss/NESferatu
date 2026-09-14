@@ -1,8 +1,5 @@
 #include "bus.h"
 
-#include <stdexcept>
-#include <format>
-
 #include "utils/exception.h"
 
 Bus::Bus(CPU& cpu, Memory& memory, PPU& ppu, Cartridge& cartridge)
@@ -78,7 +75,7 @@ void Bus::CPUWrite(u16 address, u8 data)
         case 0x4000 ... 0x4017:
         {
             NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
-        }
+        }; break;
 
         // CPU test mode
         case 0x4018 ... 0x401f:
