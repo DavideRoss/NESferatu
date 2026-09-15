@@ -27,7 +27,7 @@ void PPU::Reset()
 
     v_ = 0;
     t_ = 0;
-    fine_x_ = 0;
+    x_ = 0;
     w_ = false;
 
     read_buffer_ = 0;
@@ -59,6 +59,11 @@ void PPU::Step()
         {
             // Background rendering/fetching
             if (cycle_ >= 1 && cycle_ <= 256)
+            {
+                BackgroundRenderFetch();
+            }
+
+            if (cycle_ >= 321 && cycle_ <= 336)
             {
                 BackgroundRenderFetch();
             }
@@ -266,7 +271,7 @@ void PPU::CPUWrite(u16 address, u8 val)
             {
                 // First write
                 t_ = (t_ & 0x7fe0) | (val >> 3);
-                fine_x_ = val & 0x07;
+                x_ = val & 0x07;
             }
             else
             {
@@ -316,8 +321,7 @@ u8 PPU::PPURead(u16 address)
         case 0x2000 ... 0x3eff: return vram_[MapNametableAddress(address)];
 
         // Palette RAM
-        // TODO: implement correct mirrors
-        case 0x3f00 ... 0x3fff: return palettes_[address - 0x3f00];
+        case 0x3f00 ... 0x3fff: return palettes_[GetPaletteIndex(address)];
         
         default: NESFERATU_THROW("Unmapped PPU address: 0x{:04x}", address);
     }
@@ -336,7 +340,7 @@ void PPU::PPUWrite(u16 address, u8 val)
         case 0x2000 ... 0x3eff: vram_[MapNametableAddress(address)] = val; break;
 
         // Palette RAM
-        case 0x3f00 ... 0x3fff: palettes_[address - 0x3f00] = val; break;
+        case 0x3f00 ... 0x3fff: palettes_[GetPaletteIndex(address)] = val & 0x3f; break;
 
         default: NESFERATU_THROW("Unmapped PPU address: 0x{:04x}", address);
     }
@@ -390,7 +394,7 @@ constexpr void PPU::SetFlag(u8& reg, u8 flag, bool val)
 
 void PPU::BackgroundRenderFetch()
 {
-    const u8 phase = cycle_ % 8;
+    const u8 phase = cycle_ % 8 >> x_;
     switch (phase)
     {
         case 0:
@@ -410,14 +414,7 @@ void PPU::BackgroundRenderFetch()
         case 1:
         {
             // Load shift registers
-            pattern_shift_low_ = (pattern_shift_low_ & 0x00ff) | (next_tile_pattern_low_ << 8);
-            pattern_shift_high_ = (pattern_shift_high_ & 0x00ff) | (next_tile_pattern_high_ << 8);
-
-            const u8 attribute_low = next_tile_attribute_ & 0x01;
-            const u8 attribute_high = (next_tile_attribute_ >> 1) & 0x01;
-
-            attribute_shift_low_ = (attribute_shift_low_ & 0x00ff) | (attribute_low != 0 ? 0xff00 : 0x0000);
-            attribute_shift_high_ = (attribute_shift_high_ & 0x00ff) | (attribute_high != 0 ? 0xff00 : 0x0000);
+            LoadBackgroundShiftRegisters();
 
             // Fetch nametable byte
             next_tile_id_ = PPURead(0x2000 | (v_ & 0x0fff));
@@ -493,32 +490,72 @@ void PPU::EvaluateSprites()
 
 void PPU::DummyFetches()
 {
-    const u16 address = (0x2000 | (v_ & 0x0fff));
-    next_tile_id_ = PPURead(address);
+    // const u16 address = (0x2000 | (v_ & 0x0fff));
+    // next_tile_id_ = PPURead(address);
+
+    switch (cycle_ % 2)
+    {
+        case 1:
+        {
+            next_tile_id_ = PPURead(0x2000 | (v_ & 0x0fff));
+        }; break;
+    }
+}
+
+void PPU::LoadBackgroundShiftRegisters()
+{
+    pattern_shift_low_ = (pattern_shift_low_ & 0x00ff) | (next_tile_pattern_low_ << 8);
+    pattern_shift_high_ = (pattern_shift_high_ & 0x00ff) | (next_tile_pattern_high_ << 8);
+
+    const u8 attribute_low = next_tile_attribute_ & 0x01;
+    const u8 attribute_high = (next_tile_attribute_ >> 1) & 0x01;
+
+    attribute_shift_low_ = (attribute_shift_low_ & 0x00ff) | (attribute_low != 0 ? 0xff00 : 0x0000);
+    attribute_shift_high_ = (attribute_shift_high_ & 0x00ff) | (attribute_high != 0 ? 0xff00 : 0x0000);
+}
+
+u8 PPU::GetPaletteIndex(u16 address) const
+{
+    u8 index = (address - 0x3f00) & 0x1f;
+
+    if ((index & 0x03) == 0 && index >= 0x10)
+    {
+        index -= 0x10;
+    }
+
+    return index;
+}
+
+u8 PPU::GetBackgroundColorIndex(u8 palette, u8 pixel) const
+{
+    return pixel == 0 ? palettes_[0] : palettes_[palette * 4 + pixel];
+}
+
+Pixel PPU::GetColor(u8 palette_index) const
+{
+    return NES_PALETTE[palette_index & 0x3f];
 }
 
 void PPU::RenderPixel()
 {
     // Generate background pixel
-    // TODO: move them somewhere else
-    constexpr u16 FRAMEBUFFER_WIDTH  = 256;
-    constexpr u16 FRAMEBUFFER_HEIGHT = 240;
+    const u16 bit = 0x8000;// >> x_;
 
-    const u8 pattern_low = (pattern_shift_low_ >> (15 - fine_x_)) & 0x01;
-    const u8 pattern_high = (pattern_shift_high_ >> (15 - fine_x_)) & 0x01;
+    const u8 pattern_low = (pattern_shift_low_ & bit) != 0;
+    const u8 pattern_high = (pattern_shift_high_ & bit) != 0;
     const u8 pattern = (pattern_high << 1) | pattern_low;
 
-    const u8 palette_low = (attribute_shift_low_ >> (15 - fine_x_)) & 0x01;
-    const u8 palette_high = (attribute_shift_high_ >> (15 - fine_x_)) & 0x01;
+    const u8 palette_low = (attribute_shift_low_ & bit) != 0;
+    const u8 palette_high = (attribute_shift_high_ & bit) != 0;
     const u8 palette = (palette_high << 1) | palette_low;
 
-    const u8 palette_index = pattern == 0 ? palettes_[0] : palettes_[palette * 4 + pattern];
+    const u8 palette_index = GetBackgroundColorIndex(palette, pattern);
 
     const std::size_t framebuffer_index =
         static_cast<std::size_t>(scanline_) * FRAMEBUFFER_WIDTH +
         static_cast<std::size_t>(cycle_) - 1;
 
-    framebuffer_[framebuffer_index] = NESColor(palette_index);
+    framebuffer_[framebuffer_index] = GetColor(palette_index);
 
     pattern_shift_low_ <<= 1;
     pattern_shift_high_ <<= 1;

@@ -41,7 +41,7 @@ u8 Mapper000::PPURead(u16 address)
 {
     if (address <= 0x1fff)
     {
-        return chr_rom_[address - 0x2000];
+        return chr_rom_[address];
     }
 
     throw std::runtime_error(std::format("[Mapper000] Unmapped PPU address: 0x{:02x}", address));

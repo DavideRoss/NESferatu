@@ -2,8 +2,8 @@
 
 #include <span>
 
+#include "data/palette.h"
 #include "entities/cartridge.h"
-
 #include "utils/types.h"
 
 class Bus;
@@ -39,13 +39,6 @@ enum PPUStatusFlag : u8
     SpriteOverflow = (1 << 5),
     SpriteZeroHit = (1 << 6),
     VerticalBlank = (1 << 7)
-};
-
-struct Pixel
-{
-    u8 r;
-    u8 g;
-    u8 b;
 };
 
 class PPU
@@ -94,43 +87,19 @@ private:
     void VerticalTransfer();
     void EvaluateSprites();
     void DummyFetches();
+    void LoadBackgroundShiftRegisters();
 
+    u8 GetPaletteIndex(u16 address) const;
+    u8 GetBackgroundColorIndex(u8 palette, u8 pixel) const;
+
+    Pixel GetColor(u8 palette_index) const;
     void RenderPixel();
 
     u16 GetBackgroundPatternTableAddress() const;
 
-    // TODO: remove debug palette function and implement proper palette parsing from file
-    constexpr Pixel NESColor(u8 color)
-    {
-        constexpr std::array<Pixel, 64> palette = {{
-            {124, 124, 124}, {0, 0, 252},   {0, 0, 188},   {68, 40, 188},
-            {148, 0, 132},   {168, 0, 32},  {168, 16, 0},  {136, 20, 0},
-            {80, 48, 0},     {0, 120, 0},   {0, 104, 0},   {0, 88, 0},
-            {0, 64, 88},     {0, 0, 0},     {0, 0, 0},     {0, 0, 0},
-
-            {188, 188, 188}, {0, 120, 248}, {0, 88, 248},  {104, 68, 252},
-            {216, 0, 204},   {228, 0, 88},  {248, 56, 0},  {228, 92, 16},
-            {172, 124, 0},   {0, 184, 0},   {0, 168, 0},   {0, 168, 68},
-            {0, 136, 136},   {0, 0, 0},     {0, 0, 0},     {0, 0, 0},
-
-            {248, 248, 248}, {60, 188, 252}, {104, 136, 252}, {152, 120, 248},
-            {248, 120, 248}, {248, 120, 120}, {248, 88, 48},  {248, 156, 56},
-            {248, 184, 0},   {184, 248, 24},  {88, 216, 84},  {88, 248, 152},
-            {0, 232, 216},   {120, 120, 120}, {0, 0, 0},     {0, 0, 0},
-
-            {248, 248, 248}, {168, 228, 252}, {184, 184, 248}, {216, 184, 248},
-            {248, 184, 248}, {248, 188, 188}, {248, 176, 156}, {248, 216, 168},
-            {248, 228, 148}, {216, 248, 120}, {184, 248, 184}, {184, 248, 216},
-            {0, 252, 252},   {216, 216, 216}, {0, 0, 0},     {0, 0, 0}
-        }};
-
-        return palette[color & 0x3Fu];
-    }
-
-
 private:
-    static constexpr u32 SCREEN_WIDTH = 256;
-    static constexpr u32 SCREEN_HEIGHT = 240;
+    static constexpr u32 FRAMEBUFFER_WIDTH = 256;
+    static constexpr u32 FRAMEBUFFER_HEIGHT = 240;
 
     static constexpr u32 CYCLES_PER_SCANLINE = 341;
     static constexpr u32 SCANLINES_PER_FRAME = 262;
@@ -160,11 +129,10 @@ private:
     u16 attribute_shift_low_ = 0;
     u16 attribute_shift_high_ = 0;
 
-    u8 fine_x_ = 0;
     u8 read_buffer_ = 0x00;
 
     // Framebuffer and memories
-    std::array<Pixel, SCREEN_WIDTH * SCREEN_HEIGHT> framebuffer_;
+    std::array<Pixel, FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT> framebuffer_;
 
     std::array<u8, 0x800> vram_;
     std::array<u8, 0x20> palettes_;
