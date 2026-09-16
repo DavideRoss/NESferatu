@@ -25,6 +25,8 @@ enum CPUTiming
 
 struct CartridgeMetadata
 {
+    bool nes2_format;
+
     u32 prg_banks;
     u32 chr_banks;
 
