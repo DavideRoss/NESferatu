@@ -3,6 +3,7 @@
 #include <span>
 
 #include "utils/types.h"
+#include "utils/exception.h"
 
 class BaseMapper
 {
