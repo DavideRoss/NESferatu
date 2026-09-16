@@ -1,4 +1,5 @@
 .vscode
 build
-roms/*
+roms/**
+temp/*
 !*/.gitinclude

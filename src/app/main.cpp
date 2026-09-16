@@ -1,5 +1,4 @@
-#include <iostream>
-#include <thread>
+#include <fstream>
 
 #include "entities/system.h"
 #include "entities/cartridge.h"
@@ -16,11 +15,14 @@
 
 #define RUNNING_MODE MODE_FRAME
 
+void SaveFramebuffer(std::span<const Pixel> framebuffer);
+
 int main()
 {
     std::cout << "Hello, NESferatu!\n";
 
     Cartridge cart("roms/Excitebike (Europe).nes");
+    // Cartridge cart("roms/tests/color_test.nes");
     System* nes = new System(cart);
     nes->Reset();
 
@@ -121,6 +123,7 @@ int main()
 
     bool run_latch = false;
     bool step_latch = false;
+    bool request_screenshot = false;
 
     u32 cycles = 0;
     u32 frames = 0;
@@ -150,6 +153,11 @@ int main()
             {
                 nes->cpu->ToggleLogging();
             }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_p)
+            {
+                request_screenshot = true;
+            }
         }
 
         if (step_latch || run_latch)
@@ -157,15 +165,42 @@ int main()
             cycles += nes->StepFrame();
             step_latch = false;
             
-            NESFERATU_LOG("Complete frame {}, cycles: {}", frames, cycles);
+            // NESFERATU_LOG("Complete frame {}, cycles: {}", frames, cycles);
             frames++;
         }
 
         std::span<const Pixel> framebuffer = nes->GetFramebuffer();
         sdl->Render(framebuffer);
+
+        if (request_screenshot)
+        {
+            SaveFramebuffer(framebuffer);
+            request_screenshot = false;
+        }
+
+        // TODO: fix quick and dirty vsync
+        SDL_Delay(16);
     }
 
     #endif
 
     return 0;
+}
+
+void SaveFramebuffer(std::span<const Pixel> framebuffer)
+{
+    const auto now = std::chrono::system_clock::now();
+    const time_t time = std::chrono::system_clock::to_time_t(now);
+
+    std::ostringstream name;
+    name << "temp/"
+        << std::put_time(std::localtime(&time), "%Y-%m-%d_%H-%M-%S")
+        << ".ppm";
+
+    std::ofstream file(name.str(), std::ios::binary);
+
+    file << "P6\n256 240\n255\n";
+    file.write(reinterpret_cast<const char*>(framebuffer.data()), framebuffer.size_bytes());
+
+    NESFERATU_LOG("File saved: {}", name.str());
 }
