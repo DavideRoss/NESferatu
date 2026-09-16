@@ -88,6 +88,7 @@ private:
     void EvaluateSprites();
     void DummyFetches();
     void LoadBackgroundShiftRegisters();
+    void ShiftBackgroundRegisters();
 
     u8 GetPaletteIndex(u16 address) const;
     u8 GetBackgroundColorIndex(u8 palette, u8 pixel) const;

@@ -63,11 +63,6 @@ void PPU::Step()
                 BackgroundRenderFetch();
             }
 
-            if (cycle_ >= 321 && cycle_ <= 336)
-            {
-                BackgroundRenderFetch();
-            }
-
             // Increment coarse and fine Y
             if (cycle_ == 256)
             {
@@ -90,6 +85,11 @@ void PPU::Step()
             if (cycle_ >= 280 && cycle_ <= 304)
             {
                 VerticalTransfer();
+            }
+
+            if (cycle_ >= 321 && cycle_ <= 336)
+            {
+                BackgroundRenderFetch();
             }
 
             // Nabletable dummy fetches
@@ -140,9 +140,14 @@ void PPU::Step()
             }
         }
 
-        if (GetFlag(mask, PPUMaskFlag::EnableBackground) && cycle_ >= 1 && cycle_ <= 256)
+        if (cycle_ >= 1 && cycle_ <= 256)
         {
             RenderPixel();
+        }
+
+        if (render_enabled && ((cycle_ >= 1 && cycle_ <= 256) || (cycle_ >= 321 && cycle_ <= 336)))
+        {
+            ShiftBackgroundRegisters();
         }
     }
 
@@ -188,6 +193,7 @@ u8 PPU::CPURead(u16 address)
         case 0x2014: // OAM DMA
             NESFERATU_THROW("Address is write-only: 0x{:04x}", address);
 
+        // PPU Status
         case 0x2002: {
             const u8 stat = status;
             SetFlag(status, PPUStatusFlag::VerticalBlank, false);
@@ -203,6 +209,7 @@ u8 PPU::CPURead(u16 address)
             const u16 address = v_ & 0x3fff;
             u8 result = 0x00;
 
+            // Palette reads are not delayed, and the buffer reads from the nametable mirror
             if (address >= 0x3f00)
             {
                 result = PPURead(address);
@@ -234,7 +241,8 @@ void PPU::CPUWrite(u16 address, u8 val)
             const bool prev_nmi = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
 
             ctrl = val;
-
+            
+            // Write nametable selection
             t_ = (t_ & 0xf3ff) | ((val & 0x03) << 10);
 
             // Trigger NMI request if NMI is enable while vblank is active
@@ -269,13 +277,13 @@ void PPU::CPUWrite(u16 address, u8 val)
         {
             if (!w_)
             {
-                // First write
+                // First write: coarse X and fine X
                 t_ = (t_ & 0x7fe0) | (val >> 3);
                 x_ = val & 0x07;
             }
             else
             {
-                // Second write
+                // Second write: coarse Y and fine Y
                 t_ = (t_ & 0x0c1f) | (((val & 0x07) << 12) | ((val & 0xf8) << 2));
             }
 
@@ -285,14 +293,16 @@ void PPU::CPUWrite(u16 address, u8 val)
         // VRAM address
         case 0x2006:
         {
-            if (w_)
+            if (!w_)
             {
-                t_ = (t_ & 0x7f00) | val;
-                v_ = t_;
+                // First write: upper coarse Y, nametables, lower fine Y
+                t_ = (t_ & 0x00ff) | (static_cast<u16>(val & 0x3f) << 8);
             }
             else
             {
-                t_ = (t_ & 0x00ff) | (static_cast<u16>(val & 0x3f) << 8);
+                // Second write: coarse X, lower coarse Y
+                t_ = (t_ & 0x7f00) | val;
+                v_ = t_;
             }
 
             w_ = !w_;
@@ -301,8 +311,9 @@ void PPU::CPUWrite(u16 address, u8 val)
         // VRAM data
         case 0x2007:
         {
-            PPUWrite(v_, val);
+            PPUWrite(v_ & 0x3fff, val);
             v_ += GetFlag(ctrl, PPUCtrlFlag::IncrementMode) ? 32 : 1;
+            v_ &= 0x7fff;
         }; break;
 
         default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
@@ -394,7 +405,7 @@ constexpr void PPU::SetFlag(u8& reg, u8 flag, bool val)
 
 void PPU::BackgroundRenderFetch()
 {
-    const u8 phase = cycle_ % 8 >> x_;
+    const u8 phase = cycle_ % 8;
     switch (phase)
     {
         case 0:
@@ -465,12 +476,14 @@ void PPU::IncrementY()
         }
         else if (coarse_y == 31)
         {
-            v_ &= ~0x03e0;
+            coarse_y = 0;
         }
         else
         {
-            v_ += 0x0020;
+            ++coarse_y;
         }
+
+        v_ = (v_ & ~0x03e0) | (coarse_y << 5);
     }
 }
 
@@ -490,28 +503,30 @@ void PPU::EvaluateSprites()
 
 void PPU::DummyFetches()
 {
-    // const u16 address = (0x2000 | (v_ & 0x0fff));
-    // next_tile_id_ = PPURead(address);
-
-    switch (cycle_ % 2)
+    if (cycle_ == 337 || cycle_ == 339)
     {
-        case 1:
-        {
-            next_tile_id_ = PPURead(0x2000 | (v_ & 0x0fff));
-        }; break;
+        next_tile_id_ = PPURead(0x2000 | (v_ & 0x0fff));
     }
 }
 
 void PPU::LoadBackgroundShiftRegisters()
 {
-    pattern_shift_low_ = (pattern_shift_low_ & 0x00ff) | (next_tile_pattern_low_ << 8);
-    pattern_shift_high_ = (pattern_shift_high_ & 0x00ff) | (next_tile_pattern_high_ << 8);
+    pattern_shift_low_ = (pattern_shift_low_ & 0xff00) | next_tile_pattern_low_;
+    pattern_shift_high_ = (pattern_shift_high_ & 0xff00) | next_tile_pattern_high_;
 
     const u8 attribute_low = next_tile_attribute_ & 0x01;
     const u8 attribute_high = (next_tile_attribute_ >> 1) & 0x01;
 
-    attribute_shift_low_ = (attribute_shift_low_ & 0x00ff) | (attribute_low != 0 ? 0xff00 : 0x0000);
-    attribute_shift_high_ = (attribute_shift_high_ & 0x00ff) | (attribute_high != 0 ? 0xff00 : 0x0000);
+    attribute_shift_low_ = (attribute_shift_low_ & 0xff00) | ((attribute_low != 0) ? 0xff : 0x00);
+    attribute_shift_high_ = (attribute_shift_high_ & 0xff00) | ((attribute_high != 0) ? 0xff : 0x00);
+}
+
+void PPU::ShiftBackgroundRegisters()
+{
+    pattern_shift_low_ <<= 1;
+    pattern_shift_high_ <<= 1;
+    attribute_shift_low_ <<= 1;
+    attribute_shift_high_ <<= 1;
 }
 
 u8 PPU::GetPaletteIndex(u16 address) const
@@ -538,16 +553,22 @@ Pixel PPU::GetColor(u8 palette_index) const
 
 void PPU::RenderPixel()
 {
-    // Generate background pixel
-    const u16 bit = 0x8000;// >> x_;
+    u8 palette = 0x00;
+    u8 pattern = 0x00;
 
-    const u8 pattern_low = (pattern_shift_low_ & bit) != 0;
-    const u8 pattern_high = (pattern_shift_high_ & bit) != 0;
-    const u8 pattern = (pattern_high << 1) | pattern_low;
+    if (GetFlag(mask, PPUMaskFlag::EnableBackground))
+    {
+        // Generate background pixel
+        const u16 bit = 0x8000 >> x_;
 
-    const u8 palette_low = (attribute_shift_low_ & bit) != 0;
-    const u8 palette_high = (attribute_shift_high_ & bit) != 0;
-    const u8 palette = (palette_high << 1) | palette_low;
+        const u8 pattern_low = (pattern_shift_low_ & bit) > 0;
+        const u8 pattern_high = (pattern_shift_high_ & bit) > 0;
+        pattern = (pattern_high << 1) | pattern_low;
+
+        const u8 palette_low = (attribute_shift_low_ & bit) > 0;
+        const u8 palette_high = (attribute_shift_high_ & bit) > 0;
+        palette = (palette_high << 1) | palette_low;
+    }
 
     const u8 palette_index = GetBackgroundColorIndex(palette, pattern);
 
@@ -556,11 +577,6 @@ void PPU::RenderPixel()
         static_cast<std::size_t>(cycle_) - 1;
 
     framebuffer_[framebuffer_index] = GetColor(palette_index);
-
-    pattern_shift_low_ <<= 1;
-    pattern_shift_high_ <<= 1;
-    attribute_shift_low_ <<= 1;
-    attribute_shift_high_ <<= 1;
 }
 
 u16 PPU::GetBackgroundPatternTableAddress() const
