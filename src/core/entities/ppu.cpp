@@ -21,9 +21,9 @@ void PPU::Reset()
     frame_complete_ = false;
     nmi_requested_ = false;
 
-    ctrl = 0;
-    mask = 0;
-    status = 0;
+    ctrl_ = 0;
+    mask_ = 0;
+    status_ = 0;
 
     v_ = 0;
     t_ = 0;
@@ -43,8 +43,8 @@ void PPU::Step()
     frame_complete_ = false;
 
     const bool render_enabled =
-        GetFlag(mask, PPUMaskFlag::EnableBackground) ||
-        GetFlag(mask, PPUMaskFlag::EnableSprites);
+        GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
+        GetFlag(mask_, PPUMaskFlag::EnableSprites);
 
     // Pre-render scanline
     if (scanline_ == 261)
@@ -52,7 +52,7 @@ void PPU::Step()
         // Clear vblank interrupt
         if (cycle_ == 1)
         {
-            status &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
+            status_ &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
         }
 
         if (render_enabled)
@@ -154,8 +154,8 @@ void PPU::Step()
     // trigger vblank interrupt
     if (scanline_ == 241 && cycle_ == 1)
     {
-        SetFlag(status, PPUStatusFlag::VerticalBlank, true);
-        if (GetFlag(ctrl, PPUCtrlFlag::NMIEnable))
+        SetFlag(status_, PPUStatusFlag::VerticalBlank, true);
+        if (GetFlag(ctrl_, PPUCtrlFlag::NMIEnable))
         {
             nmi_requested_ = true;
         }
@@ -198,13 +198,13 @@ u8 PPU::CPURead(u16 address)
 
         // PPU Status
         case 0x2002: {
-            const u8 stat = status;
-            SetFlag(status, PPUStatusFlag::VerticalBlank, false);
+            const u8 stat = status_;
+            SetFlag(status_, PPUStatusFlag::VerticalBlank, false);
             w_ = false;
             return stat;
         }
 
-        case 0x2004: return oam_[oam_addr];
+        case 0x2004: return oam_[oam_addr_];
 
         // VRAM data
         case 0x2007:
@@ -224,7 +224,7 @@ u8 PPU::CPURead(u16 address)
                 read_buffer_ = PPURead(address);
             }
 
-            v_ += GetFlag(ctrl, PPUCtrlFlag::IncrementMode) ? 32 : 1;
+            v_ += GetFlag(ctrl_, PPUCtrlFlag::IncrementMode) ? 32 : 1;
             v_ &= 0x7fff;
 
             return result;
@@ -234,23 +234,23 @@ u8 PPU::CPURead(u16 address)
     }
 }
 
-void PPU::CPUWrite(u16 address, u8 val)
+void PPU::CPUWrite(u16 address, u8 data)
 {
     switch (address)
     {
         // PPU control
         case 0x2000:
         {
-            const bool prev_nmi = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
+            const bool prev_nmi = GetFlag(ctrl_, PPUCtrlFlag::NMIEnable);
 
-            ctrl = val;
+            ctrl_ = data;
             
             // Write nametable selection
-            t_ = (t_ & 0xf3ff) | ((val & 0x03) << 10);
+            t_ = (t_ & 0xf3ff) | ((data & 0x03) << 10);
 
             // Trigger NMI request if NMI is enable while vblank is active
-            const bool nmi_enable = GetFlag(ctrl, PPUCtrlFlag::NMIEnable);
-            if (!prev_nmi && nmi_enable && GetFlag(status, PPUStatusFlag::VerticalBlank))
+            const bool nmi_enable = GetFlag(ctrl_, PPUCtrlFlag::NMIEnable);
+            if (!prev_nmi && nmi_enable && GetFlag(status_, PPUStatusFlag::VerticalBlank))
             {
                 nmi_requested_ = true;
             }
@@ -259,7 +259,7 @@ void PPU::CPUWrite(u16 address, u8 val)
         // PPU mask
         case 0x2001: 
         {
-            mask = val;
+            mask_ = data;
         }; break;
 
         // PPU status, ignore write
@@ -268,14 +268,14 @@ void PPU::CPUWrite(u16 address, u8 val)
         // OAM Address
         case 0x2003:
         {
-            oam_addr = val;
+            oam_addr_ = data;
         }; break;
 
         // OAM Data
         case 0x2004:
         {
-            oam_[oam_addr] = val;
-            ++oam_addr;
+            oam_[oam_addr_] = data;
+            ++oam_addr_;
         }; break;
 
         // Scroll register
@@ -284,13 +284,13 @@ void PPU::CPUWrite(u16 address, u8 val)
             if (!w_)
             {
                 // First write: coarse X and fine X
-                t_ = (t_ & 0x7fe0) | (val >> 3);
-                x_ = val & 0x07;
+                t_ = (t_ & 0x7fe0) | (data >> 3);
+                x_ = data & 0x07;
             }
             else
             {
                 // Second write: coarse Y and fine Y
-                t_ = (t_ & 0x0c1f) | (((val & 0x07) << 12) | ((val & 0xf8) << 2));
+                t_ = (t_ & 0x0c1f) | (((data & 0x07) << 12) | ((data & 0xf8) << 2));
             }
 
             w_ = !w_;
@@ -302,12 +302,12 @@ void PPU::CPUWrite(u16 address, u8 val)
             if (!w_)
             {
                 // First write: upper coarse Y, nametables, lower fine Y
-                t_ = (t_ & 0x00ff) | (static_cast<u16>(val & 0x3f) << 8);
+                t_ = (t_ & 0x00ff) | (static_cast<u16>(data & 0x3f) << 8);
             }
             else
             {
                 // Second write: coarse X, lower coarse Y
-                t_ = (t_ & 0x7f00) | val;
+                t_ = (t_ & 0x7f00) | data;
                 v_ = t_;
             }
 
@@ -317,8 +317,8 @@ void PPU::CPUWrite(u16 address, u8 val)
         // VRAM data
         case 0x2007:
         {
-            PPUWrite(v_ & 0x3fff, val);
-            v_ += GetFlag(ctrl, PPUCtrlFlag::IncrementMode) ? 32 : 1;
+            PPUWrite(v_ & 0x3fff, data);
+            v_ += GetFlag(ctrl_, PPUCtrlFlag::IncrementMode) ? 32 : 1;
             v_ &= 0x7fff;
         }; break;
 
@@ -562,7 +562,7 @@ void PPU::RenderPixel()
     u8 palette = 0x00;
     u8 pattern = 0x00;
 
-    if (GetFlag(mask, PPUMaskFlag::EnableBackground))
+    if (GetFlag(mask_, PPUMaskFlag::EnableBackground))
     {
         // Generate background pixel
         const u16 bit = 0x8000 >> x_;
@@ -587,5 +587,5 @@ void PPU::RenderPixel()
 
 u16 PPU::GetBackgroundPatternTableAddress() const
 {
-    return GetFlag(ctrl, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000;
+    return GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000;
 }

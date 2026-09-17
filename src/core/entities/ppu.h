@@ -33,12 +33,19 @@ enum PPUMaskFlag : u8
     EmphasizeBlue = (1 << 7)
 };
 
-// TODO: implement open-bus behaviour
 enum PPUStatusFlag : u8
 {
     SpriteOverflow = (1 << 5),
     SpriteZeroHit = (1 << 6),
     VerticalBlank = (1 << 7)
+};
+
+struct Sprite
+{
+    u8 y;
+    u8 tile;
+    u8 attributes;
+    u8 x;
 };
 
 class PPU
@@ -52,7 +59,7 @@ public:
     void Step();
 
     u8 CPURead(u16 address);
-    void CPUWrite(u16 address, u8 val);
+    void CPUWrite(u16 address, u8 data);
 
     bool IsNMIRequested() const;
     bool IsFrameComplete() const;
@@ -66,21 +73,9 @@ private:
     u8 PPURead(u16 address);
     void PPUWrite(u16 address, u8 val);
 
-    u16 MapNametableAddress(u16 address);
-
-public:
-    u8 ctrl;
-    u8 mask;
-    u8 status;
-    u8 oam_addr;
-    u8 addr;
-    u8 data;
-    u8 oam_dma;
-
-private:
     constexpr u8 GetFlag(u8 reg, u8 flag) const;
     constexpr void SetFlag(u8& reg, u8 flag, bool val);
-
+    
     void BackgroundRenderFetch();
     void IncrementY();
     void HorizontalTransfer();
@@ -89,14 +84,14 @@ private:
     void DummyFetches();
     void LoadBackgroundShiftRegisters();
     void ShiftBackgroundRegisters();
-
+    
+    u16 MapNametableAddress(u16 address);
+    u16 GetBackgroundPatternTableAddress() const;
     u8 GetPaletteIndex(u16 address) const;
     u8 GetBackgroundColorIndex(u8 palette, u8 pixel) const;
 
     Pixel GetColor(u8 palette_index) const;
     void RenderPixel();
-
-    u16 GetBackgroundPatternTableAddress() const;
 
 private:
     static constexpr u32 FRAMEBUFFER_WIDTH = 256;
@@ -113,6 +108,12 @@ private:
     u32 scanline_ = 0;
     bool frame_complete_ = false;
     bool nmi_requested_ = false;
+
+    // Registers
+    u8 ctrl_;
+    u8 mask_;
+    u8 status_;
+    u8 oam_addr_;
 
     // PPU registers    During rendering        Outside rendering
     u16 v_;          // Scroll position         Current VRAM address
