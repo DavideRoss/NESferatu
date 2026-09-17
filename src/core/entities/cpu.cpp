@@ -50,6 +50,22 @@ u32 CPU::Step()
 
         return cycles_;
     }
+
+    if (irq_pending_ && !GetFlag(StatusFlag::I))
+    {
+        irq_pending_ = false;
+
+        PushToStack(pc >> 8);
+        PushToStack(pc & 0xff);
+        PushToStack(s & ~StatusFlag::B);
+
+        SetFlag(StatusFlag::I, true);
+
+        pc = static_cast<u16>((ReadByte(0xffff) << 8) | ReadByte(0xfffe));
+        cycles_ += 2;
+
+        return cycles_;
+    }
     
     // TODO: use DEFINE_OPERATION_NO_ADDRESS for opcodes with implied operands
     // TODO: cleanup implied addressing mode afterwards
@@ -384,11 +400,6 @@ u8 CPU::PullFromStack()
     const u8 data = bus_->CPURead(0x0100 | sp);
     cycles_++;
     return data;
-}
-
-void CPU::RequestNMI()
-{
-    nmi_pending_ = true;
 }
 
 #pragma region Addressing Modes

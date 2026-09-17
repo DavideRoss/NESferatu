@@ -326,7 +326,8 @@ public:
     void PushToStack(const u8 data);
     u8 PullFromStack();
 
-    void RequestNMI();
+    void RequestIRQ() { irq_pending_ = true; }
+    void RequestNMI() { nmi_pending_ = true; }
 
     // Debug function
     void ToggleLogging()
@@ -454,6 +455,7 @@ private:
     Bus* bus_ = nullptr;
     u32 cycles_ = 0;
 
+    bool irq_pending_ = false;
     bool nmi_pending_ = false;
 
     // Debug

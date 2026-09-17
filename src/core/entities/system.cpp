@@ -1,10 +1,11 @@
 #include "system.h"
 
 System::System(Cartridge& cartridge)
+    : cartridge_(cartridge)
 {
     cpu = std::make_unique<CPU>();
     mem = std::make_unique<Memory>();
-    ppu = std::make_unique<PPU>(cartridge);
+    ppu = std::make_unique<PPU>(cartridge_);
     apu = std::make_unique<APU>();
     controllers = std::make_unique<Controllers>();
     
@@ -14,7 +15,7 @@ System::System(Cartridge& cartridge)
         *ppu,
         *apu,
         *controllers,
-        cartridge
+        cartridge_
     );
 }
 
@@ -39,15 +40,26 @@ u32 System::Step()
 {
     const u32 cycles = cpu->Step();
 
-    for (u32 i = 0; i < cycles * 3; ++i)
+    for (u32 i = 0; i < cycles; ++i)
     {
-        ppu->Step();
-        if (ppu->IsNMIRequested())
+        apu->Step();
+
+        for (u32 i = 0; i < 3; ++i)
         {
-            cpu->RequestNMI();
-            ppu->ClearNMIRequest();
+            ppu->Step();
+            if (ppu->IsNMIRequested())
+            {
+                cpu->RequestNMI();
+                ppu->ClearNMIRequest();
+            }
         }
-    }    
+
+        // TODO: route IRQ/NMI through bus instead?
+        if (apu->IsIRQRequested() || cartridge_.IsIRQRequested())
+        {
+            cpu->RequestIRQ();
+        }
+    }
 
     return cycles;
 }

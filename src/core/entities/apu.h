@@ -10,36 +10,20 @@ public:
     void ConnectBus(Bus* bus);
     void Reset();
 
+    void Step();
+
     u8 CPURead(u16 address);
-    void CPUWrite(u16 address, u8 val);
+    void CPUWrite(u16 address, u8 data);
+
+    bool IsIRQRequested() const { return frame_irq_; }
 
 private:
-    u8 pulse1_timer_;
-    u8 pulse1_length_;
-    u8 pulse1_envelope_;
-    u8 pulse1_sweep_;
+    bool frame_irq_ = false;
 
-    u8 pulse2_timer_;
-    u8 pulse2_length_;
-    u8 pulse2_envelope_;
-    u8 pulse2_sweep_;
+    bool frame_irq_inhibit_ = false;
+    bool frame_5step_ = false;
 
-    u8 tri_timer_;
-    u8 tri_length_;
-    u8 tri_counter_;
-
-    u8 noise_timer_;
-    u8 noise_length_;
-    u8 noise_envelope_;
-    u8 noise_feedback_;
-
-    u8 dmc_timer_;
-    u8 dmc_mem_reader_;
-    u8 dmc_buffer_;
-    u8 dmc_output_;
-
-    u8 status_;
-    u8 frame_counter_;
+    u32 frame_counter_ = 0;
 
 private:
     Bus* bus_ = nullptr;

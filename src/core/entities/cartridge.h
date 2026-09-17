@@ -61,6 +61,9 @@ public:
     u8 PPURead(u16 address);
     void PPUWrite(u16 address, u8 data);
 
+    // TODO: connect to mapper (some mappers support IRQ)
+    bool IsIRQRequested() const { return false; }
+
 public:
     CartridgeMetadata metadata;
 

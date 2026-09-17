@@ -29,4 +29,7 @@ public:
     std::unique_ptr<PPU> ppu;
     std::unique_ptr<APU> apu;
     std::unique_ptr<Controllers> controllers;
+
+private:
+    Cartridge& cartridge_;
 };
