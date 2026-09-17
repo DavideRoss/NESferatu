@@ -321,7 +321,7 @@ u32 CPU::Step()
         // Transfer Y to Accumulator
         EXECUTE_OPCODE(TYA_IMP, TYA, Implied,    false, 1)
 
-        default: throw std::runtime_error(std::format("Unimplemented instruction: 0x{:02x}", instruction));
+        default: NESFERATU_LOG("Illegal opcode: 0x{:02x} address: 0x{:04x}", instruction, pc);
     }
 
     if (logging_)
@@ -665,13 +665,13 @@ DEFINE_OPERATION(BRK)
 {
     cpu.PushToStack((cpu.pc + 1) >> 8);
     cpu.PushToStack((cpu.pc + 1) & 0x00ff);
-    cpu.PushToStack(cpu.s);
+    cpu.PushToStack(cpu.s | StatusFlag::B | StatusFlag::U);
+
+    cpu.SetFlag(StatusFlag::I, true);
 
     const u8 addr_low = cpu.ReadByte(0xfffe);
     const u8 addr_high = cpu.ReadByte(0xffff);
     cpu.pc = static_cast<u16>((addr_high << 8) | addr_low);
-
-    cpu.SetFlag(StatusFlag::I, true);
 }
 
 DEFINE_OPERATION(BVC)
@@ -889,7 +889,7 @@ DEFINE_OPERATION_NO_ADDRESS(PHA)
 
 DEFINE_OPERATION_NO_ADDRESS(PHP)
 {
-    cpu.PushToStack(cpu.s | StatusFlag::B);
+    cpu.PushToStack(cpu.s | StatusFlag::B | StatusFlag::U);
 }
 
 DEFINE_OPERATION_NO_ADDRESS(PLA)
@@ -955,6 +955,8 @@ DEFINE_OPERATION(ROR)
 DEFINE_OPERATION(RTI)
 {
     cpu.s = cpu.PullFromStack();
+    cpu.s &= ~StatusFlag::B;
+    cpu.s |= StatusFlag::U;
 
     const u8 pc_low = cpu.PullFromStack();
     const u8 pc_high = cpu.PullFromStack();

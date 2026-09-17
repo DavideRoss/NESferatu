@@ -17,11 +17,11 @@ TEST(BRK, ForceInterrupt)
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 7);
     EXPECT_EQ(nes->cpu->pc, 0xabcd);
-    EXPECT_EQ(nes->cpu->sp, 0xfc);
+    EXPECT_EQ(nes->cpu->sp, 0xfa);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::I));
 
     // Check stack
-    EXPECT_EQ(nes->mem->Read(0x01ff), 0x01);
-    EXPECT_EQ(nes->mem->Read(0x01fe), 0x25);
-    EXPECT_EQ(nes->mem->Read(0x01fd), 0xa2);
+    EXPECT_EQ(nes->mem->Read(0x01fd), 0x01);
+    EXPECT_EQ(nes->mem->Read(0x01fc), 0x25);
+    EXPECT_EQ(nes->mem->Read(0x01fb), 0xb2);
 }
