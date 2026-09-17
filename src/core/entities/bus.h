@@ -3,6 +3,7 @@
 #include "utils/types.h"
 
 #include "cartridge.h"
+#include "controllers.h"
 #include "cpu.h"
 #include "memory.h"
 #include "ppu.h"
@@ -12,7 +13,14 @@ class Bus
 {
 
 public:
-    Bus(CPU& cpu, Memory& memory, PPU& ppu, APU& apu, Cartridge& cartridge);
+    Bus(
+        CPU& cpu,
+        Memory& memory,
+        PPU& ppu,
+        APU& apu,
+        Controllers& controllers,
+        Cartridge& cartridge
+    );
 
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
@@ -25,5 +33,6 @@ private:
     Memory& memory_;
     PPU& ppu_;
     APU& apu_;
+    Controllers& controllers_;
     Cartridge& cartridge_;
 };

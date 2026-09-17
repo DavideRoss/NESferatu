@@ -1,10 +1,11 @@
 #pragma once
 
+#include "apu.h"
 #include "bus.h"
+#include "controllers.h"
 #include "cpu.h"
 #include "memory.h"
 #include "ppu.h"
-#include "apu.h"
 
 class System
 {
@@ -27,7 +28,5 @@ public:
     std::unique_ptr<Memory> mem;
     std::unique_ptr<PPU> ppu;
     std::unique_ptr<APU> apu;
-
-private:
-    std::array<Pixel, 256 * 240> framebuffer_;
+    std::unique_ptr<Controllers> controllers;
 };
