@@ -191,7 +191,10 @@ u8 PPU::CPURead(u16 address)
         case 0x2005: // PPUSCROLL
         case 0x2006: // PPUADDR
         case 0x2014: // OAM DMA
-            NESFERATU_THROW("Address is write-only: 0x{:04x}", address);
+        {
+            // TODO: implement open bus behaviour
+            return 0x00;
+        }
 
         // PPU Status
         case 0x2002: {
@@ -258,6 +261,9 @@ void PPU::CPUWrite(u16 address, u8 val)
         {
             mask = val;
         }; break;
+
+        // PPU status, ignore write
+        case 0x2002: break;
 
         // OAM Address
         case 0x2003:

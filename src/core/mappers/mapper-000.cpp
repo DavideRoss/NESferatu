@@ -24,7 +24,11 @@ u8 Mapper000::CPURead(u16 address)
             return prg_rom_[(address - 0x8000) % prg_rom_.size()];
         }
 
-        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+        default:
+        {
+            // TODO: implement open bus behaviour
+            return 0x00;
+        }
     }
 }
 
@@ -61,5 +65,5 @@ void Mapper000::PPUWrite(u16 address, u8 data)
         chr_ram_[address] = data;
     }
 
-    NESFERATU_THROW("Unmapped PPU address: 0x{:02x}", address);
+    // Otherwise is CHR ROM, writes are ignored
 }
