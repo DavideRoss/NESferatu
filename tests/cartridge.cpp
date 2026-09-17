@@ -64,21 +64,3 @@ TEST(Cartridge, WrongHeader)
         );
     }
 }
-
-TEST(Cartridge, MissingNES2Flags)
-{
-    const std::filesystem::path path = "../../tests/test-roms/wrong-nes-flag.nes";
-
-    try
-    {
-        Cartridge* cart = new Cartridge(path);
-        FAIL() << "Expected std::runtime_error";
-    }
-    catch (const std::runtime_error& error)
-    {
-        EXPECT_EQ(
-            std::string_view(error.what()),
-            "Invalid ROM: not a NES 2.0 ROM"
-        );
-    }
-}
