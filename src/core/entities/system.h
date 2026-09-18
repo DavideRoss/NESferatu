@@ -14,13 +14,15 @@ public:
     System(Cartridge& cartridge);
 
     void Reset();
-    void Execute(const u32 cycles);
 
     u32 Step();
     u32 StepFrame();
 
     bool IsFrameComplete() const;
     std::span<const Pixel> GetFramebuffer();
+
+private:
+    void StepHardware();
 
 public:
     std::unique_ptr<Bus> bus;

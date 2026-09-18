@@ -105,8 +105,13 @@ void Bus::CPUWrite(u16 address, u8 data)
         // PPU Sprite DMA
         case 0x4014:
         {
-            // NESFERATU_THROW("Not implemented. Address 0x{:04x}", address);
-            NESFERATU_LOG("Attempt to write to PPU Sprite DMA (address 0x{:04x})", address);
+            oam_dma_active_ = true;
+            oam_dma_phase_ = cpu_.total_cycles % 2 == 0 ?
+                OAMDMAPhase::Read :
+                OAMDMAPhase::Dummy;
+
+            oam_dma_page_ = data;
+            oam_dma_address_ = 0x00;
         }; break;
 
         // APU status
@@ -154,4 +159,41 @@ u8 Bus::PPURead(u16 address)
 void Bus::PPUWrite(u16 address, u8 data)
 {
     cartridge_.PPUWrite(address, data);
+}
+
+bool Bus::IsOAMDMAActive()
+{
+    return oam_dma_active_;
+}
+
+void Bus::StepOAMDMA()
+{
+    switch (oam_dma_phase_)
+    {
+        case OAMDMAPhase::Dummy:
+        {
+            oam_dma_phase_ = OAMDMAPhase::Read;
+        }; break;
+
+        case OAMDMAPhase::Read:
+        {
+            const u16 address = (oam_dma_page_ << 8) | oam_dma_address_;
+            oam_dma_data_ = CPURead(address);
+            oam_dma_phase_ = OAMDMAPhase::Write;
+        }; break;
+
+        case OAMDMAPhase::Write:
+        {
+            // Write to the OAM data address
+            ppu_.CPUWrite(0x2004, oam_dma_data_);
+            ++oam_dma_address_;
+            oam_dma_phase_ = OAMDMAPhase::Read;
+
+            // End of page, end OAM DMA
+            if (oam_dma_address_ == 0)
+            {
+                oam_dma_active_ = false;
+            }
+        }; break;
+    }
 }

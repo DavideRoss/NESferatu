@@ -25,10 +25,13 @@ void CPU::Reset()
     sp = 0xfd;
     s = 0x20;
 
+    total_cycles = 0;
+
     // Read reset vector
     u8 reset_low = ReadByte(0xfffc);
     u8 reset_high = ReadByte(0xfffd);
     pc = (reset_high << 8) | reset_low;
+
 }
 
 u32 CPU::Step()
@@ -48,6 +51,7 @@ u32 CPU::Step()
         pc = static_cast<u16>((ReadByte(0xfffb) << 8) | ReadByte(0xfffa));
         cycles_ += 2;
 
+        total_cycles += cycles_;
         return cycles_;
     }
 
@@ -64,6 +68,7 @@ u32 CPU::Step()
         pc = static_cast<u16>((ReadByte(0xffff) << 8) | ReadByte(0xfffe));
         cycles_ += 2;
 
+        total_cycles += cycles_;
         return cycles_;
     }
     
@@ -348,6 +353,7 @@ u32 CPU::Step()
         );
     }
 
+    total_cycles += cycles_;
     return cycles_;
 }
 

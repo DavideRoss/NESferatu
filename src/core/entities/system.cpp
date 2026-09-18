@@ -27,41 +27,45 @@ void System::Reset()
     controllers->Reset();
 }
 
-void System::Execute(const u32 cycles)
-{
-    u32 curr_cycles = 0;
-    while (curr_cycles < cycles)
-    {
-        curr_cycles += cpu->Step();
-    }
-}
-
 u32 System::Step()
 {
+    if (bus->IsOAMDMAActive())
+    {
+        bus->StepOAMDMA();
+        StepHardware();
+    
+        return 1;
+    }
+
     const u32 cycles = cpu->Step();
 
     for (u32 i = 0; i < cycles; ++i)
     {
-        apu->Step();
-
-        for (u32 i = 0; i < 3; ++i)
-        {
-            ppu->Step();
-            if (ppu->IsNMIRequested())
-            {
-                cpu->RequestNMI();
-                ppu->ClearNMIRequest();
-            }
-        }
-
-        // TODO: route IRQ/NMI through bus instead?
-        if (apu->IsIRQRequested() || cartridge_.IsIRQRequested())
-        {
-            cpu->RequestIRQ();
-        }
+        StepHardware();
     }
 
     return cycles;
+}
+
+void System::StepHardware()
+{
+    apu->Step();
+
+    for (u32 i = 0; i < 3; ++i)
+    {
+        ppu->Step();
+        if (ppu->IsNMIRequested())
+        {
+            cpu->RequestNMI();
+            ppu->ClearNMIRequest();
+        }
+    }
+
+    // TODO: route IRQ/NMI through bus instead?
+    if (apu->IsIRQRequested() || cartridge_.IsIRQRequested())
+    {
+        cpu->RequestIRQ();
+    }
 }
 
 u32 System::StepFrame()
@@ -85,3 +89,5 @@ std::span<const Pixel> System::GetFramebuffer()
 {
     return ppu->GetFramebuffer();
 }
+
+
