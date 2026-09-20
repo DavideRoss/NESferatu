@@ -36,11 +36,23 @@ void PPU::Reset()
     pattern_shift_high_ = 0;
     attribute_shift_low_ = 0;
     attribute_shift_high_ = 0;
+
+    // Sprites
+    sprite_eval_count_ = 0;
+    sprite_render_count_ = 0;
+    sprite_eval_index_ = 0;
+    sprite_eval_oam_address_ = 0;
+    sprite_eval_overflow_ = false;
+
+    for (Sprite& sprite : sprite_scanline_)
+    {
+        sprite = {};
+    }
 }
 
 void PPU::Step()
 {
-    frame_complete_ = false;
+    // frame_complete_ = false;
 
     const bool render_enabled =
         GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
@@ -57,10 +69,27 @@ void PPU::Step()
 
         if (render_enabled)
         {
+            // Reset sprites
+            if (cycle_ == 1)
+            {
+                sprite_eval_index_ = 0;
+                sprite_eval_count_ = 0;
+            }
+
             // Background rendering/fetching
             if (cycle_ >= 1 && cycle_ <= 256)
             {
                 BackgroundRenderFetch();
+            }
+
+            if (cycle_ >= 1 && cycle_ <= 64)
+            {
+                ClearSecondaryOAM();
+            }
+
+            if (cycle_ >= 65 && cycle_ <= 256)
+            {
+                EvaluateSprites();
             }
 
             // Increment coarse and fine Y
@@ -75,10 +104,10 @@ void PPU::Step()
                 HorizontalTransfer();
             }
 
-            // Sprite evaluation/fetching
+            // Sprite fetching
             if (cycle_ >= 257 && cycle_ <= 320)
             {
-                EvaluateSprites();
+                FetchSpriteData();
             }
 
             // Copy vertical scroll bits from temporary register
@@ -105,9 +134,26 @@ void PPU::Step()
     {
         if (render_enabled)
         {
+            // Reset sprites indices
+            if (cycle_ == 1)
+            {
+                sprite_eval_index_ = 0;
+                sprite_eval_count_ = 0;
+            }
+
             if (cycle_ >= 1 && cycle_ <= 256)
             {
                 BackgroundRenderFetch();
+            }
+
+            if (cycle_ >= 1 && cycle_ <= 64)
+            {
+                ClearSecondaryOAM();
+            }
+
+            if (cycle_ >= 65 && cycle_ <= 256)
+            {
+                EvaluateSprites();
             }
 
             // Increment coarse and fine Y
@@ -116,16 +162,19 @@ void PPU::Step()
                 IncrementY();
             }
 
-            // Copy horizontal scroll bits from temporary register
             if (cycle_ == 257)
             {
+                // Copy horizontal scroll bits from temporary register
                 HorizontalTransfer();
+
+                // Save the number of sprite before evaluating the next scanline
+                sprite_render_count_ = sprite_eval_count_;
             }
 
-            // Sprite evaluation/fetching
+            // Sprite fetching
             if (cycle_ >= 257 && cycle_ <= 320)
             {
-                EvaluateSprites();
+                FetchSpriteData();
             }
 
             if (cycle_ >= 321 && cycle_ <= 336)
@@ -204,6 +253,7 @@ u8 PPU::CPURead(u16 address)
             return stat;
         }
 
+        // TODO: return 0xff if reading during clear of secondary OAM
         case 0x2004: return oam_[oam_addr_];
 
         // VRAM data
@@ -505,6 +555,35 @@ void PPU::VerticalTransfer()
 
 void PPU::EvaluateSprites()
 {
+    // Max 8 sprites per scanline
+    if (sprite_eval_index_ >= 64) return;
+
+    const u8 base = sprite_eval_index_ * 4;
+    const u8 y = oam_[base];
+    ++sprite_eval_index_;
+
+    u32 next_scanline = scanline_ == 261 ? 0 : scanline_ + 1u;
+    bool on_scanline =
+        next_scanline >= y &&
+        next_scanline < static_cast<u32>(y + (GetFlag(ctrl_, PPUCtrlFlag::SpriteSize) ? 16u : 8u));
+
+    // The sprite is not on this scanline, exit
+    if (!on_scanline) return;
+
+    if (sprite_eval_count_ < 8)
+    {
+        const u8 sec_index = sprite_eval_count_ * 4;
+        secondary_oam_[sec_index + 0] = oam_[base + 0];
+        secondary_oam_[sec_index + 1] = oam_[base + 1];
+        secondary_oam_[sec_index + 2] = oam_[base + 2];
+        secondary_oam_[sec_index + 3] = oam_[base + 3];
+
+        ++sprite_eval_count_;
+    }
+    else
+    {
+        SetFlag(status_, PPUStatusFlag::SpriteOverflow, true);
+    }
 }
 
 void PPU::DummyFetches()
@@ -535,6 +614,57 @@ void PPU::ShiftBackgroundRegisters()
     attribute_shift_high_ <<= 1;
 }
 
+void PPU::ClearSecondaryOAM()
+{
+    if ((cycle_ % 2) == 0)
+    {
+        secondary_oam_[cycle_ / 2] = 0xff;
+    }
+}
+
+void PPU::FetchSpriteData()
+{
+    const u8 sprite_index = ((cycle_ - 257) / 8);
+
+    // No need to fetch more sprites than needed
+    if (sprite_index >= sprite_render_count_) return;
+
+    Sprite& sprite = sprite_scanline_[sprite_index];
+    const u8 secondary = sprite_index * 4;
+
+    sprite.y = secondary_oam_[secondary + 0];
+    sprite.tile = secondary_oam_[secondary + 1];
+    sprite.attributes = secondary_oam_[secondary + 2];
+    sprite.x = secondary_oam_[secondary + 3];
+
+    const u8 target_scanline = scanline_ == 261 ? 0 : scanline_ + 1;
+    u8 row = target_scanline - sprite.y;
+
+    // Vertical flip
+    if (sprite.attributes & 0x80)
+    {
+        row = 7 - row;
+    }
+
+    // TODO: reimplement for 8x16 sprites (check flag)
+    const u16 table = GetFlag(ctrl_, PPUCtrlFlag::SpritePattern) ? 0x1000 : 0x0000;
+    const u16 pattern_address = table + sprite.tile * 16  + row;
+
+    const u8 phase = (cycle_ - 257) % 8;
+    switch (phase)
+    {
+        case 5:
+        {
+            sprite.pattern_low = PPURead(pattern_address);
+        }; break;
+
+        case 7:
+        {
+            sprite.pattern_high = PPURead(pattern_address + 8);
+        }; break;
+    }
+}
+
 u8 PPU::GetPaletteIndex(u16 address) const
 {
     u8 index = (address - 0x3f00) & 0x1f;
@@ -561,12 +691,12 @@ void PPU::RenderPixel()
 {
     u8 palette = 0x00;
     u8 pattern = 0x00;
-
+    
     if (GetFlag(mask_, PPUMaskFlag::EnableBackground))
     {
-        // Generate background pixel
         const u16 bit = 0x8000 >> x_;
 
+        // Generate background pixel
         const u8 pattern_low = (pattern_shift_low_ & bit) > 0;
         const u8 pattern_high = (pattern_shift_high_ & bit) > 0;
         pattern = (pattern_high << 1) | pattern_low;
@@ -576,13 +706,98 @@ void PPU::RenderPixel()
         palette = (palette_high << 1) | palette_low;
     }
 
-    const u8 palette_index = GetBackgroundColorIndex(palette, pattern);
+    // TODO: move the RenderPixel function inside the render check in the step function
+    // And remove the flag checks from here
+
+    u8 sprite_pattern = 0;
+    u8 sprite_palette = 0;
+    bool sprite_priority = false;
+    bool sprite_present = false;
+
+    if (cycle_ == 0x1f)
+    {
+        bool sprites = GetFlag(mask_, PPUMaskFlag::EnableSprites);
+        u32 test = 1;
+    }
+
+    if (GetFlag(mask_, PPUMaskFlag::EnableSprites))
+    {
+        for (u8 i = 0; i < sprite_render_count_; ++i)
+        {
+            const Sprite sprite = sprite_scanline_[i];
+            const u16 x = cycle_ - 1u;
+
+            if (x == 0x15)
+            {
+                u32 test = 1;
+            }
+
+            // Pixel is out of sprite bounds
+            if (x < sprite.x || x >= (sprite.x + 8u))
+            {
+                continue;
+            }
+
+            u8 sprite_x = x - sprite.x;
+            
+            // Horizontal flip
+            if (sprite.attributes & 0x40)
+            {
+                sprite_x = 7 - sprite_x;
+            }
+
+            const u8 bit = 7 - sprite_x;
+
+            const u8 low = (sprite.pattern_low >> bit) & 1;
+            const u8 high = (sprite.pattern_high >> bit) & 1;
+            const u8 pixel = (high << 1) | low;
+
+            // Pixel is transparent, move to the next one
+            if (pixel == 0x00)
+            {
+                continue;
+            }
+
+            sprite_pattern = pixel;
+            sprite_palette = sprite.attributes & 0x03;
+            sprite_priority = (sprite.attributes & 0x20) != 0;
+            sprite_present = true;
+
+            // Sprite found, no need to search further
+            // Sprite with lower OAM address has priority on overlap
+            break;
+        }
+    }
+
+    // TODO: refactor this awful thing
+    u8 final_palette;
+    if (pattern == 0 && !sprite_present)
+    {
+        final_palette = palettes_[0];
+    }
+    else if (pattern == 0)
+    {
+        final_palette = palettes_[0x10 + sprite_palette * 4 + sprite_pattern];
+    }
+    else if (!sprite_present)
+    {
+        final_palette = GetBackgroundColorIndex(palette, pattern);
+    }
+    else if (sprite_priority)
+    {
+        final_palette = palettes_[0x10 + sprite_palette * 4 + sprite_pattern];
+    }
+    else
+    {
+        final_palette = GetBackgroundColorIndex(palette, pattern);
+    }
 
     const std::size_t framebuffer_index =
         static_cast<std::size_t>(scanline_) * FRAMEBUFFER_WIDTH +
         static_cast<std::size_t>(cycle_) - 1;
 
-    framebuffer_[framebuffer_index] = GetColor(palette_index);
+    // TODO: implement emphasis and grayscale flags
+    framebuffer_[framebuffer_index] = GetColor(final_palette);
 }
 
 u16 PPU::GetBackgroundPatternTableAddress() const

@@ -46,6 +46,9 @@ struct Sprite
     u8 tile;
     u8 attributes;
     u8 x;
+
+    u8 pattern_low;
+    u8 pattern_high;
 };
 
 class PPU
@@ -76,6 +79,7 @@ private:
     constexpr u8 GetFlag(u8 reg, u8 flag) const;
     constexpr void SetFlag(u8& reg, u8 flag, bool val);
     
+    // TODO: sort functions, even in the cpp file
     void BackgroundRenderFetch();
     void IncrementY();
     void HorizontalTransfer();
@@ -84,6 +88,8 @@ private:
     void DummyFetches();
     void LoadBackgroundShiftRegisters();
     void ShiftBackgroundRegisters();
+    void ClearSecondaryOAM();
+    void FetchSpriteData();
     
     u16 MapNametableAddress(u16 address);
     u16 GetBackgroundPatternTableAddress() const;
@@ -133,10 +139,21 @@ private:
 
     u8 read_buffer_ = 0x00;
 
+    // Sprites
+    std::array<Sprite, 8> sprite_scanline_;
+    u8 sprite_render_count_;
+    u8 sprite_eval_count_;
+
+    u8 sprite_eval_index_ = 0;
+    u8 sprite_eval_oam_address_ = 0;
+    bool sprite_eval_overflow_ = false;
+
     // Framebuffer and memories
     std::array<Pixel, FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT> framebuffer_;
 
+    // TODO: clear memories on reset
     std::array<u8, 0x800> vram_;
     std::array<u8, 0x20> palettes_;
     std::array<u8, 256> oam_;
+    std::array<u8, 32> secondary_oam_;
 };
