@@ -713,6 +713,7 @@ void PPU::RenderPixel()
     u8 sprite_palette = 0;
     bool sprite_priority = false;
     bool sprite_present = false;
+    bool sprite_zero = false;
 
     if (cycle_ == 0x1f)
     {
@@ -762,6 +763,7 @@ void PPU::RenderPixel()
             sprite_palette = sprite.attributes & 0x03;
             sprite_priority = (sprite.attributes & 0x20) != 0;
             sprite_present = true;
+            sprite_zero = (i == 0);
 
             // Sprite found, no need to search further
             // Sprite with lower OAM address has priority on overlap
@@ -798,6 +800,13 @@ void PPU::RenderPixel()
 
     // TODO: implement emphasis and grayscale flags
     framebuffer_[framebuffer_index] = GetColor(final_palette);
+
+    // Sprite zero hit flag
+    // TODO: implement correct leftmost masking
+    if (!GetFlag(status_, PPUStatusFlag::SpriteZeroHit) && sprite_zero && pattern != 0)
+    {
+        SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
+    }
 }
 
 u16 PPU::GetBackgroundPatternTableAddress() const
