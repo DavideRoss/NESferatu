@@ -771,17 +771,21 @@ void PPU::RenderPixel()
         }
     }
 
+    const u16 screen_x = cycle_ - 1;
+    const bool background_visible = pattern != 0 && (screen_x >= 8 || GetFlag(mask_, PPUMaskFlag::EnableBackgroundLeft));
+    const bool sprite_visible = sprite_present && (screen_x >= 8 || GetFlag(mask_, PPUMaskFlag::EnableSpritesLeft));
+
     // TODO: refactor this awful thing
     u8 final_palette;
-    if (pattern == 0 && !sprite_present)
+    if (!background_visible && !sprite_visible)
     {
         final_palette = palettes_[0];
     }
-    else if (pattern == 0)
+    else if (!background_visible)
     {
         final_palette = palettes_[0x10 + sprite_palette * 4 + sprite_pattern];
     }
-    else if (!sprite_present)
+    else if (!sprite_visible)
     {
         final_palette = GetBackgroundColorIndex(palette, pattern);
     }
