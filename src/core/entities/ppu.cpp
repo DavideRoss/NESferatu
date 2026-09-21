@@ -809,8 +809,10 @@ void PPU::RenderPixel()
     // TODO: implement correct leftmost masking
     if (!GetFlag(status_, PPUStatusFlag::SpriteZeroHit) &&
         sprite_zero &&
-        pattern != 0 &&
-        cycle_ < 256)
+        background_visible &&
+        sprite_visible &&
+        scanline_ < 239 &&
+        screen_x != 255)
     {
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
