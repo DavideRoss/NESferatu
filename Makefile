@@ -9,10 +9,10 @@ configure:
 	cmake -S . -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 build: configure
-	cmake --build $(BUILD_DIR) --target NESferatu
+	cmake --build $(BUILD_DIR) --target NESferatu -j32
 
 build-test: configure
-	cmake --build $(BUILD_DIR)
+	cmake --build $(BUILD_DIR) -j32
 
 test: build-test
 	ctest --test-dir $(BUILD_DIR) --output-on-failure
