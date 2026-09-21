@@ -1,8 +1,5 @@
 #include "mapper-003.h"
 
-#include <stdexcept>
-#include <format>
-
 Mapper003::Mapper003(
     std::span<const u8> prg_rom, std::span<u8> prg_ram,
     std::span<const u8> chr_rom, std::span<u8> chr_ram
@@ -19,7 +16,7 @@ u8 Mapper003::CPURead(u16 address)
         case 0x6000 ... 0x7fff:
         {
             return prg_ram_[address - 0x6000];
-        };
+        }
 
         // PRG ROM
         case 0x8000 ... 0xffff:
@@ -53,6 +50,7 @@ void Mapper003::CPUWrite(u16 address, u8 data)
         }; break;
 
         // CHR bank
+        // TODO: is this correct? Can I write to CHR from CPU?
         case 0x8000 ... 0xffff:
         {
             chr_bank_ = data & 0x03;
@@ -64,5 +62,5 @@ void Mapper003::CPUWrite(u16 address, u8 data)
 
 void Mapper003::PPUWrite(u16 address, u8 data)
 {
-    throw std::logic_error("Not implemented");
+    NESFERATU_THROW("Not implemented");
 }

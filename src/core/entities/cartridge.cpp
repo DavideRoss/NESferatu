@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "mappers/mapper-000.h"
+#include "mappers/mapper-001.h"
 #include "mappers/mapper-003.h"
 
 #include "utils/exception.h"
@@ -182,6 +183,7 @@ void Cartridge::SelectMapper()
     switch (metadata.mapper)
     {
         DEFINE_MAPPER(0, Mapper000)
+        DEFINE_MAPPER(1, Mapper001)
         DEFINE_MAPPER(3, Mapper003)
         default: NESFERATU_THROW("Unrecognized mapper: {} (submapper {})", metadata.mapper, metadata.submapper);
     }

@@ -1,0 +1,180 @@
+#include "mapper-001.h"
+
+Mapper001::Mapper001(
+    std::span<const u8> prg_rom, std::span<u8> prg_ram,
+    std::span<const u8> chr_rom, std::span<u8> chr_ram
+)
+    : BaseMapper(prg_rom, prg_ram, chr_rom, chr_ram)
+{
+}
+
+u8 Mapper001::CPURead(u16 address)
+{
+    switch (address)
+    {
+        // PRG RAM
+        case 0x6000 ... 0x7fff:
+        {
+            return prg_ram_[address - 0x6000];
+        }
+
+        // PRG ROM first and second bank
+        case 0x8000 ... 0xffff:
+        {
+            const size_t offset = GetPRGOffset(address);
+            return prg_rom_[offset];
+        }
+
+        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+    }
+}
+
+void Mapper001::CPUWrite(u16 address, u8 data)
+{
+    switch (address)
+    {
+        case 0x6000 ... 0x7fff:
+        {
+            prg_ram_[address - 0x6000] = data;
+        }; break;
+
+        // Load registers
+        case 0x8000 ... 0xffff:
+        {
+            // Bit 7 clears the register
+            if (data & 0x80)
+            {
+                shifter_ = 0x00;
+                control_ |= 0x0c;
+                return;
+            }
+            
+            const bool complete = shifter_ & 0x01;
+
+            shifter_ >>= 1;
+            shifter_ |= (data & 0x01) << 4;
+
+            if (complete)
+            {
+                const u8 value = shifter_ & 0x1f;
+                WriteRegister(address, data);
+                shifter_ = 0x10;
+            }
+        }; break;
+
+        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+    }
+}
+
+u8 Mapper001::PPURead(u16 address)
+{
+    const size_t offset = GetCHROffset(address);
+
+    if (!chr_ram_.empty())
+    {
+        return chr_ram_[offset];
+    }
+
+    return chr_rom_[offset];
+}
+
+void Mapper001::PPUWrite(u16 address, u8 data)
+{
+    if (!chr_ram_.empty())
+    {
+        const size_t offset = GetCHROffset(address);
+        chr_ram_[offset] = data;
+    }
+}
+
+size_t Mapper001::GetPRGOffset(u16 address) const
+{
+    const u8 mode = (control_ >> 2) & 0x03;
+    const size_t bank_count = prg_rom_.size() / 0x4000;
+
+    switch (mode)
+    {
+        // 32kb mode
+        case 0:
+        case 1:
+        {
+            const size_t bank = (prg_bank_ & 0x0e) >> 1;
+            return bank * 0x8000 + (address - 0x8000);
+        }
+
+        // Fixed first bank, switch second
+        case 2:
+        {
+            if (address < 0xc000)
+            {
+                return address - 0x8000;
+            }
+
+            return (prg_bank_ & 0x0f) * 0x4000 + (address - 0xc000);
+        }
+
+        // Switch first bank, fixed last
+        case 3:
+        {
+            if (address < 0xc000)
+            {
+                return (prg_bank_ & 0x0f) * 0x4000 + (address - 0x8000);
+            }
+
+            return (bank_count - 1) * 0x4000 + (address - 0xc000);
+        }
+
+        default: NESFERATU_THROW("Invalid PRG bank mode");
+    }
+}
+
+size_t Mapper001::GetCHROffset(u16 address) const
+{
+    if (address > 0x1fff)
+    {
+        NESFERATU_THROW("Unmapped PPU address: 0x{:02x}", address);
+    }
+
+    const bool chr_4kb = control_ & 0x10;
+    if (!chr_4kb)
+    {
+        const size_t bank = (chr_bank_0_ & 0x1e) >> 1;
+        return bank * 0x2000 + address;
+    }
+
+    // 4kb mode
+    if (address < 0x1000)
+    {
+        return chr_bank_0_ * 0x1000 + address;
+    }
+
+    return chr_bank_1_ * 0x1000 + (address - 0x1000);
+}
+
+void Mapper001::WriteRegister(u16 address, u8 data)
+{
+    switch (address)
+    {
+        case 0x8000 ... 0x9fff: 
+        {
+            control_ = data;
+        }; break;
+
+        case 0xa000 ... 0xbfff:
+        {
+            chr_bank_0_ = data;
+        }; break;
+
+        case 0xc000 ... 0xdfff:
+        {
+            chr_bank_1_ = data;
+        }; break;
+
+        case 0xe000 ... 0xffff:
+        {
+            prg_bank_ = data;
+        }; break;
+
+        default: NESFERATU_THROW("Invalid register address");
+    }
+}
