@@ -791,7 +791,7 @@ void PPU::RenderPixel()
     {
         final_palette = GetBackgroundColorIndex(palette, pattern);
     }
-    else if (sprite_priority)
+    else if (!sprite_priority)
     {
         final_palette = palettes_[0x10 + sprite_palette * 4 + sprite_pattern];
     }
