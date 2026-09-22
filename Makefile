@@ -18,7 +18,7 @@ test: build-test
 	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 run: build
-	./$(BUILD_DIR)/bin/NESferatu 2>&1 | tee -a temp/nesferatu.log
+	./$(BUILD_DIR)/bin/NESferatu 2>&1 | tee temp/nesferatu.log
 
 clean:
 	cmake --build $(BUILD_DIR) --target clean
