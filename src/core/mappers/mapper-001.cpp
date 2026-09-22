@@ -35,7 +35,10 @@ void Mapper001::CPUWrite(u16 address, u8 data)
     {
         case 0x6000 ... 0x7fff:
         {
-            prg_ram_[address - 0x6000] = data;
+            if (!prg_ram_.empty())
+            {
+                prg_ram_[address - 0x6000] = data;
+            }
         }; break;
 
         // Load registers
@@ -44,7 +47,7 @@ void Mapper001::CPUWrite(u16 address, u8 data)
             // Bit 7 clears the register
             if (data & 0x80)
             {
-                shifter_ = 0x00;
+                shifter_ = 0x10;
                 control_ |= 0x0c;
                 return;
             }
@@ -57,7 +60,7 @@ void Mapper001::CPUWrite(u16 address, u8 data)
             if (complete)
             {
                 const u8 value = shifter_ & 0x1f;
-                WriteRegister(address, data);
+                WriteRegister(address, value);
                 shifter_ = 0x10;
             }
         }; break;
