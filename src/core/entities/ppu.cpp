@@ -564,7 +564,7 @@ void PPU::EvaluateSprites()
     const u8 y = oam_[base];
     ++sprite_eval_index_;
 
-    u32 next_scanline = scanline_ == 261 ? 0 : scanline_ + 1u;
+    u32 next_scanline = scanline_ == 261 ? 0 : scanline_;
     bool on_scanline =
         next_scanline >= y &&
         next_scanline < static_cast<u32>(y + (GetFlag(ctrl_, PPUCtrlFlag::SpriteSize) ? 16u : 8u));
@@ -639,7 +639,7 @@ void PPU::FetchSpriteData()
     sprite.attributes = secondary_oam_[secondary + 2];
     sprite.x = secondary_oam_[secondary + 3];
 
-    const u8 target_scanline = scanline_ == 261 ? 0 : scanline_ + 1;
+    const u8 target_scanline = scanline_ == 261 ? 0 : scanline_;
     u8 row = target_scanline - sprite.y;
 
     // Vertical flip
