@@ -92,7 +92,6 @@ private:
     void FetchSpriteData();
     
     u16 MapNametableAddress(u16 address);
-    u16 GetBackgroundPatternTableAddress() const;
     u8 GetPaletteIndex(u16 address) const;
     u8 GetBackgroundColorIndex(u8 palette, u8 pixel) const;
 

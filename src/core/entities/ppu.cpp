@@ -501,14 +501,16 @@ void PPU::BackgroundRenderFetch()
         case 5:
         {
             // Fetch pattern low
-            const u16 address = GetBackgroundPatternTableAddress() + next_tile_id_ * 16 + ((v_ >> 12) & 0x0007);
+            const u16 address = (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
+                next_tile_id_ * 16 + ((v_ >> 12) & 0x0007);
             next_tile_pattern_low_ = PPURead(address);
         }; break;
 
         case 7:
         {
             // Fetch pattern high
-            const u16 address = GetBackgroundPatternTableAddress() + next_tile_id_ * 16 + ((v_ >> 12) & 0x0007) + 8;
+            const u16 address = (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
+                next_tile_id_ * 16 + ((v_ >> 12) & 0x0007) + 8;
             next_tile_pattern_high_ = PPURead(address);
         }; break;
     }
@@ -816,9 +818,4 @@ void PPU::RenderPixel()
     {
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
-}
-
-u16 PPU::GetBackgroundPatternTableAddress() const
-{
-    return GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000;
 }
