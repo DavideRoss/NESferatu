@@ -160,6 +160,20 @@ int main()
             }
         }
 
+        const Uint8* keyboard = SDL_GetKeyboardState(nullptr);
+        u8 status = 0;
+
+        if (keyboard[SDL_SCANCODE_Z]) status |= static_cast<u8>(ControllerButtons::ButtonA);
+        if (keyboard[SDL_SCANCODE_X]) status |= static_cast<u8>(ControllerButtons::ButtonB);
+        if (keyboard[SDL_SCANCODE_RETURN]) status |= static_cast<u8>(ControllerButtons::ButtonStart);
+        if (keyboard[SDL_SCANCODE_BACKSPACE]) status |= static_cast<u8>(ControllerButtons::ButtonSelect);
+        if (keyboard[SDL_SCANCODE_UP]) status |= static_cast<u8>(ControllerButtons::ButtonUp);
+        if (keyboard[SDL_SCANCODE_DOWN]) status |= static_cast<u8>(ControllerButtons::ButtonDown);
+        if (keyboard[SDL_SCANCODE_LEFT]) status |= static_cast<u8>(ControllerButtons::ButtonLeft);
+        if (keyboard[SDL_SCANCODE_RIGHT]) status |= static_cast<u8>(ControllerButtons::ButtonRight);
+
+        nes->controllers->SetController1Status(status);
+
         if (step_latch || run_latch)
         {
             cycles += nes->StepFrame();
