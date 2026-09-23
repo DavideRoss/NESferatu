@@ -33,7 +33,7 @@ u32 System::Step()
     {
         bus->StepOAMDMA();
         StepHardware();
-    
+        ++cpu->total_cycles;
         return 1;
     }
 
