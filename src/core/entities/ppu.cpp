@@ -20,6 +20,7 @@ void PPU::Reset()
 
     frame_complete_ = false;
     nmi_requested_ = false;
+    odd_frame_ = false;
 
     ctrl_ = 0;
     mask_ = 0;
@@ -52,11 +53,16 @@ void PPU::Reset()
 
 void PPU::Step()
 {
-    // frame_complete_ = false;
-
     const bool render_enabled =
         GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
         GetFlag(mask_, PPUMaskFlag::EnableSprites);
+
+    // Skip cycle 0 on odd frames
+    if (scanline_ == 261 && cycle_ == 0 && render_enabled && odd_frame_)
+    {
+        cycle_ = 1;
+        return;
+    }
 
     // Pre-render scanline
     if (scanline_ == 261)
@@ -220,6 +226,7 @@ void PPU::Step()
         if (scanline_ >= SCANLINES_PER_FRAME)
         {
             scanline_ = 0;
+            odd_frame_ = !odd_frame_;
             frame_complete_ = true;
         }
     }

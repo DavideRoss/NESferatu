@@ -113,6 +113,7 @@ private:
     u32 scanline_ = 0;
     bool frame_complete_ = false;
     bool nmi_requested_ = false;
+    bool odd_frame_ = false;
 
     // Registers
     u8 ctrl_;
