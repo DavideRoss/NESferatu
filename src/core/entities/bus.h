@@ -12,6 +12,7 @@
 enum class OAMDMAPhase
 {
     Dummy,
+    Alignment,
     Read,
     Write
 };
