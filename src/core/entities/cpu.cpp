@@ -25,7 +25,7 @@ void CPU::Reset()
     sp = 0xfd;
     s = 0x20;
 
-    total_cycles = 0;
+    total_cycles = 7;
 
     // Read reset vector
     u8 reset_low = ReadByte(0xfffc);

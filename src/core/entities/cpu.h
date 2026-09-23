@@ -343,7 +343,7 @@ public:
     u8 sp;      // Stack pointer
     u8 s;       // Program status
 
-    u32 total_cycles;
+    u32 total_cycles = 7;
 
 private:
     struct AddressResult
