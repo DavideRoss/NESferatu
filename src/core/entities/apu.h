@@ -18,13 +18,19 @@ public:
     bool IsIRQRequested() const { return frame_irq_; }
 
 private:
-    bool frame_irq_ = false;
+    void StepFour();
+    void StepFive();
 
-    bool frame_irq_inhibit_ = false;
-    bool frame_5step_ = false;
-
-    u32 frame_counter_ = 0;
+    void QuarterFrame();
+    void HalfFrame();
 
 private:
     Bus* bus_ = nullptr;
+
+    u32 frame_counter_ = 0;
+
+    bool frame_5step_ = false;
+    bool frame_irq_inhibit_ = false;
+    bool frame_irq_ = false;
+
 };

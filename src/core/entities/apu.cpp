@@ -19,14 +19,15 @@ void APU::Reset()
 
 void APU::Step()
 {
-    if (frame_5step_) return;
-
     ++frame_counter_;
 
-    if (frame_counter_ >= 29830)
+    if (frame_5step_)
     {
-        frame_counter_ = 0;
-        if (!frame_irq_inhibit_) frame_irq_ = true;
+        StepFive();
+    }
+    else
+    {
+        StepFour();
     }
 }
 
@@ -53,6 +54,11 @@ void APU::CPUWrite(u16 address, u8 data)
 {
     switch (address)
     {
+        case 0x4015:
+        {
+            // TODO: continue
+        }
+
         // Frame counter
         case 0x4017:
         {
@@ -61,10 +67,85 @@ void APU::CPUWrite(u16 address, u8 data)
 
             if (frame_irq_inhibit_) frame_irq_ = false;
 
-            // TODO: this should happen 3-4 frames later
+            // TODO: this should happen 3-4 cycles later
             frame_counter_ = 0;
+            if (frame_5step_)
+            {
+                QuarterFrame();
+                HalfFrame();
+            }
         }; break;
 
         default: NESFERATU_LOG("0x{:02x} written on address 0x{:04x}", data, address); break;
     }
+}
+
+void APU::StepFour()
+{
+    switch (frame_counter_)
+    {
+        case 3729:
+        {
+            QuarterFrame();
+        }; break;
+
+        case 7457:
+        {
+            QuarterFrame();
+            HalfFrame();
+        }; break;
+
+        case 11186:
+        {
+            QuarterFrame();
+        }; break;
+
+        case 14915:
+        {
+            QuarterFrame();
+            HalfFrame();
+
+            if (!frame_irq_inhibit_) frame_irq_ = true;
+            frame_counter_ = 0;
+        }; break;
+    }
+}
+
+void APU::StepFive()
+{
+    switch (frame_counter_)
+    {
+        case 3729:
+        {
+            QuarterFrame();
+            HalfFrame();
+        }; break;
+
+        case 7457:
+        {
+            QuarterFrame();
+        }; break;
+
+        case 11186:
+        {
+            QuarterFrame();
+            HalfFrame();
+        }; break;
+
+        case 18641:
+        {
+            QuarterFrame();
+            HalfFrame();
+
+            frame_counter_ = 0;
+        }; break;
+    }
+}
+
+void APU::QuarterFrame()
+{
+}
+
+void APU::HalfFrame()
+{
 }
