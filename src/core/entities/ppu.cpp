@@ -464,10 +464,14 @@ u16 PPU::MapNametableAddress(u16 address)
     const u8 nametable = static_cast<u8>(offset / 0x0400);
     const u16 tile_offset = offset % 0x0400;
 
-    u8 physical_page =
-        cartridge_.metadata.vertical_mirroring ?
-        nametable % 2 :
-        nametable / 2;
+    u8 physical_page;
+    switch (cartridge_.GetMirroring())
+    {
+        case Mirroring::Vertical: physical_page = nametable & 1; break;
+        case Mirroring::Horizontal: physical_page = nametable >> 1; break;
+        case Mirroring::OneScreenLower: physical_page = 0; break;
+        case Mirroring::OneScreenUpper: physical_page = 1; break;
+    }
 
     return static_cast<u16>(physical_page) * 0x0400 + tile_offset;
 }

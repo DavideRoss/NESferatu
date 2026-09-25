@@ -3,6 +3,8 @@
 #include <format>
 #include <fstream>
 
+#include "cartridge-metadata.h"
+
 #include "mappers/mapper-000.h"
 #include "mappers/mapper-001.h"
 #include "mappers/mapper-003.h"
@@ -12,7 +14,7 @@
 #pragma region Macros
 
 #define DEFINE_MAPPER(index, class) \
-    case index: mapper_ = std::make_shared<class>(prg_rom_, prg_ram_, chr_rom_, chr_ram_); break;
+    case index: mapper_ = std::make_shared<class>(metadata, prg_rom_, prg_ram_, chr_rom_, chr_ram_); break;
 
 #pragma endregion
 
@@ -79,6 +81,11 @@ u8 Cartridge::PPURead(u16 address)
 void Cartridge::PPUWrite(u16 address, u8 data)
 {
     mapper_->PPUWrite(address, data);
+}
+
+Mirroring Cartridge::GetMirroring() const
+{
+    return mapper_->GetMirroring();
 }
 
 void Cartridge::LoadMetadata()

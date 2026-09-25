@@ -1,11 +1,15 @@
 #include "mapper-000.h"
 
 Mapper000::Mapper000(
+    const CartridgeMetadata& metadata,
     std::span<const u8> prg_rom, std::span<u8> prg_ram,
     std::span<const u8> chr_rom, std::span<u8> chr_ram
 )
-    : BaseMapper(prg_rom, prg_ram, chr_rom, chr_ram)
+    : BaseMapper(metadata, prg_rom, prg_ram, chr_rom, chr_ram)
 {
+    mirroring_ = metadata.vertical_mirroring ?
+        Mirroring::Vertical :
+        Mirroring::Horizontal;
 }
 
 u8 Mapper000::CPURead(u16 address)

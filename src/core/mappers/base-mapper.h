@@ -2,13 +2,23 @@
 
 #include <span>
 
+#include "entities/cartridge-metadata.h"
 #include "utils/types.h"
 #include "utils/exception.h"
+
+enum class Mirroring
+{
+    OneScreenLower,
+    OneScreenUpper,
+    Vertical,
+    Horizontal
+};
 
 class BaseMapper
 {
 public:
     BaseMapper(
+        const CartridgeMetadata& metadata,
         std::span<const u8> prg_rom, std::span<u8> prg_ram,
         std::span<const u8> chr_rom, std::span<u8> chr_ram
     );
@@ -18,6 +28,8 @@ public:
 
     virtual u8 PPURead(u16 address) = 0;
     virtual void PPUWrite(u16 address, u8 data) = 0;
+
+    virtual Mirroring GetMirroring() const = 0;
 
     virtual ~BaseMapper() = default;
 

@@ -1,10 +1,11 @@
 #include "mapper-001.h"
 
 Mapper001::Mapper001(
+    const CartridgeMetadata& metadata,
     std::span<const u8> prg_rom, std::span<u8> prg_ram,
     std::span<const u8> chr_rom, std::span<u8> chr_ram
 )
-    : BaseMapper(prg_rom, prg_ram, chr_rom, chr_ram)
+    : BaseMapper(metadata, prg_rom, prg_ram, chr_rom, chr_ram)
 {
 }
 
@@ -88,6 +89,19 @@ void Mapper001::PPUWrite(u16 address, u8 data)
         const size_t offset = GetCHROffset(address);
         chr_ram_[offset] = data;
     }
+}
+
+Mirroring Mapper001::GetMirroring() const
+{
+    switch (control_ & 0x03)
+    {
+        case 0: return Mirroring::OneScreenLower;
+        case 1: return Mirroring::OneScreenUpper;
+        case 2: return Mirroring::Vertical;
+        case 3: return Mirroring::Horizontal;
+    }
+
+    NESFERATU_THROW("Invalid mirroring mode");
 }
 
 size_t Mapper001::GetPRGOffset(u16 address) const

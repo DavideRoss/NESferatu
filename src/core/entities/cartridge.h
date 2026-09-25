@@ -4,50 +4,9 @@
 #include <string_view>
 #include <vector>
 
-#include "utils/types.h"
+#include "entities/cartridge-metadata.h"
 #include "mappers/base-mapper.h"
-
-enum ConsoleType
-{
-    NES,
-    VsSystem,
-    PlayChoice,
-    ExtendedConsoleType
-};
-
-enum CPUTiming
-{
-    RP2C02,
-    RP2C07,
-    Multiple,
-    UA6538
-};
-
-struct CartridgeMetadata
-{
-    bool nes2_format;
-
-    u32 prg_banks;
-    u32 chr_banks;
-
-    u32 prg_rom_size;
-    u32 chr_rom_size;
-    u32 prg_ram_size;
-    u32 prg_nvram_size;
-    u32 chr_ram_size;
-    u32 chr_nvram_size;
-
-    u32 mapper;
-    u32 submapper;
-
-    bool vertical_mirroring;
-    bool battery;
-    bool trainer;
-    bool alternative_nametables;
-
-    ConsoleType console_type;
-    CPUTiming cpu_timing;
-};
+#include "utils/types.h"
 
 class Cartridge
 {
@@ -63,6 +22,8 @@ public:
 
     // TODO: connect to mapper (some mappers support IRQ)
     bool IsIRQRequested() const { return false; }
+
+    Mirroring GetMirroring() const;
 
 public:
     CartridgeMetadata metadata;
