@@ -10,8 +10,13 @@ void Debugger::Notify(const DebugContext &context)
 
         if (Matches(breakpoint, context))
         {
-            NESFERATU_LOG("Debugger tripped! ID = {}", breakpoint.id);
             stopped_ = true;
+
+            if (break_callback_)
+            {
+                break_callback_(context);
+            }
+
             return;
         }
     }

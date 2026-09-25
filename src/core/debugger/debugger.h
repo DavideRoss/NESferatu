@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -49,6 +50,9 @@ public:
 
     [[nodiscard]] const std::vector<DebugBreakpoint>& Breakpoints() const { return breakpoints_; }
 
+    using BreakCallbak = std::function<void(const DebugContext&)>;
+    void SetBreakCallback(BreakCallbak callback) { break_callback_ = callback; }
+
 private:
     [[nodiscard]] bool Matches(const DebugBreakpoint& breakpoint, const DebugContext& context) const;
 
@@ -56,4 +60,6 @@ private:
     std::vector<DebugBreakpoint> breakpoints_;
     bool stopped_ = false;
     BreakpointID next_id_ = 1;
+
+    BreakCallbak break_callback_;
 };
