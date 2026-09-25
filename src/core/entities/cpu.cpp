@@ -1,9 +1,5 @@
 #include "cpu.h"
 
-// TODO: use NESFERATU_THROW after the merge with PPU
-#include <stdexcept>
-#include <format>
-
 #include "bus.h"
 #include "utils/log.h"
 
