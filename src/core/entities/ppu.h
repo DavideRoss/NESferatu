@@ -4,6 +4,7 @@
 
 #include "data/palette.h"
 #include "entities/cartridge.h"
+#include "debugger/debuggable.h"
 #include "utils/types.h"
 
 class Bus;
@@ -51,7 +52,7 @@ struct Sprite
     u8 pattern_high;
 };
 
-class PPU
+class PPU : public Debuggable
 {
 public:
     PPU(Cartridge& cartridge);

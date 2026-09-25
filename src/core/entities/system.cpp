@@ -20,6 +20,7 @@ System::System(Cartridge& cartridge)
 
     debugger = std::make_unique<Debugger>();
     cpu->ConnectDebugger(debugger.get());
+    bus->ConnectDebugger(debugger.get());
 }
 
 void System::Reset()

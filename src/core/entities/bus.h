@@ -1,13 +1,15 @@
 #pragma once
 
-#include "utils/types.h"
-
 #include "apu.h"
 #include "cartridge.h"
 #include "controllers.h"
 #include "cpu.h"
 #include "memory.h"
 #include "ppu.h"
+
+#include "debugger/debuggable.h"
+
+#include "utils/types.h"
 
 enum class OAMDMAPhase
 {
@@ -17,7 +19,7 @@ enum class OAMDMAPhase
     Write
 };
 
-class Bus
+class Bus : public Debuggable
 {
 
 public:

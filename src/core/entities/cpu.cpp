@@ -75,7 +75,8 @@ u32 CPU::Step()
     
     Debug({
         .event = DebugEventType::CPUExecute,
-        .pc = prev_pc
+        .pc = prev_pc,
+        .instruction = instruction
     });
 
     switch (instruction)

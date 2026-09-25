@@ -25,6 +25,11 @@ Bus::Bus(
 
 u8 Bus::CPURead(u16 address)
 {
+    Debug({
+        .event = DebugEventType::CPURead,
+        .address = address
+    });
+
     switch (address)
     {
         // Internal RAM and mirrors
@@ -80,6 +85,11 @@ u8 Bus::CPURead(u16 address)
 
 void Bus::CPUWrite(u16 address, u8 data)
 {
+    Debug({
+        .event = DebugEventType::CPUWrite,
+        .address = address
+    });
+
     switch (address)
     {
         // Internal RAM and mirrors

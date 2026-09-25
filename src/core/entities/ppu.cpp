@@ -1,5 +1,5 @@
-#include "ppu.h"
 #include "bus.h"
+#include "ppu.h"
 
 #include "utils/exception.h"
 
@@ -53,6 +53,12 @@ void PPU::Reset()
 
 void PPU::Step()
 {
+    Debug({
+        .event = DebugEventType::PPUTiming,
+        .ppu_scanline = scanline_,
+        .ppu_cycle = cycle_
+    });
+
     const bool render_enabled =
         GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
         GetFlag(mask_, PPUMaskFlag::EnableSprites);
@@ -211,6 +217,10 @@ void PPU::Step()
     // trigger vblank interrupt
     if (scanline_ == 241 && cycle_ == 1)
     {
+        Debug({
+            .event = DebugEventType::VBlank
+        });
+
         SetFlag(status_, PPUStatusFlag::VerticalBlank, true);
         if (GetFlag(ctrl_, PPUCtrlFlag::NMIEnable))
         {
@@ -227,6 +237,10 @@ void PPU::Step()
 
         if (scanline_ >= SCANLINES_PER_FRAME)
         {
+            Debug({
+                .event = DebugEventType::Frame
+            });
+
             scanline_ = 0;
             odd_frame_ = !odd_frame_;
             frame_complete_ = true;
