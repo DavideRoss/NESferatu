@@ -17,6 +17,9 @@ System::System(Cartridge& cartridge)
         *controllers,
         cartridge_
     );
+
+    debugger = std::make_unique<Debugger>();
+    cpu->ConnectDebugger(debugger.get());
 }
 
 void System::Reset()

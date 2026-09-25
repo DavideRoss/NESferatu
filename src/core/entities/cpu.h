@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debugger/debuggable.h"
 #include "utils/types.h"
 #include "utils/log.h"
 
@@ -307,7 +308,7 @@ namespace Opcodes
     static constexpr u8 TYA_IMP = 0x98;
 }
 
-class CPU
+class CPU : public Debuggable
 {
 public:
     void ConnectBus(Bus* bus);

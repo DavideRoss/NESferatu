@@ -7,6 +7,8 @@
 #include "memory.h"
 #include "ppu.h"
 
+#include "debugger/debugger.h"
+
 class System
 {
 
@@ -31,6 +33,8 @@ public:
     std::unique_ptr<PPU> ppu;
     std::unique_ptr<APU> apu;
     std::unique_ptr<Controllers> controllers;
+
+    std::unique_ptr<Debugger> debugger;
 
 private:
     Cartridge& cartridge_;

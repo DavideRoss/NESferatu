@@ -76,6 +76,11 @@ u32 CPU::Step()
     // TODO: cleanup implied addressing mode afterwards
     u16 prev_pc = pc;
     u8 instruction = FetchByte();
+    
+    Debug({
+        .event = DebugEventType::CPUExecute,
+        .pc = prev_pc
+    });
 
     switch (instruction)
     {
