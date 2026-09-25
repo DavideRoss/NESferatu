@@ -70,7 +70,9 @@ void PPU::Step()
         // Clear vblank interrupt
         if (cycle_ == 1)
         {
-            status_ &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
+            SetFlag(status_, PPUStatusFlag::VerticalBlank, false);
+            SetFlag(status_, PPUStatusFlag::SpriteZeroHit, false);
+            SetFlag(status_, PPUStatusFlag::SpriteOverflow, false);
         }
 
         if (render_enabled)
