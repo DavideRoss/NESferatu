@@ -329,13 +329,6 @@ public:
     void RequestIRQ() { irq_pending_ = true; }
     void RequestNMI() { nmi_pending_ = true; }
 
-    // Debug function
-    void ToggleLogging()
-    {
-        logging_ = !logging_;
-        NESFERATU_LOG("Logging: {}", logging_);
-    }
-
 public:
     u8 a;       // Accumulator
     u8 x, y;    // GP registers
@@ -459,7 +452,4 @@ private:
 
     bool irq_pending_ = false;
     bool nmi_pending_ = false;
-
-    // Debug
-    bool logging_ = false;
 };
