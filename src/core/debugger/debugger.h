@@ -9,14 +9,27 @@
 enum class DebugEventType
 {
     CPUExecute,
-    VBlank
+    CPURead,
+    CPUWrite,
+
+    PPUTiming,
+    VBlank,
+
+    Frame
 };
 
 struct DebugContext
 {
     DebugEventType event;
 
+    // CPU
     u16 pc = 0;
+    u8 instruction = 0;
+    u16 address = 0;
+
+    // PPU
+    u16 ppu_scanline = 0;
+    u16 ppu_cycle = 0;
 };
 
 struct DebugBreakpoint
@@ -26,7 +39,11 @@ struct DebugBreakpoint
 
     DebugEventType event;
 
-    std::optional<u16> pc;
+    std::optional<u16> pc = 0;
+    std::optional<u8> instruction = 0;
+    std::optional<u16> address = 0;
+    std::optional<u16> ppu_scanline = 0;
+    std::optional<u16> ppu_cycle = 0;
 };
 
 class Debugger

@@ -34,6 +34,10 @@ bool Debugger::Matches(const DebugBreakpoint &breakpoint, const DebugContext &co
     if (breakpoint.event != context.event) return false;
 
     if (breakpoint.pc && *breakpoint.pc != context.pc) return false;
+    if (breakpoint.instruction && *breakpoint.instruction != context.instruction) return false;
+    if (breakpoint.address && *breakpoint.address != context.address) return false;
+    if (breakpoint.ppu_scanline && *breakpoint.ppu_scanline != context.ppu_scanline) return false;
+    if (breakpoint.ppu_cycle && *breakpoint.ppu_cycle != context.ppu_cycle) return false;
 
     return true;
 }
