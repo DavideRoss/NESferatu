@@ -77,13 +77,6 @@ void NESferatuSDL::PollEvents()
 
 void NESferatuSDL::Render(std::span<const Pixel> frame)
 {
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-    SDL_RenderClear(renderer_);
-
-    // ========================================================================
-    // RENDERING
-    // ========================================================================
-
     SDL_UpdateTexture(texture_, nullptr, frame.data(), 256 * sizeof(Pixel));
 
     int sdl_width, sdl_height;
@@ -105,11 +98,26 @@ void NESferatuSDL::Render(std::span<const Pixel> frame)
         width, height
     };
 
-    SDL_RenderCopyF(renderer_, texture_, nullptr, &destination);
+    SDL_RenderCopyF(renderer_, texture_, nullptr, &destination);    
+}
 
-    // ========================================================================
-    // PRESENT
-    // ========================================================================
+void NESferatuSDL::Clear() const
+{
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
+    SDL_RenderClear(renderer_);
+}
 
+void NESferatuSDL::Present() const
+{
     SDL_RenderPresent(renderer_);
+}
+
+void NESferatuSDL::DrawRectangle(Pixel color, int x, int y, int w, int h) const
+{
+    SDL_Rect rect(x, y, h, w);
+    
+    SDL_SetRenderDrawColor(renderer_, color.r, color.g, color.b, 255);
+    SDL_RenderFillRect(renderer_, &rect);
+    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
+    SDL_RenderDrawRect(renderer_, &rect);
 }

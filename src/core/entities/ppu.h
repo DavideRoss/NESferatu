@@ -73,6 +73,9 @@ public:
 
     std::span<const Pixel> GetFramebuffer();
 
+    // Debug functions
+    std::array<Pixel, 32> DumpPalette() const;
+
 private:
     u8 PPURead(u16 address);
     void PPUWrite(u16 address, u8 val);

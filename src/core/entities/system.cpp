@@ -94,4 +94,7 @@ std::span<const Pixel> System::GetFramebuffer()
     return ppu->GetFramebuffer();
 }
 
-
+void System::ClearFrameComplete()
+{
+    ppu->ClearFrameComplete();
+}

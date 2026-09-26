@@ -836,3 +836,15 @@ void PPU::RenderPixel()
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
 }
+
+std::array<Pixel, 32> PPU::DumpPalette() const
+{
+    std::array<Pixel, 32> palette;
+
+    for (u8 i = 0; i < 32; ++i)
+    {
+        palette[i] = GetColor(palettes_[GetPaletteIndex(0x3f00 + i)]);
+    }
+
+    return palette;
+}

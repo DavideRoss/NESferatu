@@ -22,6 +22,7 @@ public:
 
     bool IsFrameComplete() const;
     std::span<const Pixel> GetFramebuffer();
+    void ClearFrameComplete();
 
 private:
     void StepHardware();

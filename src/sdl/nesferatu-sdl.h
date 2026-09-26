@@ -14,6 +14,11 @@ public:
 
     void PollEvents();
     void Render(std::span<const Pixel> frame);
+    void Clear() const;
+    void Present() const;
+
+    // Debug function
+    void DrawRectangle(Pixel color, int x, int y, int w, int h) const;
 
 private:
     bool running_ = true;
