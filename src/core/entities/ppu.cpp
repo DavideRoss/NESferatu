@@ -401,7 +401,6 @@ void PPU::CPUWrite(u16 address, u8 data)
 
 u8 PPU::PPURead(u16 address)
 {
-    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -419,7 +418,6 @@ u8 PPU::PPURead(u16 address)
 
 void PPU::PPUWrite(u16 address, u8 val)
 {
-    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -521,7 +519,10 @@ void PPU::BackgroundRenderFetch()
             const u16 address = 0x23c0 | (v_ & 0x0c00) | ((v_ >> 4) & 0x0038) | ((v_ >> 2) & 0x0007);
             next_tile_attribute_ = PPURead(address);
 
-            const u8 quadrant = ((v_ >> 4) & 0x04) | ((v_ >> 2) & 0x02);
+            const u8 quadrant =
+                ((v_ >> 4) & 0x04) |
+                ((v_ >> 2) & 0x02);
+
             next_tile_attribute_ = (next_tile_attribute_ >> quadrant) & 0x03;
         }; break;
 
@@ -744,23 +745,12 @@ void PPU::RenderPixel()
     bool sprite_present = false;
     bool sprite_zero = false;
 
-    if (cycle_ == 0x1f)
-    {
-        bool sprites = GetFlag(mask_, PPUMaskFlag::EnableSprites);
-        u32 test = 1;
-    }
-
     if (GetFlag(mask_, PPUMaskFlag::EnableSprites))
     {
         for (u8 i = 0; i < sprite_render_count_; ++i)
         {
             const Sprite sprite = sprite_scanline_[i];
             const u16 x = cycle_ - 1u;
-
-            if (x == 0x15)
-            {
-                u32 test = 1;
-            }
 
             // Pixel is out of sprite bounds
             if (x < sprite.x || x >= (sprite.x + 8u))
