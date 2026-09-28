@@ -96,7 +96,7 @@ void PPU::Step()
                 BackgroundRenderFetch();
             }
 
-            if (cycle_ >= 1 && cycle_ <= 64)
+            if (cycle_ >= 1 && cycle_ <= 63)
             {
                 ClearSecondaryOAM();
             }
@@ -160,7 +160,7 @@ void PPU::Step()
                 BackgroundRenderFetch();
             }
 
-            if (cycle_ >= 1 && cycle_ <= 64)
+            if (cycle_ >= 1 && cycle_ <= 63)
             {
                 ClearSecondaryOAM();
             }
