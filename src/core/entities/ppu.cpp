@@ -515,13 +515,12 @@ void PPU::BackgroundRenderFetch()
         case 3:
         {
             // Fetch attribute byte
-            // NOTE: wtf is going on here?
             const u16 address = 0x23c0 | (v_ & 0x0c00) | ((v_ >> 4) & 0x0038) | ((v_ >> 2) & 0x0007);
             next_tile_attribute_ = PPURead(address);
 
             const u8 quadrant =
                 ((v_ >> 4) & 0x04) |
-                ((v_ >> 2) & 0x02);
+                ((v_ >> 0) & 0x02);
 
             next_tile_attribute_ = (next_tile_attribute_ >> quadrant) & 0x03;
         }; break;
