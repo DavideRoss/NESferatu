@@ -15,7 +15,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_BINARY_DIR}/bin
 )
 
+option(NESFERATU_SANITIZERS "Enable ASan and UBSan" OFF)
+
 add_library(NESferatuCompileOptions INTERFACE)
+add_library(NESferatuLinkerOptions INTERFACE)
 
 target_compile_options(NESferatuCompileOptions INTERFACE
     -Wall
@@ -32,6 +35,17 @@ target_compile_options(NESferatuCompileOptions INTERFACE
 
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
 )
+
+if (NESFERATU_SANITIZERS)
+    target_compile_options(NESferatuCompileOptions INTERFACE
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+
+    target_link_options(NESferatuLinkerOptions INTERFACE
+        -fsanitize=address,undefined
+    )
+endif()
 
 include(GoogleTest)
 enable_testing()
