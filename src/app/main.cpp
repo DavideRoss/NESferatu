@@ -15,10 +15,10 @@ int main()
 {
     Cartridge cart("roms/Tetris (Europe).nes");
     // Cartridge cart("roms/tests/AccuracyCoin.nes");
-    System* nes = new System(cart);
+    std::unique_ptr<System> nes = std::make_unique<System>(cart);
     nes->Reset();
 
-    NESferatuSDL* sdl = new NESferatuSDL();
+    std::unique_ptr<NESferatuSDL> sdl = std::make_unique<NESferatuSDL>();
 
     bool run_latch = true;
     bool step_latch = false;
