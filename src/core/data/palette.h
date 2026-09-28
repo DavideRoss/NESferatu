@@ -9,6 +9,16 @@ struct Pixel
     u8 r;
     u8 g;
     u8 b;
+
+    static Pixel Lerp(Pixel a, Pixel b, float t)
+    {
+        float inv_t = 1.0f - t;
+        return Pixel {
+            static_cast<u8>((t * static_cast<float>(a.r)) + (inv_t * static_cast<float>(b.r))),
+            static_cast<u8>((t * static_cast<float>(a.g)) + (inv_t * static_cast<float>(b.g))),
+            static_cast<u8>((t * static_cast<float>(a.b)) + (inv_t * static_cast<float>(b.b))),
+        };
+    }
 };
 
 constexpr std::array<Pixel, 64> NES_PALETTE = {{
