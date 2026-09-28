@@ -50,7 +50,7 @@ private:
     Cartridge& cartridge_;
 
     // OAM DMA
-    bool oam_dma_active_;
+    bool oam_dma_active_ = false;
     OAMDMAPhase oam_dma_phase_;
     u8 oam_dma_page_;
     u8 oam_dma_address_;
