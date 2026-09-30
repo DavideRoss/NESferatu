@@ -56,6 +56,31 @@ int main()
             {
                 request_screenshot = true;
             }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::Palette);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::FineX);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::PixelPresence);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_4)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::Nametable);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_0)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::None);
+            }
         }
 
         const Uint8* keyboard = SDL_GetKeyboardState(nullptr);

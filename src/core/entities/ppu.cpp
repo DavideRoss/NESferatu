@@ -803,6 +803,57 @@ void PPU::RenderPixel()
     {
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
+
+    // Debug modes
+    if (debug_view_mode_ == DebugViewMode::Palette)
+    {
+        std::array<Pixel, 6> colors = {
+            Pixel { 0xff, 0x00, 0x00 },
+            Pixel { 0x00, 0xff, 0x00 },
+            Pixel { 0x00, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0x00 },
+            Pixel { 0xff, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0xff }
+        };
+
+        framebuffer_[framebuffer_index] = Pixel::Lerp(colors[palette % 6], framebuffer_[framebuffer_index], 0.5f);
+    }
+
+    if (debug_view_mode_ == DebugViewMode::FineX)
+    {
+        Pixel shift = Pixel { static_cast<u8>(x_ * 32), 0, 0 };
+        framebuffer_[framebuffer_index] = Pixel::Lerp(shift, framebuffer_[framebuffer_index], 0.5f);
+    }
+
+    if (debug_view_mode_ == DebugViewMode::PixelPresence)
+    {
+        bool sprite_zero_hit =
+            render_enabled &&
+            sprite_zero_clear &&
+            sprite_zero &&
+            pixel_visible &&
+            correct_scanline &&
+            correct_cycle;
+
+        framebuffer_[framebuffer_index] = Pixel {
+            static_cast<u8>(background_visible ? 0xff : 0),
+            static_cast<u8>(sprite_visible ? 0xff : 0),
+            static_cast<u8>(sprite_zero_hit ? 0xff : 0)
+        };
+    }
+
+    if (debug_view_mode_ == DebugViewMode::Nametable)
+    {
+        std::array<Pixel, 6> colors = {
+            Pixel { 0xff, 0x00, 0x00 },
+            Pixel { 0x00, 0xff, 0x00 },
+            Pixel { 0x00, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0x00 }
+        };
+
+        const u8 nametable = (v_ >> 10) & 0x03;
+        framebuffer_[framebuffer_index] = Pixel::Lerp(colors[nametable], framebuffer_[framebuffer_index], 0.5f);
+    }
 }
 
 std::array<Pixel, 32> PPU::DumpPalette() const
@@ -815,4 +866,9 @@ std::array<Pixel, 32> PPU::DumpPalette() const
     }
 
     return palette;
+}
+
+void PPU::SetDebugViewMode(DebugViewMode mode)
+{
+    debug_view_mode_ = debug_view_mode_ == mode ? DebugViewMode::None : mode;
 }

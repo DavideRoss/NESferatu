@@ -41,6 +41,15 @@ enum PPUStatusFlag : u8
     VerticalBlank = (1 << 7)
 };
 
+enum DebugViewMode : u8
+{
+    None,
+    Palette,
+    FineX,
+    PixelPresence,
+    Nametable
+};
+
 struct Sprite
 {
     u8 y;
@@ -75,6 +84,7 @@ public:
 
     // Debug functions
     std::array<Pixel, 32> DumpPalette() const;
+    void SetDebugViewMode(DebugViewMode mode);
 
 private:
     u8 PPURead(u16 address);
@@ -160,4 +170,7 @@ private:
     std::array<u8, 0x20> palettes_;
     std::array<u8, 256> oam_;
     std::array<u8, 32> secondary_oam_;
+
+    // Debug variable
+    DebugViewMode debug_view_mode_ = DebugViewMode::None;
 };
