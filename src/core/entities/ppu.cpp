@@ -330,12 +330,12 @@ void PPU::CPUWrite(u16 address, u8 data)
         {
             if (!w_)
             {
-                // First write: upper coarse Y, nametables, lower fine Y
+                // First write: uppwer VRAM address
                 t_ = (t_ & 0x00ff) | (static_cast<u16>(data & 0x3f) << 8);
             }
             else
             {
-                // Second write: coarse X, lower coarse Y
+                // Second write: lower VRAM address
                 t_ = (t_ & 0x7f00) | data;
                 v_ = t_;
             }
