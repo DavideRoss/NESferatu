@@ -40,7 +40,9 @@ private:
 
     std::span<const u8> prg_rom_;
     std::vector<u8> prg_ram_;
+    std::vector<u8> prg_nvram_;
 
     std::span<const u8> chr_rom_;
     std::vector<u8> chr_ram_;
+    std::vector<u8> chr_nvram_;
 };

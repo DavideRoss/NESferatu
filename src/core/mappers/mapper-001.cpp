@@ -2,10 +2,10 @@
 
 Mapper001::Mapper001(
     const CartridgeMetadata& metadata,
-    std::span<const u8> prg_rom, std::span<u8> prg_ram,
-    std::span<const u8> chr_rom, std::span<u8> chr_ram
+    std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
+    std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
 )
-    : BaseMapper(metadata, prg_rom, prg_ram, chr_rom, chr_ram)
+    : BaseMapper(metadata, prg_rom, prg_ram, prg_nvram, chr_rom, chr_ram, chr_nvram)
 {
 }
 
@@ -16,17 +16,20 @@ u8 Mapper001::CPURead(u16 address)
         // PRG RAM
         case 0x6000 ... 0x7fff:
         {
-            return prg_ram_[address - 0x6000];
-        }
+            if (!prg_ram_.empty()) return prg_ram_[address - 0x6000];
+            if (!prg_nvram_.empty()) return prg_nvram_[address - 0x6000];
+
+            NESFERATU_THROW("No RAM or NVRAM at address 0x{:04x}", address);
+        }; break;
 
         // PRG ROM first and second bank
         case 0x8000 ... 0xffff:
         {
             const size_t offset = GetPRGOffset(address);
             return prg_rom_[offset];
-        }
+        };
 
-        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+        default: NESFERATU_THROW("Unmapped CPU address: 0x{:04x}", address);
     }
 }
 
@@ -36,10 +39,8 @@ void Mapper001::CPUWrite(u16 address, u8 data)
     {
         case 0x6000 ... 0x7fff:
         {
-            if (!prg_ram_.empty())
-            {
-                prg_ram_[address - 0x6000] = data;
-            }
+            if (!prg_ram_.empty()) prg_ram_[address - 0x6000] = data;
+            if (!prg_nvram_.empty()) prg_nvram_[address - 0x6000] = data;
         }; break;
 
         // Load registers
@@ -66,7 +67,7 @@ void Mapper001::CPUWrite(u16 address, u8 data)
             }
         }; break;
 
-        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+        default: NESFERATU_THROW("Unmapped CPU address: 0x{:04x}", address);
     }
 }
 
@@ -74,21 +75,18 @@ u8 Mapper001::PPURead(u16 address)
 {
     const size_t offset = GetCHROffset(address);
 
-    if (!chr_ram_.empty())
-    {
-        return chr_ram_[offset];
-    }
+    if (!chr_ram_.empty()) return chr_ram_[offset];
+    if (!chr_nvram_.empty()) return chr_nvram_[offset];
 
     return chr_rom_[offset];
 }
 
 void Mapper001::PPUWrite(u16 address, u8 data)
 {
-    if (!chr_ram_.empty())
-    {
-        const size_t offset = GetCHROffset(address);
-        chr_ram_[offset] = data;
-    }
+    const size_t offset = GetCHROffset(address);
+
+    if (!chr_ram_.empty()) chr_ram_[offset] = data;
+    if (!chr_nvram_.empty()) chr_nvram_[offset] = data;
 }
 
 Mirroring Mapper001::GetMirroring() const
@@ -149,7 +147,7 @@ size_t Mapper001::GetCHROffset(u16 address) const
 {
     if (address > 0x1fff)
     {
-        NESFERATU_THROW("Unmapped PPU address: 0x{:02x}", address);
+        NESFERATU_THROW("Unmapped PPU address: 0x{:04x}", address);
     }
 
     const bool chr_4kb = control_ & 0x10;

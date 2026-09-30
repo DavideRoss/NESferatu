@@ -26,9 +26,9 @@ struct CartridgeMetadata
     u32 chr_banks;
 
     u32 prg_rom_size;
-    u32 chr_rom_size;
     u32 prg_ram_size;
     u32 prg_nvram_size;
+    u32 chr_rom_size;
     u32 chr_ram_size;
     u32 chr_nvram_size;
 

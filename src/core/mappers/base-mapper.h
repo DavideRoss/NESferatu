@@ -19,8 +19,8 @@ class BaseMapper
 public:
     BaseMapper(
         const CartridgeMetadata& metadata,
-        std::span<const u8> prg_rom, std::span<u8> prg_ram,
-        std::span<const u8> chr_rom, std::span<u8> chr_ram
+        std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
+        std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
     );
 
     virtual u8 CPURead(u16 address) = 0;
@@ -36,7 +36,9 @@ public:
 protected:
     std::span<const u8> prg_rom_;
     std::span<u8> prg_ram_;
+    std::span<u8> prg_nvram_;
     
     std::span<const u8> chr_rom_;
     std::span<u8> chr_ram_;
+    std::span<u8> chr_nvram_;
 };
