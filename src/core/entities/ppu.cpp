@@ -291,6 +291,18 @@ void PPU::CPUWrite(u16 address, u8 data)
         // OAM Data
         case 0x2004:
         {
+            // Ignore writing during rendering
+            bool rendering_enabled =
+                GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
+                GetFlag(mask_, PPUMaskFlag::EnableSprites);
+
+            bool render_scanlines = scanline_ <= 239 || scanline_ == 261;
+
+            if (rendering_enabled && render_scanlines)
+            {
+                return;
+            }
+
             oam_[oam_addr_] = data;
             ++oam_addr_;
         }; break;
