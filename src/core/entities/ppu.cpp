@@ -786,13 +786,20 @@ void PPU::RenderPixel()
     framebuffer_[framebuffer_index] = GetColor(final_palette);
 
     // Sprite zero hit flag
-    // TODO: implement correct leftmost masking
-    if (!GetFlag(status_, PPUStatusFlag::SpriteZeroHit) &&
+    bool sprite_zero_clear = !GetFlag(status_, PPUStatusFlag::SpriteZeroHit);
+    bool render_enabled = GetFlag(mask_, PPUMaskFlag::EnableBackground) && GetFlag(mask_, PPUMaskFlag::EnableSprites);
+    bool pixel_visible = background_visible && sprite_visible;
+    bool correct_scanline = scanline_ < 239;
+    bool correct_cycle = cycle_ >= 1 && cycle_ != 256;
+
+    if (
+        render_enabled &&
+        sprite_zero_clear &&
         sprite_zero &&
-        background_visible &&
-        sprite_visible &&
-        scanline_ < 239 &&
-        screen_x != 255)
+        pixel_visible &&
+        correct_scanline &&
+        correct_cycle
+    )
     {
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
