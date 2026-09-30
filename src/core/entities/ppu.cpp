@@ -70,148 +70,92 @@ void PPU::Step()
         return;
     }
 
-    // Pre-render scanline
-    if (scanline_ == 261)
+    // Clear vblank interrupt
+    if (scanline_ == 261 && cycle_ == 1)
     {
-        // Clear vblank interrupt
+        SetFlag(status_, PPUStatusFlag::VerticalBlank, false);
+        SetFlag(status_, PPUStatusFlag::SpriteZeroHit, false);
+        SetFlag(status_, PPUStatusFlag::SpriteOverflow, false);
+    }
+
+    bool render_scanlines = scanline_ <= 239 || scanline_ == 261;
+
+    if (render_scanlines && render_enabled)
+    {
+        // Reset sprites
         if (cycle_ == 1)
         {
-            SetFlag(status_, PPUStatusFlag::VerticalBlank, false);
-            SetFlag(status_, PPUStatusFlag::SpriteZeroHit, false);
-            SetFlag(status_, PPUStatusFlag::SpriteOverflow, false);
+            sprite_eval_index_ = 0;
+            sprite_eval_count_ = 0;
         }
 
-        if (render_enabled)
+        // Background rendering/fetching
+        if (cycle_ >= 1 && cycle_ <= 256)
         {
-            // Reset sprites
-            if (cycle_ == 1)
-            {
-                sprite_eval_index_ = 0;
-                sprite_eval_count_ = 0;
-            }
+            BackgroundRenderFetch();
+        }
 
-            // Background rendering/fetching
-            if (cycle_ >= 1 && cycle_ <= 256)
-            {
-                BackgroundRenderFetch();
-            }
+        if (cycle_ >= 1 && cycle_ <= 63)
+        {
+            ClearSecondaryOAM();
+        }
 
-            if (cycle_ >= 1 && cycle_ <= 63)
-            {
-                ClearSecondaryOAM();
-            }
+        if (cycle_ >= 65 && cycle_ <= 256)
+        {
+            EvaluateSprites();
+        }
 
-            if (cycle_ >= 65 && cycle_ <= 256)
-            {
-                EvaluateSprites();
-            }
+        // Increment coarse and fine Y
+        if (cycle_ == 256)
+        {
+            IncrementY();
+        }
 
-            // Increment coarse and fine Y
-            if (cycle_ == 256)
-            {
-                IncrementY();
-            }
-
+        if (cycle_ == 257)
+        {
             // Copy horizontal scroll bits from temporary register
-            if (cycle_ == 257)
-            {
-                HorizontalTransfer();
-            }
+            HorizontalTransfer();
 
-            // Sprite fetching
-            if (cycle_ >= 257 && cycle_ <= 320)
-            {
-                FetchSpriteData();
-            }
+            // Save the number of sprite before evaluating the next scanline
+            sprite_render_count_ = sprite_eval_count_;
+        }
 
-            // Copy vertical scroll bits from temporary register
-            if (cycle_ >= 280 && cycle_ <= 304)
-            {
-                VerticalTransfer();
-            }
+        // Sprite fetching
+        if (cycle_ >= 257 && cycle_ <= 320)
+        {
+            FetchSpriteData();
+        }
 
-            if (cycle_ >= 321 && cycle_ <= 336)
-            {
-                BackgroundRenderFetch();
-            }
+        // Copy vertical scroll bits from temporary register
+        if (scanline_ == 261 && cycle_ >= 280 && cycle_ <= 304)
+        {
+            VerticalTransfer();
+        }
 
-            // Nabletable dummy fetches
-            if (cycle_ >= 337 && cycle_ <= 340)
-            {
-                DummyFetches();
-            }
+        if (cycle_ >= 321 && cycle_ <= 336)
+        {
+            BackgroundRenderFetch();
+        }
+
+        // Nabletable dummy fetches
+        if (cycle_ >= 337 && cycle_ <= 340)
+        {
+            DummyFetches();
         }
     }
 
-    // Visible scanlines
-    if (scanline_ <= 239)
+    if (scanline_ <= 239 && cycle_ >= 1 && cycle_ <= 256)
     {
-        if (render_enabled)
-        {
-            // Reset sprites indices
-            if (cycle_ == 1)
-            {
-                sprite_eval_index_ = 0;
-                sprite_eval_count_ = 0;
-            }
+        RenderPixel();
+    }
 
-            if (cycle_ >= 1 && cycle_ <= 256)
-            {
-                BackgroundRenderFetch();
-            }
-
-            if (cycle_ >= 1 && cycle_ <= 63)
-            {
-                ClearSecondaryOAM();
-            }
-
-            if (cycle_ >= 65 && cycle_ <= 256)
-            {
-                EvaluateSprites();
-            }
-
-            // Increment coarse and fine Y
-            if (cycle_ == 256)
-            {
-                IncrementY();
-            }
-
-            if (cycle_ == 257)
-            {
-                // Copy horizontal scroll bits from temporary register
-                HorizontalTransfer();
-
-                // Save the number of sprite before evaluating the next scanline
-                sprite_render_count_ = sprite_eval_count_;
-            }
-
-            // Sprite fetching
-            if (cycle_ >= 257 && cycle_ <= 320)
-            {
-                FetchSpriteData();
-            }
-
-            if (cycle_ >= 321 && cycle_ <= 336)
-            {
-                BackgroundRenderFetch();
-            }
-
-            // Nabletable dummy fetches
-            if (cycle_ >= 337 && cycle_ <= 340)
-            {
-                DummyFetches();
-            }
-        }
-
-        if (cycle_ >= 1 && cycle_ <= 256)
-        {
-            RenderPixel();
-        }
-
-        if (render_enabled && ((cycle_ >= 1 && cycle_ <= 256) || (cycle_ >= 321 && cycle_ <= 336)))
-        {
-            ShiftBackgroundRegisters();
-        }
+    if (
+        render_scanlines &&
+        render_enabled &&
+        ((cycle_ >= 1 && cycle_ <= 256) || (cycle_ >= 321 && cycle_ <= 336))
+    )
+    {
+        ShiftBackgroundRegisters();
     }
 
     // trigger vblank interrupt
