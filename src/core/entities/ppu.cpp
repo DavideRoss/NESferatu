@@ -631,15 +631,35 @@ void PPU::FetchSpriteData()
     const u8 target_scanline = scanline_ == 261 ? 0 : scanline_;
     u8 row = target_scanline - sprite.y;
 
+    const bool tall_sprite = GetFlag(ctrl_, PPUCtrlFlag::SpriteSize);
+
     // Vertical flip
     if (sprite.attributes & 0x80)
     {
-        row = 7 - row;
+        row = (tall_sprite ? 15 : 7) - row;
     }
 
-    // TODO: reimplement for 8x16 sprites (check flag)
-    const u16 table = GetFlag(ctrl_, PPUCtrlFlag::SpritePattern) ? 0x1000 : 0x0000;
-    const u16 pattern_address = table + sprite.tile * 16  + row;
+    u16 table;
+    u8 tile;
+
+    if (tall_sprite)
+    {
+        table = (sprite.tile & 0x01) ? 0x1000 : 0x0000;
+        tile = sprite.tile & 0xfe;
+
+        if (row >= 8)
+        {
+            ++tile;
+            row -= 8;
+        }
+    }
+    else
+    {
+        table = GetFlag(ctrl_, PPUCtrlFlag::SpritePattern) ? 0x1000 : 0x0000;
+        tile = sprite.tile;
+    }
+
+    const u16 pattern_address = table + tile * 16 + row;
 
     const u8 phase = (cycle_ - 257) % 8;
     switch (phase)
