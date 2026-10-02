@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debugger/debuggable.h"
 #include "utils/types.h"
 #include "utils/log.h"
 
@@ -307,7 +308,7 @@ namespace Opcodes
     static constexpr u8 TYA_IMP = 0x98;
 }
 
-class CPU
+class CPU : public Debuggable
 {
 public:
     void ConnectBus(Bus* bus);
@@ -329,13 +330,6 @@ public:
     void RequestIRQ() { irq_pending_ = true; }
     void RequestNMI() { nmi_pending_ = true; }
 
-    // Debug function
-    void ToggleLogging()
-    {
-        logging_ = !logging_;
-        NESFERATU_LOG("Logging: {}", logging_);
-    }
-
 public:
     u8 a;       // Accumulator
     u8 x, y;    // GP registers
@@ -343,7 +337,7 @@ public:
     u8 sp;      // Stack pointer
     u8 s;       // Program status
 
-    u32 total_cycles;
+    u32 total_cycles = 7;
 
 private:
     struct AddressResult
@@ -459,7 +453,4 @@ private:
 
     bool irq_pending_ = false;
     bool nmi_pending_ = false;
-
-    // Debug
-    bool logging_ = false;
 };

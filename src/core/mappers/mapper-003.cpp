@@ -1,11 +1,15 @@
 #include "mapper-003.h"
 
 Mapper003::Mapper003(
-    std::span<const u8> prg_rom, std::span<u8> prg_ram,
-    std::span<const u8> chr_rom, std::span<u8> chr_ram
+    const CartridgeMetadata& metadata,
+    std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
+    std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
 )
-    : BaseMapper(prg_rom, prg_ram, chr_rom, chr_ram)
+    : BaseMapper(metadata, prg_rom, prg_ram, prg_nvram, chr_rom, chr_ram, chr_nvram)
 {
+    mirroring_ = metadata.vertical_mirroring ?
+        Mirroring::Vertical :
+        Mirroring::Horizontal;
 }
 
 u8 Mapper003::CPURead(u16 address)
@@ -15,7 +19,10 @@ u8 Mapper003::CPURead(u16 address)
         // PRG RAM
         case 0x6000 ... 0x7fff:
         {
-            return prg_ram_[address - 0x6000];
+            if (!prg_ram_.empty()) return prg_ram_[address - 0x6000];
+            if (!prg_nvram_.empty()) return prg_nvram_[address - 0x6000];
+            
+            NESFERATU_THROW("No RAM or NVRAM at address 0x{:04x}", address);
         }
 
         // PRG ROM
@@ -24,7 +31,7 @@ u8 Mapper003::CPURead(u16 address)
             return prg_rom_[address - 0x8000];
         }
 
-        default: NESFERATU_THROW("Unmapped CPU address: 0x{:02x}", address);
+        default: NESFERATU_THROW("Unmapped CPU address: 0x{:04x}", address);
     }
 }
 
@@ -46,7 +53,8 @@ void Mapper003::CPUWrite(u16 address, u8 data)
         // PRG RAM
         case 0x6000 ... 0x7fff:
         {
-            prg_ram_[address - 0x6000] = data;
+            if (!prg_ram_.empty()) prg_ram_[address - 0x6000] = data;
+            if (!prg_nvram_.empty()) prg_nvram_[address - 0x6000] = data;
         }; break;
 
         // CHR bank

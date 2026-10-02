@@ -1,5 +1,5 @@
-#include "ppu.h"
 #include "bus.h"
+#include "ppu.h"
 
 #include "utils/exception.h"
 
@@ -20,6 +20,7 @@ void PPU::Reset()
 
     frame_complete_ = false;
     nmi_requested_ = false;
+    odd_frame_ = false;
 
     ctrl_ = 0;
     mask_ = 0;
@@ -52,157 +53,118 @@ void PPU::Reset()
 
 void PPU::Step()
 {
-    // frame_complete_ = false;
+    Debug({
+        .event = DebugEventType::PPUTiming,
+        .ppu_scanline = scanline_,
+        .ppu_cycle = cycle_
+    });
 
     const bool render_enabled =
         GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
         GetFlag(mask_, PPUMaskFlag::EnableSprites);
 
-    // Pre-render scanline
-    if (scanline_ == 261)
+    // Skip cycle 0 on odd frames
+    if (scanline_ == 261 && cycle_ == 0 && render_enabled && odd_frame_)
     {
-        // Clear vblank interrupt
+        cycle_ = 1;
+        return;
+    }
+
+    // Clear vblank interrupt
+    if (scanline_ == 261 && cycle_ == 1)
+    {
+        SetFlag(status_, PPUStatusFlag::VerticalBlank, false);
+        SetFlag(status_, PPUStatusFlag::SpriteZeroHit, false);
+        SetFlag(status_, PPUStatusFlag::SpriteOverflow, false);
+    }
+
+    bool render_scanlines = scanline_ <= 239 || scanline_ == 261;
+
+    if (render_scanlines && render_enabled)
+    {
+        // Reset sprites
         if (cycle_ == 1)
         {
-            status_ &= ~(PPUStatusFlag::VerticalBlank | PPUStatusFlag::SpriteZeroHit | PPUStatusFlag::SpriteOverflow);
+            sprite_eval_index_ = 0;
+            sprite_eval_count_ = 0;
         }
 
-        if (render_enabled)
+        // Background rendering/fetching
+        if (cycle_ >= 1 && cycle_ <= 256)
         {
-            // Reset sprites
-            if (cycle_ == 1)
-            {
-                sprite_eval_index_ = 0;
-                sprite_eval_count_ = 0;
-            }
+            BackgroundRenderFetch();
+        }
 
-            // Background rendering/fetching
-            if (cycle_ >= 1 && cycle_ <= 256)
-            {
-                BackgroundRenderFetch();
-            }
+        if (cycle_ >= 1 && cycle_ <= 63)
+        {
+            ClearSecondaryOAM();
+        }
 
-            if (cycle_ >= 1 && cycle_ <= 64)
-            {
-                ClearSecondaryOAM();
-            }
+        if (cycle_ >= 65 && cycle_ <= 256)
+        {
+            EvaluateSprites();
+        }
 
-            if (cycle_ >= 65 && cycle_ <= 256)
-            {
-                EvaluateSprites();
-            }
+        // Increment coarse and fine Y
+        if (cycle_ == 256)
+        {
+            IncrementY();
+        }
 
-            // Increment coarse and fine Y
-            if (cycle_ == 256)
-            {
-                IncrementY();
-            }
-
+        if (cycle_ == 257)
+        {
             // Copy horizontal scroll bits from temporary register
-            if (cycle_ == 257)
-            {
-                HorizontalTransfer();
-            }
+            HorizontalTransfer();
 
-            // Sprite fetching
-            if (cycle_ >= 257 && cycle_ <= 320)
-            {
-                FetchSpriteData();
-            }
+            // Save the number of sprite before evaluating the next scanline
+            sprite_render_count_ = sprite_eval_count_;
+        }
 
-            // Copy vertical scroll bits from temporary register
-            if (cycle_ >= 280 && cycle_ <= 304)
-            {
-                VerticalTransfer();
-            }
+        // Sprite fetching
+        if (cycle_ >= 257 && cycle_ <= 320)
+        {
+            FetchSpriteData();
+        }
 
-            if (cycle_ >= 321 && cycle_ <= 336)
-            {
-                BackgroundRenderFetch();
-            }
+        // Copy vertical scroll bits from temporary register
+        if (scanline_ == 261 && cycle_ >= 280 && cycle_ <= 304)
+        {
+            VerticalTransfer();
+        }
 
-            // Nabletable dummy fetches
-            if (cycle_ >= 337 && cycle_ <= 340)
-            {
-                DummyFetches();
-            }
+        if (cycle_ >= 321 && cycle_ <= 336)
+        {
+            BackgroundRenderFetch();
+        }
+
+        // Nabletable dummy fetches
+        if (cycle_ >= 337 && cycle_ <= 340)
+        {
+            DummyFetches();
         }
     }
 
-    // Visible scanlines
-    if (scanline_ <= 239)
+    if (scanline_ <= 239 && cycle_ >= 1 && cycle_ <= 256)
     {
-        if (render_enabled)
-        {
-            // Reset sprites indices
-            if (cycle_ == 1)
-            {
-                sprite_eval_index_ = 0;
-                sprite_eval_count_ = 0;
-            }
+        RenderPixel();
+    }
 
-            if (cycle_ >= 1 && cycle_ <= 256)
-            {
-                BackgroundRenderFetch();
-            }
-
-            if (cycle_ >= 1 && cycle_ <= 64)
-            {
-                ClearSecondaryOAM();
-            }
-
-            if (cycle_ >= 65 && cycle_ <= 256)
-            {
-                EvaluateSprites();
-            }
-
-            // Increment coarse and fine Y
-            if (cycle_ == 256)
-            {
-                IncrementY();
-            }
-
-            if (cycle_ == 257)
-            {
-                // Copy horizontal scroll bits from temporary register
-                HorizontalTransfer();
-
-                // Save the number of sprite before evaluating the next scanline
-                sprite_render_count_ = sprite_eval_count_;
-            }
-
-            // Sprite fetching
-            if (cycle_ >= 257 && cycle_ <= 320)
-            {
-                FetchSpriteData();
-            }
-
-            if (cycle_ >= 321 && cycle_ <= 336)
-            {
-                BackgroundRenderFetch();
-            }
-
-            // Nabletable dummy fetches
-            if (cycle_ >= 337 && cycle_ <= 340)
-            {
-                DummyFetches();
-            }
-        }
-
-        if (cycle_ >= 1 && cycle_ <= 256)
-        {
-            RenderPixel();
-        }
-
-        if (render_enabled && ((cycle_ >= 1 && cycle_ <= 256) || (cycle_ >= 321 && cycle_ <= 336)))
-        {
-            ShiftBackgroundRegisters();
-        }
+    if (
+        render_scanlines &&
+        render_enabled &&
+        ((cycle_ >= 1 && cycle_ <= 256) || (cycle_ >= 321 && cycle_ <= 336))
+    )
+    {
+        ShiftBackgroundRegisters();
     }
 
     // trigger vblank interrupt
     if (scanline_ == 241 && cycle_ == 1)
     {
+        Debug({
+            .event = DebugEventType::VBlank
+        });
+
         SetFlag(status_, PPUStatusFlag::VerticalBlank, true);
         if (GetFlag(ctrl_, PPUCtrlFlag::NMIEnable))
         {
@@ -219,7 +181,12 @@ void PPU::Step()
 
         if (scanline_ >= SCANLINES_PER_FRAME)
         {
+            Debug({
+                .event = DebugEventType::Frame
+            });
+
             scanline_ = 0;
+            odd_frame_ = !odd_frame_;
             frame_complete_ = true;
         }
     }
@@ -324,6 +291,18 @@ void PPU::CPUWrite(u16 address, u8 data)
         // OAM Data
         case 0x2004:
         {
+            // Ignore writing during rendering
+            bool rendering_enabled =
+                GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
+                GetFlag(mask_, PPUMaskFlag::EnableSprites);
+
+            bool render_scanlines = scanline_ <= 239 || scanline_ == 261;
+
+            if (rendering_enabled && render_scanlines)
+            {
+                return;
+            }
+
             oam_[oam_addr_] = data;
             ++oam_addr_;
         }; break;
@@ -351,12 +330,12 @@ void PPU::CPUWrite(u16 address, u8 data)
         {
             if (!w_)
             {
-                // First write: upper coarse Y, nametables, lower fine Y
+                // First write: uppwer VRAM address
                 t_ = (t_ & 0x00ff) | (static_cast<u16>(data & 0x3f) << 8);
             }
             else
             {
-                // Second write: coarse X, lower coarse Y
+                // Second write: lower VRAM address
                 t_ = (t_ & 0x7f00) | data;
                 v_ = t_;
             }
@@ -378,7 +357,6 @@ void PPU::CPUWrite(u16 address, u8 data)
 
 u8 PPU::PPURead(u16 address)
 {
-    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -396,7 +374,6 @@ u8 PPU::PPURead(u16 address)
 
 void PPU::PPUWrite(u16 address, u8 val)
 {
-    address &= 0x3fff;
     switch (address)
     {
         // Cartridge CHR ROM/RAM
@@ -441,10 +418,14 @@ u16 PPU::MapNametableAddress(u16 address)
     const u8 nametable = static_cast<u8>(offset / 0x0400);
     const u16 tile_offset = offset % 0x0400;
 
-    u8 physical_page =
-        cartridge_.metadata.vertical_mirroring ?
-        nametable % 2 :
-        nametable / 2;
+    u8 physical_page;
+    switch (cartridge_.GetMirroring())
+    {
+        case Mirroring::Vertical: physical_page = nametable & 1; break;
+        case Mirroring::Horizontal: physical_page = nametable >> 1; break;
+        case Mirroring::OneScreenLower: physical_page = 0; break;
+        case Mirroring::OneScreenUpper: physical_page = 1; break;
+    }
 
     return static_cast<u16>(physical_page) * 0x0400 + tile_offset;
 }
@@ -490,27 +471,35 @@ void PPU::BackgroundRenderFetch()
         case 3:
         {
             // Fetch attribute byte
-            // NOTE: wtf is going on here?
             const u16 address = 0x23c0 | (v_ & 0x0c00) | ((v_ >> 4) & 0x0038) | ((v_ >> 2) & 0x0007);
             next_tile_attribute_ = PPURead(address);
 
-            const u8 quadrant = ((v_ >> 4) & 0x04) | ((v_ >> 2) & 0x02);
+            const u8 quadrant =
+                ((v_ >> 4) & 0x04) |
+                ((v_ >> 0) & 0x02);
+
             next_tile_attribute_ = (next_tile_attribute_ >> quadrant) & 0x03;
         }; break;
 
         case 5:
         {
             // Fetch pattern low
-            const u16 address = (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
-                next_tile_id_ * 16 + ((v_ >> 12) & 0x0007);
+            const u16 address =
+                (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
+                (next_tile_id_ << 4) +
+                ((v_ >> 12) & 0x0007);
+
             next_tile_pattern_low_ = PPURead(address);
         }; break;
 
         case 7:
         {
             // Fetch pattern high
-            const u16 address = (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
-                next_tile_id_ * 16 + ((v_ >> 12) & 0x0007) + 8;
+            const u16 address =
+                (GetFlag(ctrl_, PPUCtrlFlag::BackgroundPattern) ? 0x1000 : 0x0000) +
+                (next_tile_id_ << 4) +
+                ((v_ >> 12) & 0x0007) + 8;
+
             next_tile_pattern_high_ = PPURead(address);
         }; break;
     }
@@ -642,15 +631,35 @@ void PPU::FetchSpriteData()
     const u8 target_scanline = scanline_ == 261 ? 0 : scanline_;
     u8 row = target_scanline - sprite.y;
 
+    const bool tall_sprite = GetFlag(ctrl_, PPUCtrlFlag::SpriteSize);
+
     // Vertical flip
     if (sprite.attributes & 0x80)
     {
-        row = 7 - row;
+        row = (tall_sprite ? 15 : 7) - row;
     }
 
-    // TODO: reimplement for 8x16 sprites (check flag)
-    const u16 table = GetFlag(ctrl_, PPUCtrlFlag::SpritePattern) ? 0x1000 : 0x0000;
-    const u16 pattern_address = table + sprite.tile * 16  + row;
+    u16 table;
+    u8 tile;
+
+    if (tall_sprite)
+    {
+        table = (sprite.tile & 0x01) ? 0x1000 : 0x0000;
+        tile = sprite.tile & 0xfe;
+
+        if (row >= 8)
+        {
+            ++tile;
+            row -= 8;
+        }
+    }
+    else
+    {
+        table = GetFlag(ctrl_, PPUCtrlFlag::SpritePattern) ? 0x1000 : 0x0000;
+        tile = sprite.tile;
+    }
+
+    const u16 pattern_address = table + tile * 16 + row;
 
     const u8 phase = (cycle_ - 257) % 8;
     switch (phase)
@@ -717,23 +726,12 @@ void PPU::RenderPixel()
     bool sprite_present = false;
     bool sprite_zero = false;
 
-    if (cycle_ == 0x1f)
-    {
-        bool sprites = GetFlag(mask_, PPUMaskFlag::EnableSprites);
-        u32 test = 1;
-    }
-
     if (GetFlag(mask_, PPUMaskFlag::EnableSprites))
     {
         for (u8 i = 0; i < sprite_render_count_; ++i)
         {
             const Sprite sprite = sprite_scanline_[i];
             const u16 x = cycle_ - 1u;
-
-            if (x == 0x15)
-            {
-                u32 test = 1;
-            }
 
             // Pixel is out of sprite bounds
             if (x < sprite.x || x >= (sprite.x + 8u))
@@ -808,14 +806,89 @@ void PPU::RenderPixel()
     framebuffer_[framebuffer_index] = GetColor(final_palette);
 
     // Sprite zero hit flag
-    // TODO: implement correct leftmost masking
-    if (!GetFlag(status_, PPUStatusFlag::SpriteZeroHit) &&
+    bool sprite_zero_clear = !GetFlag(status_, PPUStatusFlag::SpriteZeroHit);
+    bool render_enabled = GetFlag(mask_, PPUMaskFlag::EnableBackground) && GetFlag(mask_, PPUMaskFlag::EnableSprites);
+    bool pixel_visible = background_visible && sprite_visible;
+    bool correct_scanline = scanline_ < 239;
+    bool correct_cycle = cycle_ >= 1 && cycle_ != 256;
+
+    if (
+        render_enabled &&
+        sprite_zero_clear &&
         sprite_zero &&
-        background_visible &&
-        sprite_visible &&
-        scanline_ < 239 &&
-        screen_x != 255)
+        pixel_visible &&
+        correct_scanline &&
+        correct_cycle
+    )
     {
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
+
+    // Debug modes
+    if (debug_view_mode_ == DebugViewMode::Palette)
+    {
+        std::array<Pixel, 6> colors = {
+            Pixel { 0xff, 0x00, 0x00 },
+            Pixel { 0x00, 0xff, 0x00 },
+            Pixel { 0x00, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0x00 },
+            Pixel { 0xff, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0xff }
+        };
+
+        framebuffer_[framebuffer_index] = Pixel::Lerp(colors[palette % 6], framebuffer_[framebuffer_index], 0.5f);
+    }
+
+    if (debug_view_mode_ == DebugViewMode::FineX)
+    {
+        Pixel shift = Pixel { static_cast<u8>(x_ * 32), 0, 0 };
+        framebuffer_[framebuffer_index] = Pixel::Lerp(shift, framebuffer_[framebuffer_index], 0.5f);
+    }
+
+    if (debug_view_mode_ == DebugViewMode::PixelPresence)
+    {
+        bool sprite_zero_hit =
+            render_enabled &&
+            sprite_zero_clear &&
+            sprite_zero &&
+            pixel_visible &&
+            correct_scanline &&
+            correct_cycle;
+
+        framebuffer_[framebuffer_index] = Pixel {
+            static_cast<u8>(background_visible ? 0xff : 0),
+            static_cast<u8>(sprite_visible ? 0xff : 0),
+            static_cast<u8>(sprite_zero_hit ? 0xff : 0)
+        };
+    }
+
+    if (debug_view_mode_ == DebugViewMode::Nametable)
+    {
+        std::array<Pixel, 6> colors = {
+            Pixel { 0xff, 0x00, 0x00 },
+            Pixel { 0x00, 0xff, 0x00 },
+            Pixel { 0x00, 0x00, 0xff },
+            Pixel { 0xff, 0xff, 0x00 }
+        };
+
+        const u8 nametable = (v_ >> 10) & 0x03;
+        framebuffer_[framebuffer_index] = Pixel::Lerp(colors[nametable], framebuffer_[framebuffer_index], 0.5f);
+    }
+}
+
+std::array<Pixel, 32> PPU::DumpPalette() const
+{
+    std::array<Pixel, 32> palette;
+
+    for (u8 i = 0; i < 32; ++i)
+    {
+        palette[i] = GetColor(palettes_[GetPaletteIndex(0x3f00 + i)]);
+    }
+
+    return palette;
+}
+
+void PPU::SetDebugViewMode(DebugViewMode mode)
+{
+    debug_view_mode_ = debug_view_mode_ == mode ? DebugViewMode::None : mode;
 }

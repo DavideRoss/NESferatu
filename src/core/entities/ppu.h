@@ -4,6 +4,7 @@
 
 #include "data/palette.h"
 #include "entities/cartridge.h"
+#include "debugger/debuggable.h"
 #include "utils/types.h"
 
 class Bus;
@@ -40,6 +41,15 @@ enum PPUStatusFlag : u8
     VerticalBlank = (1 << 7)
 };
 
+enum DebugViewMode : u8
+{
+    None,
+    Palette,
+    FineX,
+    PixelPresence,
+    Nametable
+};
+
 struct Sprite
 {
     u8 y;
@@ -51,7 +61,7 @@ struct Sprite
     u8 pattern_high;
 };
 
-class PPU
+class PPU : public Debuggable
 {
 public:
     PPU(Cartridge& cartridge);
@@ -71,6 +81,10 @@ public:
     void ClearFrameComplete();
 
     std::span<const Pixel> GetFramebuffer();
+
+    // Debug functions
+    std::array<Pixel, 32> DumpPalette() const;
+    void SetDebugViewMode(DebugViewMode mode);
 
 private:
     u8 PPURead(u16 address);
@@ -113,6 +127,7 @@ private:
     u32 scanline_ = 0;
     bool frame_complete_ = false;
     bool nmi_requested_ = false;
+    bool odd_frame_ = false;
 
     // Registers
     u8 ctrl_;
@@ -155,4 +170,7 @@ private:
     std::array<u8, 0x20> palettes_;
     std::array<u8, 256> oam_;
     std::array<u8, 32> secondary_oam_;
+
+    // Debug variable
+    DebugViewMode debug_view_mode_ = DebugViewMode::None;
 };

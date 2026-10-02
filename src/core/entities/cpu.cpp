@@ -1,9 +1,5 @@
 #include "cpu.h"
 
-// TODO: use NESFERATU_THROW after the merge with PPU
-#include <stdexcept>
-#include <format>
-
 #include "bus.h"
 #include "utils/log.h"
 
@@ -25,7 +21,7 @@ void CPU::Reset()
     sp = 0xfd;
     s = 0x20;
 
-    total_cycles = 0;
+    total_cycles = 7;
 
     // Read reset vector
     u8 reset_low = ReadByte(0xfffc);
@@ -76,6 +72,12 @@ u32 CPU::Step()
     // TODO: cleanup implied addressing mode afterwards
     u16 prev_pc = pc;
     u8 instruction = FetchByte();
+    
+    Debug({
+        .event = DebugEventType::CPUExecute,
+        .pc = prev_pc,
+        .instruction = instruction
+    });
 
     switch (instruction)
     {
@@ -343,14 +345,6 @@ u32 CPU::Step()
         EXECUTE_OPCODE(TYA_IMP, TYA, Implied,    false, 1)
 
         default: NESFERATU_LOG("Illegal opcode: 0x{:02x} address: 0x{:04x}", instruction, pc);
-    }
-
-    if (logging_)
-    {
-        NESFERATU_LOG(
-            "0x{:04x}: 0x{:02x} - A: 0x{:02x} X 0x{:02x} Y 0x{:02x} SP 0x{:02x} S 0b{:08b} PC 0x{:04x}",
-            prev_pc, instruction, a, x, y, sp, s, pc
-        );
     }
 
     total_cycles += cycles_;

@@ -25,6 +25,11 @@ Bus::Bus(
 
 u8 Bus::CPURead(u16 address)
 {
+    Debug({
+        .event = DebugEventType::CPURead,
+        .address = address
+    });
+
     switch (address)
     {
         // Internal RAM and mirrors
@@ -80,6 +85,11 @@ u8 Bus::CPURead(u16 address)
 
 void Bus::CPUWrite(u16 address, u8 data)
 {
+    Debug({
+        .event = DebugEventType::CPUWrite,
+        .address = address
+    });
+
     switch (address)
     {
         // Internal RAM and mirrors
@@ -107,8 +117,8 @@ void Bus::CPUWrite(u16 address, u8 data)
         {
             oam_dma_active_ = true;
             oam_dma_phase_ = cpu_.total_cycles % 2 == 0 ?
-                OAMDMAPhase::Read :
-                OAMDMAPhase::Dummy;
+                OAMDMAPhase::Dummy :
+                OAMDMAPhase::Alignment;
 
             oam_dma_page_ = data;
             oam_dma_address_ = 0x00;
@@ -170,6 +180,11 @@ void Bus::StepOAMDMA()
 {
     switch (oam_dma_phase_)
     {
+        case OAMDMAPhase::Alignment:
+        {
+            oam_dma_phase_ = OAMDMAPhase::Dummy;
+        }; break;
+
         case OAMDMAPhase::Dummy:
         {
             oam_dma_phase_ = OAMDMAPhase::Read;

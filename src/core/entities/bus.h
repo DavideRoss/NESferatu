@@ -1,7 +1,5 @@
 #pragma once
 
-#include "utils/types.h"
-
 #include "apu.h"
 #include "cartridge.h"
 #include "controllers.h"
@@ -9,14 +7,19 @@
 #include "memory.h"
 #include "ppu.h"
 
+#include "debugger/debuggable.h"
+
+#include "utils/types.h"
+
 enum class OAMDMAPhase
 {
     Dummy,
+    Alignment,
     Read,
     Write
 };
 
-class Bus
+class Bus : public Debuggable
 {
 
 public:
@@ -47,7 +50,7 @@ private:
     Cartridge& cartridge_;
 
     // OAM DMA
-    bool oam_dma_active_;
+    bool oam_dma_active_ = false;
     OAMDMAPhase oam_dma_phase_;
     u8 oam_dma_page_;
     u8 oam_dma_address_;

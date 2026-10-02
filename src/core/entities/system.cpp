@@ -17,6 +17,10 @@ System::System(Cartridge& cartridge)
         *controllers,
         cartridge_
     );
+
+    debugger = std::make_unique<Debugger>();
+    cpu->ConnectDebugger(debugger.get());
+    bus->ConnectDebugger(debugger.get());
 }
 
 void System::Reset()
@@ -33,7 +37,7 @@ u32 System::Step()
     {
         bus->StepOAMDMA();
         StepHardware();
-    
+        ++cpu->total_cycles;
         return 1;
     }
 
@@ -90,4 +94,7 @@ std::span<const Pixel> System::GetFramebuffer()
     return ppu->GetFramebuffer();
 }
 
-
+void System::ClearFrameComplete()
+{
+    ppu->ClearFrameComplete();
+}

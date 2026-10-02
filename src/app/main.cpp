@@ -1,132 +1,35 @@
+#include <csignal>
 #include <fstream>
 
+#include "debugger/debugger.h"
 #include "entities/system.h"
 #include "entities/cartridge.h"
 #include "utils/log.h"
 
 #include "nesferatu-sdl.h"
 
-// 0: normal running mode
-// 1: step by instruction
-// 2: step by frame
-#define MODE_NORMAL 0
-#define MODE_INST 1
-#define MODE_FRAME 2
-
-#define RUNNING_MODE MODE_FRAME
-
 void SaveFramebuffer(std::span<const Pixel> framebuffer);
+void DebuggerBreakCallback(const DebugContext& context);
 
 int main()
 {
-    std::cout << "Hello, NESferatu!\n";
-
-    Cartridge cart("roms/Excitebike (Europe).nes");
-    // Cartridge cart("roms/tests/color_test.nes");
-    System* nes = new System(cart);
+    Cartridge cart("roms/Tetris (Europe).nes");
+    // Cartridge cart("roms/tests/AccuracyCoin.nes");
+    std::unique_ptr<System> nes = std::make_unique<System>(cart);
     nes->Reset();
 
-    NESFERATU_LOG("Reset PC: 0x{:04x}", nes->cpu->pc);
+    std::unique_ptr<NESferatuSDL> sdl = std::make_unique<NESferatuSDL>();
 
-    NESferatuSDL* sdl = new NESferatuSDL();
-
-    #if RUNNING_MODE == MODE_NORMAL
-
-    using Clock = std::chrono::steady_clock;
-    const auto frame_duration = std::chrono::duration<double>(1.0 / 60.0);
-
-    auto next_frame = Clock::now();
-    while (sdl->IsRunning())
-    {
-        sdl->PollEvents();
-
-        while (!nes->IsFrameComplete())
-        {
-            nes->Step();
-        }
-
-        std::span<const Pixel> framebuffer = nes->GetFramebuffer();
-        sdl->Render(framebuffer);
-
-        const auto now = Clock::now();
-        if (now < next_frame)
-        {
-            std::this_thread::sleep_until(next_frame);
-        }
-        else
-        {
-            next_frame = now;
-        }
-    }
-
-    #endif
-
-    #if RUNNING_MODE == MODE_INST
-
-    bool run_latch = false;
-    bool step_latch = false;
-
-    u32 cycles = 0;
-    
-    bool running = true;
-    while (running)
-    {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT)
-            {
-                running = false;
-            }
-
-            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_s)
-            {
-                step_latch = true;
-            }
-
-            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_r)
-            {
-                run_latch = !run_latch;
-            }
-
-            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_l)
-            {
-                nes->cpu->ToggleLogging();
-            }
-        }
-
-        if (step_latch || run_latch)
-        {
-            cycles += nes->Step();
-            step_latch = false;
-
-            if (nes->IsFrameComplete())
-            {
-                NESFERATU_LOG("Frame complete! {}", cycles)
-            }
-
-            if (nes->ppu->IsNMIRequested())
-            {
-                NESFERATU_LOG("Breakpoint hit! Cycles: {}", cycles);
-                run_latch = false;
-                nes->cpu->ToggleLogging();
-            }
-        }
-
-        std::span<const Pixel> framebuffer = nes->GetFramebuffer();
-        sdl->Render(framebuffer);
-    }
-
-    #endif
-
-    #if RUNNING_MODE == MODE_FRAME
-
-    bool run_latch = false;
+    bool run_latch = true;
     bool step_latch = false;
     bool request_screenshot = false;
 
-    u32 cycles = 0;
-    u32 frames = 0;
+    nes->debugger->SetBreakCallback(DebuggerBreakCallback);
+
+    // nes->debugger->AddBreakpoint({
+    //     .event = DebugEventType::CPUExecute,
+    //     .pc = 0x80df,
+    // });
     
     bool running = true;
     while (running)
@@ -147,27 +50,63 @@ int main()
             if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_r)
             {
                 run_latch = !run_latch;
-            }
-
-            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_l)
-            {
-                nes->cpu->ToggleLogging();
             }
 
             if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_p)
             {
                 request_screenshot = true;
             }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::Palette);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::FineX);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::PixelPresence);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_4)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::Nametable);
+            }
+
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_0)
+            {
+                nes->ppu->SetDebugViewMode(DebugViewMode::None);
+            }
         }
 
-        if (step_latch || run_latch)
+        const Uint8* keyboard = SDL_GetKeyboardState(nullptr);
+        u8 status = 0;
+
+        if (keyboard[SDL_SCANCODE_Z]) status |= static_cast<u8>(ControllerButtons::ButtonA);
+        if (keyboard[SDL_SCANCODE_X]) status |= static_cast<u8>(ControllerButtons::ButtonB);
+        if (keyboard[SDL_SCANCODE_RETURN]) status |= static_cast<u8>(ControllerButtons::ButtonStart);
+        if (keyboard[SDL_SCANCODE_BACKSPACE]) status |= static_cast<u8>(ControllerButtons::ButtonSelect);
+        if (keyboard[SDL_SCANCODE_UP]) status |= static_cast<u8>(ControllerButtons::ButtonUp);
+        if (keyboard[SDL_SCANCODE_DOWN]) status |= static_cast<u8>(ControllerButtons::ButtonDown);
+        if (keyboard[SDL_SCANCODE_LEFT]) status |= static_cast<u8>(ControllerButtons::ButtonLeft);
+        if (keyboard[SDL_SCANCODE_RIGHT]) status |= static_cast<u8>(ControllerButtons::ButtonRight);
+
+        nes->controllers->SetController1Status(status);
+
+        while (!nes->IsFrameComplete() && (step_latch || run_latch))
         {
-            cycles += nes->StepFrame();
-            step_latch = false;
-            
-            // NESFERATU_LOG("Complete frame {}, cycles: {}", frames, cycles);
-            frames++;
+            if (step_latch || run_latch)
+            {
+                nes->Step();
+                step_latch = false;
+            }
         }
+
+        sdl->Clear();
 
         std::span<const Pixel> framebuffer = nes->GetFramebuffer();
         sdl->Render(framebuffer);
@@ -178,11 +117,25 @@ int main()
             request_screenshot = false;
         }
 
-        // TODO: fix quick and dirty vsync
-        SDL_Delay(16);
-    }
+        nes->ClearFrameComplete();
 
-    #endif
+        // Draw palette
+        std::array<Pixel, 32> palette = nes->ppu->DumpPalette();
+        for (u8 y = 0; y < 2; ++y)
+        {
+            for (u8 x = 0; x < 16; ++x)
+            {
+                u8 index = y * 16 + x;
+                sdl->DrawRectangle(palette[index], 32 * x, 32 * y, 32, 32);
+            }
+        }
+        
+
+        sdl->Present();
+
+        // TODO: write proper timing
+        SDL_Delay(4);
+    }
 
     return 0;
 }
@@ -203,4 +156,9 @@ void SaveFramebuffer(std::span<const Pixel> framebuffer)
     file.write(reinterpret_cast<const char*>(framebuffer.data()), framebuffer.size_bytes());
 
     NESFERATU_LOG("File saved: {}", name.str());
+}
+
+void DebuggerBreakCallback(const DebugContext& context)
+{
+    std::raise(SIGTRAP);
 }

@@ -9,4 +9,5 @@ add_executable(NESferatu
 target_link_libraries(NESferatu PRIVATE
     NESferatuSDL
     NESferatuCompileOptions
+    NESferatuLinkerOptions
 )
