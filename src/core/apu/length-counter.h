@@ -6,8 +6,10 @@ class LengthCounter
 {
 public:
     void SetEnabled(bool enabled);
-
-    void HalfFrame();
+    
+    virtual void HalfFrame();
+    void LoadIndex(u8 index);
+    
     u8 Counter() const { return counter_; }
     void SetHalt(bool halt) { halt_ = halt; }
 

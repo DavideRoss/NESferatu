@@ -2,11 +2,18 @@
 
 #include "utils/types.h"
 
+#include "apu/pulse-channel.h"
+#include "apu/noise-channel.h"
+#include "apu/triangle-channel.h"
+#include "apu/dmc.h"
+
 class Bus;
 
 class APU
 {
 public:
+    APU();
+
     void ConnectBus(Bus* bus);
     void Reset();
 
@@ -27,10 +34,20 @@ private:
 private:
     Bus* bus_ = nullptr;
 
+    // TODO: initialize the pulse channels somewhere (constructor? reset?)
+    PulseChannel pulse1_;
+    PulseChannel pulse2_;
+    TriangleChannel triangle_;
+    NoiseChannel noise_;
+    DMC dmc_;
+
     u32 frame_counter_ = 0;
+    bool apu_cycle_ = false;
 
-    bool frame_5step_ = false;
-    bool frame_irq_inhibit_ = false;
     bool frame_irq_ = false;
+    bool frame_irq_inhibit_ = false;
+    bool frame_5step_ = false;
 
+    bool frame_reset_pending_ = false;
+    u8 frame_reset_delay_ = 0;
 };
