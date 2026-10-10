@@ -25,7 +25,8 @@ u8 Controllers::CPURead(u16 address)
             ctrl1_shifter_ >>= 1;
             ctrl1_shifter_ |= 0x80;
 
-            return value;
+            // Emulating bit 6 high (open bus)
+            return 0x40 | value;
         }
 
         case 0x4017:
@@ -36,7 +37,8 @@ u8 Controllers::CPURead(u16 address)
             ctrl2_shifter_ >>= 1;
             ctrl2_shifter_ |= 0x80;
 
-            return value;
+            // Emulating bit 6 high (open bus)
+            return 0x40 | value;
         }
 
         default: NESFERATU_THROW("Unmapped address: 0x{:04x}", address);
