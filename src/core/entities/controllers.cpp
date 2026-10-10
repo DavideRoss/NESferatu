@@ -5,6 +5,12 @@
 void Controllers::Reset()
 {
     strobe_ = false;
+
+    ctrl1_status_ = 0;
+    ctrl2_status_ = 0;
+
+    ctrl1_shifter_ = 0;
+    ctrl2_shifter_ = 0;
 }
 
 u8 Controllers::CPURead(u16 address)
