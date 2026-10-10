@@ -72,6 +72,11 @@ u32 CPU::Step()
     // TODO: cleanup implied addressing mode afterwards
     u16 prev_pc = pc;
     u8 instruction = FetchByte();
+
+    NESFERATU_LOG(
+        "{:04X}\t{:0X}\t\t\tA:{:02X} X:{:02X} Y:{:02X} SP:{:02X} PPU:0, 0 CYC:{}",
+        prev_pc, instruction, a, x, y, sp, total_cycles
+    );
     
     Debug({
         .event = DebugEventType::CPUExecute,

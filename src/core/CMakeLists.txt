@@ -13,4 +13,5 @@ target_include_directories(NESferatuCore PUBLIC
 target_link_libraries(NESferatuCore PRIVATE
     NESferatuCompileOptions
     NESferatuLinkerOptions
+    stdc++_libbacktrace
 )

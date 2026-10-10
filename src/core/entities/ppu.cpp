@@ -809,7 +809,7 @@ void PPU::RenderPixel()
     bool sprite_zero_clear = !GetFlag(status_, PPUStatusFlag::SpriteZeroHit);
     bool render_enabled = GetFlag(mask_, PPUMaskFlag::EnableBackground) && GetFlag(mask_, PPUMaskFlag::EnableSprites);
     bool pixel_visible = background_visible && sprite_visible;
-    bool correct_scanline = scanline_ < 239;
+    bool correct_scanline = scanline_ <= 239;
     bool correct_cycle = cycle_ >= 1 && cycle_ != 256;
 
     if (
