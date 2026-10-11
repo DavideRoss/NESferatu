@@ -9,7 +9,7 @@
 class NESferatuApp
 {
 public:
-    NESferatuApp();
+    NESferatuApp(const std::filesystem::path& file_path);
     ~NESferatuApp();
 
     [[nodiscard]] bool IsRunning() const { return running_; }

@@ -5,7 +5,7 @@
 #include <csignal>
 #include <fstream>
 
-NESferatuApp::NESferatuApp()
+NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
 {
     // ========================================================================
     // SDL
@@ -47,7 +47,7 @@ NESferatuApp::NESferatuApp()
     // NESFERATU
     // ========================================================================
 
-    cartridge_ = std::make_unique<Cartridge>("roms/Tetris (Europe).nes");
+    cartridge_ = std::make_unique<Cartridge>(file_path);
     nes_ = std::make_unique<System>(*cartridge_);
     nes_->Reset();
 
