@@ -24,6 +24,11 @@ public:
 
     bool IsIRQRequested() const { return frame_irq_; }
 
+    using AudioSampleCallback = void (*)(void* user_data, float sample);
+    void SetAudioSampleCallback(AudioSampleCallback callback, void* user_data);
+
+    void GenerateAudioSample();
+
 private:
     void StepFour();
     void StepFive();
@@ -31,10 +36,11 @@ private:
     void QuarterFrame();
     void HalfFrame();
 
+    float MixPulseChannels() const;
+
 private:
     Bus* bus_ = nullptr;
 
-    // TODO: initialize the pulse channels somewhere (constructor? reset?)
     PulseChannel pulse1_;
     PulseChannel pulse2_;
     TriangleChannel triangle_;
@@ -50,4 +56,14 @@ private:
 
     bool frame_reset_pending_ = false;
     u8 frame_reset_delay_ = 0;
+
+    bool pulse_timer_phase_ = false;
+
+    static constexpr u32 SAMPLE_RATE = 44100;
+    static constexpr u32 CPU_FREQUENCY = 1789773;
+
+    u32 sample_accumulator_ = 0;
+
+    AudioSampleCallback callback_ = nullptr;
+    void* audio_user_data_ = nullptr;
 };

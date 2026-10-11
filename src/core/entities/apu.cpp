@@ -26,6 +26,13 @@ void APU::Reset()
 
 void APU::Step()
 {
+    pulse_timer_phase_ = !pulse_timer_phase_;
+    if (pulse_timer_phase_)
+    {
+        pulse1_.StepTimer();
+        pulse2_.StepTimer();
+    }
+
     if (frame_reset_pending_)
     {
         if (--frame_reset_delay_ == 0)
@@ -56,6 +63,27 @@ void APU::Step()
     }
 
     apu_cycle_ = !apu_cycle_;
+}
+
+void APU::SetAudioSampleCallback(AudioSampleCallback callback, void* user_data)
+{
+    callback_ = callback;
+    audio_user_data_ = user_data;
+}
+
+void APU::GenerateAudioSample()
+{
+    sample_accumulator_ += SAMPLE_RATE;
+
+    if (sample_accumulator_ >= CPU_FREQUENCY)
+    {
+        sample_accumulator_ -= CPU_FREQUENCY;
+
+        if (callback_ != nullptr)
+        {
+            callback_(audio_user_data_, MixPulseChannels());
+        }
+    }
 }
 
 void APU::StepFour()
@@ -190,6 +218,12 @@ void APU::CPUWrite(u16 address, u8 data)
 
 void APU::QuarterFrame()
 {
+    pulse1_.QuarterFrame();
+    pulse2_.QuarterFrame();
+
+    // TODO: implement quarter frame for triangle and noise
+    // triangle_.QuarterFrame();
+    // noise_.QuarterFrame();
 }
 
 void APU::HalfFrame()
@@ -198,4 +232,12 @@ void APU::HalfFrame()
     pulse2_.HalfFrame();
     triangle_.HalfFrame();
     noise_.HalfFrame();
+}
+
+float APU::MixPulseChannels() const
+{
+    const u32 pulse_sum = pulse1_.Output() + pulse2_.Output();
+    if (pulse_sum == 0) return 0.0f;
+
+    return 95.88f / (8128.0f / static_cast<float>(pulse_sum) + 100.0f);
 }
