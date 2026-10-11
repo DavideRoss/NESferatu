@@ -425,7 +425,7 @@ DEFINE_ADDRESSING_MODE(Immediate)
 
 DEFINE_ADDRESSING_MODE(Relative)
 {
-    const s8 offset = static_cast<s8>(cpu.PeekByte());
+    const i8 offset = static_cast<i8>(cpu.PeekByte());
     const u16 target = cpu.pc + offset;
     const bool page_cross = (cpu.pc & 0xff00) != (target & 0xff00);
 
@@ -610,7 +610,7 @@ DEFINE_OPERATION_NO_ADDRESS(ASL)
 
 DEFINE_OPERATION(BCC)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (!cpu.GetFlag(StatusFlag::C))
     {
         cpu.pc += offset;
@@ -620,7 +620,7 @@ DEFINE_OPERATION(BCC)
 
 DEFINE_OPERATION(BCS)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (cpu.GetFlag(StatusFlag::C))
     {
         cpu.pc += offset;
@@ -630,7 +630,7 @@ DEFINE_OPERATION(BCS)
 
 DEFINE_OPERATION(BEQ)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (cpu.GetFlag(StatusFlag::Z))
     {
         cpu.pc += offset;
@@ -640,7 +640,7 @@ DEFINE_OPERATION(BEQ)
 
 DEFINE_OPERATION(BMI)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (cpu.GetFlag(StatusFlag::N))
     {
         cpu.pc += offset;
@@ -659,7 +659,7 @@ DEFINE_OPERATION(BIT)
 
 DEFINE_OPERATION(BNE)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (!cpu.GetFlag(StatusFlag::Z))
     {
         cpu.pc += offset;
@@ -669,7 +669,7 @@ DEFINE_OPERATION(BNE)
 
 DEFINE_OPERATION(BPL)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (!cpu.GetFlag(StatusFlag::N))
     {
         cpu.pc += offset;
@@ -692,7 +692,7 @@ DEFINE_OPERATION(BRK)
 
 DEFINE_OPERATION(BVC)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (!cpu.GetFlag(StatusFlag::V))
     {
         cpu.pc += offset;
@@ -702,7 +702,7 @@ DEFINE_OPERATION(BVC)
 
 DEFINE_OPERATION(BVS)
 {
-    s8 offset = static_cast<u8>(cpu.ReadByte(address));
+    i8 offset = static_cast<u8>(cpu.ReadByte(address));
     if (cpu.GetFlag(StatusFlag::V))
     {
         cpu.pc += offset;
