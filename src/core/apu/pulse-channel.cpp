@@ -1,5 +1,49 @@
 #include "pulse-channel.h"
 
+#include <algorithm>
+#include <array>
+
+namespace
+{
+    constexpr std::array<std::array<u8, 8>, 4> DUTY_SEQUENCES =
+    {{
+        {{ 0, 1, 0, 0, 0, 0, 0, 0 }},
+        {{ 0, 1, 1, 0, 0, 0, 0, 0 }},
+        {{ 0, 1, 1, 1, 1, 0, 0, 0 }},
+        {{ 1, 0, 0, 1, 1, 1, 1, 1 }}
+    }};
+}
+
+void PulseChannel::QuarterFrame()
+{
+    if (envelope_start_)
+    {
+        envelope_start_ = false;
+        envelope_decay_ = 15;
+        envelope_divider_ = volume_;
+    }
+    else
+    {
+        if (envelope_divider_ > 0)
+        {
+            --envelope_divider_;
+        }
+        else
+        {
+            envelope_divider_ = volume_;
+
+            if (envelope_decay_ > 0)
+            {
+                --envelope_decay_;
+            }
+            else if (envelope_loop_)
+            {
+                envelope_decay_ = 15;
+            }
+        }
+    }
+}
+
 void PulseChannel::HalfFrame()
 {
     LengthCounter::HalfFrame();
@@ -47,9 +91,28 @@ void PulseChannel::CPUWrite(u16 address, u8 data)
 
             seq_step_ = 0;
 
-            // TODO: restart envelope
+            envelope_start_ = true;
         }; break;
     }
+}
+
+bool PulseChannel::SweepMuted() const
+{
+    u16 target;
+    return timer_period_ < 8 || !SweepTarget(target);
+}
+
+u8 PulseChannel::Output() const
+{
+    if (Counter() == 0) return 0;
+    if (timer_period_ < 8) return 0;
+
+    u16 target;
+    if (!SweepTarget(target)) return 0;
+
+    if (DUTY_SEQUENCES[duty_][seq_step_] == 0) return 0;
+
+    return constant_volume_ ? volume_ : envelope_decay_;
 }
 
 void PulseChannel::ClockSweep()
@@ -81,13 +144,12 @@ bool PulseChannel::SweepTarget(u16 &target) const
 
     if (sweep_negate_)
     {
-        const u16 negate = is_pulse1_ ? 1 : 0;
-        if (timer_period_ < change + negate)
-        {
-            return false;
-        }
+        const i32 result =
+            static_cast<i32>(timer_period_) -
+            static_cast<i32>(change) -
+            (is_pulse1_ ? 1 : 0);
 
-        target = timer_period_ - change - negate;
+        target = static_cast<u16>(std::max<i32>(0, result));
         return true;
     }
 
@@ -98,6 +160,19 @@ bool PulseChannel::SweepTarget(u16 &target) const
         return false;
     }
 
-    target = result;
+    target = static_cast<u16>(result);
     return true;
+}
+
+void PulseChannel::StepTimer()
+{
+    if (timer_ == 0)
+    {
+        timer_ = timer_period_;
+        seq_step_ = (seq_step_ + 1) & 0x07;
+    }
+    else
+    {
+        --timer_;
+    }
 }

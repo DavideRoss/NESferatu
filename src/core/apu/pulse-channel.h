@@ -14,6 +14,12 @@ public:
 
     void CPUWrite(u16 address, u8 data);
 
+    // TODO: is it necessary? Public or private?
+    bool SweepMuted() const;
+    void StepTimer();
+
+    u8 Output() const;
+
 private:
     void ClockSweep();
     bool SweepTarget(u16& target) const;
@@ -33,9 +39,13 @@ private:
     u8 sweep_divider_ = 0;
 
     bool envelope_loop_ = false;
+    bool envelope_start_ = false;
+
+    // TODO: review what is really needed
+    u8 envelope_divider_ = 0;
+    u8 envelope_decay_ = 0;
 
     u16 timer_period_ = 0;
     u16 timer_ = 0;
-
     u8 seq_step_ = 0;
 };
