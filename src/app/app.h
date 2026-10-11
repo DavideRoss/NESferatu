@@ -5,6 +5,7 @@
 #include "SDL2/SDL.h"
 
 #include "entities/system.h"
+#include "audio.h"
 
 class NESferatuApp
 {
@@ -37,4 +38,6 @@ private:
     bool run_latch_ = true;
     bool step_latch_ = false;
     bool request_screenshot_ = false;
+
+    std::unique_ptr<Audio> audio_;
 };

@@ -11,7 +11,7 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     // SDL
     // ========================================================================
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
     {
         NESFERATU_THROW("[SDL] Cannot initialize SDL: {}", SDL_GetError());
     }
@@ -55,6 +55,18 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     {
         DebuggerBreakCallback(context);
     });
+
+    // ========================================================================
+    // AUDIO
+    // ========================================================================
+
+    audio_ = std::make_unique<Audio>();
+    if (!audio_->Start())
+    {
+        // TODO: what to do here?
+    }
+
+    nes_->apu->SetAudioSampleCallback(&Audio::SampleCallback, audio_.get());
 }
 
 NESferatuApp::~NESferatuApp()
