@@ -54,6 +54,7 @@ u32 System::Step()
 void System::StepHardware()
 {
     apu->Step();
+    apu->GenerateAudioSample();
 
     for (u32 i = 0; i < 3; ++i)
     {
