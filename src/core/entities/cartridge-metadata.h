@@ -12,10 +12,10 @@ enum ConsoleType
 
 enum CPUTiming
 {
-    RP2C02,
-    RP2C07,
+    NTSC,
+    PAL,
     Multiple,
-    UA6538
+    Dendy
 };
 
 struct CartridgeMetadata

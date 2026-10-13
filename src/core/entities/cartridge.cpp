@@ -166,10 +166,10 @@ void Cartridge::LoadMetadata()
         const u8 cpu_timing = data_[12] & 0x03;
         switch (cpu_timing)
         {
-            case 0: metadata.cpu_timing = CPUTiming::RP2C02; break;
-            case 1: metadata.cpu_timing = CPUTiming::RP2C07; break;
+            case 0: metadata.cpu_timing = CPUTiming::NTSC; break;
+            case 1: metadata.cpu_timing = CPUTiming::PAL; break;
             case 2: metadata.cpu_timing = CPUTiming::Multiple; break;
-            case 3: metadata.cpu_timing = CPUTiming::UA6538; break;
+            case 3: metadata.cpu_timing = CPUTiming::Dendy; break;
         }
 
         // Byte 13: Vs. System type, Extended Console type

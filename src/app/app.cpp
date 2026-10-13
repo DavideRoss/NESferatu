@@ -1,9 +1,12 @@
 #include "app.h"
 
-#include <stdexcept>
-#include <format>
 #include <csignal>
+#include <format>
 #include <fstream>
+#include <stdexcept>
+
+constexpr double NTSC_FPS = 60.0988;
+constexpr double PAL_FPS = 50.0070;
 
 NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
 {
@@ -92,6 +95,12 @@ NESferatuApp::~NESferatuApp()
 void NESferatuApp::RunApplication()
 {
     running_ = true;
+
+    const double target_fps = cartridge_->metadata.cpu_timing == CPUTiming::NTSC ? NTSC_FPS : PAL_FPS;
+    const double ticks_per_frame = static_cast<double>(SDL_GetPerformanceFrequency()) / target_fps;
+    const Uint64 start = SDL_GetPerformanceCounter();
+    double next_frame = static_cast<double>(start);
+
     while (running_)
     {
         HandleEvents();
@@ -143,8 +152,24 @@ void NESferatuApp::RunApplication()
 
         SDL_RenderPresent(renderer_);
 
-        // TODO: write proper timing
-        SDL_Delay(4);
+        next_frame += ticks_per_frame;
+        double now = static_cast<double>(SDL_GetPerformanceCounter());
+        if (now < next_frame)
+        {
+            const double remaining_ticks = next_frame - now;
+            const auto frequency = SDL_GetPerformanceFrequency();
+            const auto remaining_ms = static_cast<Uint64>(remaining_ticks * 1000.0 / frequency);
+
+            if (remaining_ms > 0)
+            {
+                SDL_Delay(remaining_ms);
+            }
+        }
+        else
+        {
+            // Emulation behind schedule
+            next_frame = now;
+        }
     }
 }
 
