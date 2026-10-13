@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "SDL2/SDL.h"
+#include <SDL.h>
 
 #include "entities/system.h"
 #include "audio.h"

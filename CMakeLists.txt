@@ -15,6 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_BINARY_DIR}/bin
 )
 
+option(NESFERATU_BUILD_TESTS "Build tests" ON)
 option(NESFERATU_SANITIZERS "Enable ASan and UBSan" OFF)
 
 add_library(NESferatuCompileOptions INTERFACE)
@@ -47,8 +48,10 @@ if (NESFERATU_SANITIZERS)
     )
 endif()
 
-include(GoogleTest)
-enable_testing()
+if (NESFERATU_BUILD_TESTS)
+    include(GoogleTest)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 add_subdirectory(src)
-add_subdirectory(tests)

@@ -43,8 +43,8 @@ void Audio::Stop()
 
 void Audio::PushSample(float sample)
 {
-    const std::uint64_t write = write_index_.load(std::memory_order_relaxed);
-    const std::uint64_t read = read_index_.load(std::memory_order_acquire);
+    const uint64_t write = write_index_.load(std::memory_order_relaxed);
+    const uint64_t read = read_index_.load(std::memory_order_acquire);
 
     // Buffer is full, drop the sample
     if (write - read >= BUFFER_SIZE) return;
@@ -55,8 +55,8 @@ void Audio::PushSample(float sample)
 
 bool Audio::ReadSample(float &sample)
 {
-    const std::uint64_t read = read_index_.load(std::memory_order_relaxed);
-    const std::uint64_t write = write_index_.load(std::memory_order_acquire);
+    const uint64_t read = read_index_.load(std::memory_order_relaxed);
+    const uint64_t write = write_index_.load(std::memory_order_acquire);
 
     if (read == write) return false;
 

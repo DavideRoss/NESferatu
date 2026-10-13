@@ -1,9 +1,14 @@
 #include "app.h"
 
-#include <csignal>
 #include <format>
 #include <fstream>
 #include <stdexcept>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <csignal>
+#endif
 
 constexpr double NTSC_FPS = 60.0988;
 constexpr double PAL_FPS = 50.0070;
@@ -286,5 +291,9 @@ void NESferatuApp::UpdateFPS()
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
 {
+    #ifdef _WIN32
+    DebugBreak();
+    #else
     std::raise(SIGTRAP);
+    #endif
 }

@@ -16,3 +16,7 @@ target_link_libraries(NESferatu
         NESferatuCompileOptions
         NESferatuLinkerOptions
 )
+
+if (MINGW)
+    target_link_options(NESferatu PRIVATE -mconsole)
+endif()

@@ -13,5 +13,16 @@ target_include_directories(NESferatuCore PUBLIC
 target_link_libraries(NESferatuCore PRIVATE
     NESferatuCompileOptions
     NESferatuLinkerOptions
-    stdc++_libbacktrace
 )
+
+if (NOT MINGW)
+    target_link_libraries(NESferatuCore PRIVATE
+        stdc++_libbacktrace
+    )
+endif()
+
+if (MINGW)
+    target_compile_definitions(NESferatuCore PUBLIC
+        NESFERATU_DISABLE_STACKTRACE
+    )
+endif()
