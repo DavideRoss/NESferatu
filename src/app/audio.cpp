@@ -84,7 +84,11 @@ void Audio::SDLAudioCallback(void *user_data, Uint8 *stream, int length)
     for (std::size_t i = 0; i < sample_count; i++)
     {
         float sample;
-        if (!audio->ReadSample(sample)) break;
+        if (!audio->ReadSample(sample))
+        {
+            NESFERATU_LOG("Audio buffer underrun!");
+            break;
+        }
 
         output[i] = sample;
     }

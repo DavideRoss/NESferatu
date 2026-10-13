@@ -34,6 +34,7 @@ private:
 
     std::unique_ptr<Cartridge> cartridge_;
     std::unique_ptr<System> nes_;
+    std::unique_ptr<Audio> audio_;
 
     bool run_latch_ = true;
     bool step_latch_ = false;
