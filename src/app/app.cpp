@@ -151,6 +151,7 @@ void NESferatuApp::RunApplication()
         nes_->ClearFrameComplete();
 
         SDL_RenderPresent(renderer_);
+        UpdateFPS();
 
         next_frame += ticks_per_frame;
         double now = static_cast<double>(SDL_GetPerformanceCounter());
@@ -258,6 +259,29 @@ void NESferatuApp::SaveFramebuffer(std::span<const Pixel> framebuffer)
     file.write(reinterpret_cast<const char*>(framebuffer.data()), framebuffer.size_bytes());
 
     NESFERATU_LOG("File saved: {}", name.str());
+}
+
+void NESferatuApp::UpdateFPS()
+{
+    const u64 now = SDL_GetPerformanceCounter();
+    if (fps_last_update_ == 0)
+    {
+        fps_last_update_ = now;
+        return;
+    }
+
+    ++fps_frame_count_;
+
+    const double elapsed = static_cast<double>(now - fps_last_update_) / static_cast<double>(SDL_GetPerformanceFrequency());
+    if (elapsed >= 1.0)
+    {
+        fps_ = static_cast<double>(fps_frame_count_) / elapsed;
+        fps_frame_count_ = 0;
+        fps_last_update_ = now;
+
+        const std::string title = std::format("NESferatu - {:.2f} FPS", fps_);
+        SDL_SetWindowTitle(window_, title.c_str());
+    }
 }
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)

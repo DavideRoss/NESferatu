@@ -23,6 +23,8 @@ private:
 
     void SaveFramebuffer(std::span<const Pixel> framebuffer);
 
+    void UpdateFPS();
+
     void DebuggerBreakCallback(const DebugContext& context);
 
 private:
@@ -40,5 +42,7 @@ private:
     bool step_latch_ = false;
     bool request_screenshot_ = false;
 
-    std::unique_ptr<Audio> audio_;
+    u64 fps_frame_count_ = 0;
+    u64 fps_last_update_ = 0;
+    double fps_ = 0.0;
 };
