@@ -89,8 +89,8 @@ void PulseChannel::CPUWrite(u16 address, u8 data)
             timer_period_ = (timer_period_ & 0x00ff) | ((data & 0x07) << 8);
             LoadIndex(data >> 3);
 
+            timer_ = timer_period_;
             seq_step_ = 0;
-
             envelope_start_ = true;
         }; break;
     }
@@ -104,11 +104,7 @@ bool PulseChannel::SweepMuted() const
 
 u8 PulseChannel::Output() const
 {
-    if (Counter() == 0) return 0;
-    if (timer_period_ < 8) return 0;
-
-    u16 target;
-    if (!SweepTarget(target)) return 0;
+    if (Counter() == 0 || SweepMuted()) return 0;
 
     if (DUTY_SEQUENCES[duty_][seq_step_] == 0) return 0;
 
@@ -118,7 +114,7 @@ u8 PulseChannel::Output() const
 void PulseChannel::ClockSweep()
 {
     const bool divider_expired = sweep_divider_ == 0;
-    if (divider_expired && sweep_enabled_ && sweep_shift_ != 0)
+    if (divider_expired && sweep_enabled_ && sweep_shift_ != 0 && !SweepMuted())
     {
         u16 target;
         if (SweepTarget(target))
@@ -140,13 +136,13 @@ void PulseChannel::ClockSweep()
 
 bool PulseChannel::SweepTarget(u16 &target) const
 {
-    const u16 change = timer_period_ >> sweep_shift_;
+    const i32 change = timer_period_ >> sweep_shift_;
 
     if (sweep_negate_)
     {
         const i32 result =
             static_cast<i32>(timer_period_) -
-            static_cast<i32>(change) -
+            change -
             (is_pulse1_ ? 1 : 0);
 
         target = static_cast<u16>(std::max<i32>(0, result));
