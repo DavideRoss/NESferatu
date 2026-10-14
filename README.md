@@ -5,8 +5,8 @@
 - [x] APU
 - [ ] Save states
 - [ ] Remove memory as separate entity and integrate into the CPU
-- [ ] Use `NESFERATU_THROW` everywhere
-- [ ] Tidy up stacktrace usage on throw
+- [x] Use `NESFERATU_THROW` everywhere
+- [x] Tidy up stacktrace usage on throw
 - [ ] Implement proper reset option (soft and hard reset)
 - [ ] Gate every debug function under debug define
 - [ ] Debug: CPU/PPU/APU do not expose internal registers, but return a state object
