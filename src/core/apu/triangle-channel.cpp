@@ -39,7 +39,12 @@ void TriangleChannel::CPUWrite(u16 address, u8 data)
         case 0x400b:
         {
             timer_period_ = (timer_period_ & 0x00ff) | ((data & 0x07) << 8);
-            LoadIndex(data >> 3);
+
+            if (enabled_)
+            {
+                LoadIndex(data >> 3);
+            }
+
             linear_reload_ = true;
         }; break;
     }
@@ -77,11 +82,6 @@ void TriangleChannel::QuarterFrame()
     {
         linear_reload_ = false;
     }
-}
-
-void TriangleChannel::HalfFrame()
-{
-    LengthCounter::HalfFrame();
 }
 
 // TODO: can I make the length counter function virtual and not explicitly write this method?

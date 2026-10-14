@@ -13,7 +13,6 @@ public:
 
     void StepTimer();
     void QuarterFrame();
-    void HalfFrame() override;
 
     void SetEnabled(bool enabled);
 
