@@ -40,7 +40,6 @@ void APU::Step()
             frame_reset_pending_ = false;
             frame_counter_ = 0;
 
-            frame_counter_ = 0;
             if (frame_5step_)
             {
                 QuarterFrame();
@@ -49,17 +48,14 @@ void APU::Step()
         }
     }
 
-    if (apu_cycle_)
+    ++frame_counter_;
+    if (frame_5step_)
     {
-        ++frame_counter_;
-        if (frame_5step_)
-        {
-            StepFive();
-        }
-        else
-        {
-            StepFour();
-        }
+        StepFive();
+    }
+    else
+    {
+        StepFour();
     }
 
     apu_cycle_ = !apu_cycle_;
