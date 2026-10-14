@@ -10,6 +10,10 @@
 #include <csignal>
 #endif
 
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
+
 constexpr double NTSC_FPS = 60.0988;
 constexpr double PAL_FPS = 50.0070;
 
@@ -52,6 +56,20 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     }
 
     // ========================================================================
+    // IMGUI
+    // ========================================================================
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window_, renderer_);
+    ImGui_ImplSDLRenderer2_Init(renderer_);
+
+    ImGui::GetStyle().Alpha = 0.85f;
+
+    // ========================================================================
     // NESFERATU
     // ========================================================================
 
@@ -79,6 +97,10 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
 
 NESferatuApp::~NESferatuApp()
 {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     if (texture_ != nullptr)
     {
         SDL_DestroyTexture(texture_);
@@ -163,6 +185,27 @@ void NESferatuApp::RunApplication()
 
         nes_->ClearFrameComplete();
 
+        
+        // ========================================================================
+        // IMGUI
+        // ========================================================================
+
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+
+        ImGui::NewFrame();
+
+        ImGui::Begin("NESferatu test");
+        ImGui::Text("Hello from IMGui");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_);
+        
+        // ========================================================================
+        // END IMGUI
+        // ========================================================================
+
         SDL_RenderPresent(renderer_);
         UpdateFPS();
 
@@ -203,6 +246,8 @@ void NESferatuApp::HandleEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
         if (event.type == SDL_QUIT)
         {
             running_ = false;

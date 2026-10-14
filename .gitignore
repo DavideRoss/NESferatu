@@ -3,3 +3,4 @@ build
 roms/**
 temp/*
 !*/.gitinclude
+imgui.ini
