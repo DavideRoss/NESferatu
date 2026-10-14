@@ -1,11 +1,14 @@
 #include "app.h"
 
+#define ROM_CARTRIDGE "roms/tests/AccuracyCoin.nes"
+
 #ifdef _WIN32
 #include <windows.h>
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lsCmdLine, int nCmdShow)
 {
-    NESferatuApp app("roms/Legend of Zelda, The (USA) (Rev 1).nes");
+    NESferatuApp app(ROM_CARTRIDGE);
     app.RunApplication();
 
     return 0;
@@ -15,7 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lsCmdLine
 
 int main()
 {
-    NESferatuApp app("roms/Legend of Zelda, The (USA) (Rev 1).nes");
+    NESferatuApp app(ROM_CARTRIDGE);
     app.RunApplication();
 
     return 0;
