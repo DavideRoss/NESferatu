@@ -155,6 +155,9 @@ u8 APU::CPURead(u16 address)
 {
     switch (address)
     {
+        // TODO: correctly implement open bus behavior
+        case 0x4000 ... 0x4013: return 0x00;
+
         case 0x4015:
         {
             u8 status = 0x00;
