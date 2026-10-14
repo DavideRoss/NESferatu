@@ -33,6 +33,8 @@ void APU::Step()
         pulse2_.StepTimer();
     }
 
+    triangle_.StepTimer();
+
     if (frame_reset_pending_)
     {
         if (--frame_reset_delay_ == 0)
@@ -218,9 +220,9 @@ void APU::QuarterFrame()
 {
     pulse1_.QuarterFrame();
     pulse2_.QuarterFrame();
+    triangle_.QuarterFrame();
 
-    // TODO: implement quarter frame for triangle and noise
-    // triangle_.QuarterFrame();
+    // TODO: implement quarter frame for noise
     // noise_.QuarterFrame();
 }
 
@@ -234,8 +236,15 @@ void APU::HalfFrame()
 
 float APU::MixPulseChannels() const
 {
-    const u32 pulse_sum = pulse1_.Output() + pulse2_.Output();
-    if (pulse_sum == 0) return 0.0f;
+    const float pulse_sum = static_cast<float>(pulse1_.Output() + pulse2_.Output());
+    const float triangle = static_cast<float>(triangle_.Output());
 
-    return 95.88f / (8128.0f / static_cast<float>(pulse_sum) + 100.0f);
+    const float pulse_out = pulse_sum == 0.0f ? 0.0f : 95.88f / (8128.0f / pulse_sum + 100.0f);
+
+    // Triangle/noise/DMC
+    const float tnd_input = triangle / 8227.0f;
+
+    const float tnd_out = tnd_input == 0.0f ? 0.0f : 159.79f / (1.0f / tnd_input + 100.0f);
+
+    return pulse_out + tnd_out;
 }
