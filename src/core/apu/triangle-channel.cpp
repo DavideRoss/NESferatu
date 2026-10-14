@@ -1,16 +1,22 @@
 #include "triangle-channel.h"
 
+TriangleChannel::TriangleChannel()
+{
+    Reset();
+}
+
 void TriangleChannel::Reset()
 {
-    timer_period_ = 0;
-    timer_ = 0;
-    sequence_step_ = 0;
+    ctrl_flag_ = false;
 
     linear_counter_reload_ = 0;
     linear_counter_ = 0;
-
-    ctrl_flag_ = false;
     linear_reload_ = false;
+
+    timer_period_ = 0;
+    timer_ = 0;
+
+    sequence_step_ = 0;
 
     SetHalt(false);
     LoadIndex(0);
@@ -92,5 +98,10 @@ void TriangleChannel::SetEnabled(bool enabled)
 
 u8 TriangleChannel::Output() const
 {
+    if (Counter() == 0 || linear_counter_ == 0)
+    {
+        return 0;
+    }
+
     return SEQUENCE[sequence_step_];
 }

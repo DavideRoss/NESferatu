@@ -7,6 +7,7 @@
 class TriangleChannel : public LengthCounter
 {
 public:
+    TriangleChannel();
     void Reset();
 
     void CPUWrite(u16 address, u8 data);
