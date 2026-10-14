@@ -189,6 +189,10 @@ void APU::CPUWrite(u16 address, u8 data)
             pulse2_.CPUWrite(address - 4, data);
         }; break;
 
+        case 0x4008 ... 0x400b:
+        {
+            triangle_.CPUWrite(address, data);
+        }; break;
         // Status
         case 0x4015:
         {
