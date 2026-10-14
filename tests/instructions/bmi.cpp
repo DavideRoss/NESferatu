@@ -53,15 +53,15 @@ TEST(BMI, BranchBackward)
 TEST(BMI, BranchPageCrossing)
 {
     System* nes = TestUtils::CreateTestSystem();
-    nes->cpu->pc = 0x00fe;
+    nes->cpu->pc = 0x00fd;
     nes->cpu->SetFlag(StatusFlag::N, true);
 
-    nes->mem->WriteSeq(0x00fe, {
+    nes->mem->WriteSeq(0x00fd, {
         Opcodes::BMI_REL, 0x02
     });
 
     const u32 cycles = nes->cpu->Step();
 
     EXPECT_EQ(cycles, 4);
-    EXPECT_EQ(nes->cpu->pc, 0x0102);
+    EXPECT_EQ(nes->cpu->pc, 0x0101);
 }

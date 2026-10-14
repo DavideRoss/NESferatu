@@ -8,11 +8,11 @@
 
 #define ADDRESSING_MODE(name) \
     struct name { \
-        static AddressResult GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles); \
+        static u16 GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles); \
     }
 
 #define DEFINE_ADDRESSING_MODE(name) \
-    CPU::AddressResult CPU::name::GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles)
+    u16 CPU::name::GetAddress([[maybe_unused]] CPU& cpu, [[maybe_unused]] u32& cycles)
     
 #define OPERATION(name) \
     struct name { \
@@ -359,20 +359,13 @@ private:
     template<
         typename Operation,
         typename AddressingMode,
-        bool PageCrossPenalty = false,
         u32 ExtraCycles = 0
     >
     void Execute()
     {
-        const AddressResult res = AddressingMode::GetAddress(*this, cycles_);
-
+        const u16 address = AddressingMode::GetAddress(*this, cycles_);
         cycles_ += ExtraCycles;
-        if constexpr(PageCrossPenalty)
-        {
-            cycles_ += res.page_crossed;
-        }
-
-        Operation::Execute(*this, res.address);
+        Operation::Execute(*this, address);
     }
 
 private:
