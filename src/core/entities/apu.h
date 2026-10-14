@@ -29,6 +29,10 @@ public:
 
     void GenerateAudioSample();
 
+    // TODO: remove debug variable
+    u64 samples_per_sec = 0;
+    u64 samples_per_frame = 0;
+
 private:
     void StepFour();
     void StepFive();
@@ -60,7 +64,7 @@ private:
     bool pulse_timer_phase_ = false;
 
     static constexpr u32 SAMPLE_RATE = 44100;
-    static constexpr u32 CPU_FREQUENCY = 1789773;
+    static constexpr u32 CPU_FREQUENCY = 1'789'773;
 
     u32 sample_accumulator_ = 0;
 

@@ -106,6 +106,10 @@ void NESferatuApp::RunApplication()
     const Uint64 start = SDL_GetPerformanceCounter();
     double next_frame = static_cast<double>(start);
 
+    static Uint64 last_audio_log = SDL_GetPerformanceCounter();
+
+    u64 samples_per_frame = 0;
+
     while (running_)
     {
         HandleEvents();
@@ -119,6 +123,10 @@ void NESferatuApp::RunApplication()
                 step_latch_ = false;
             }
         }
+
+        // TODO: clean audio debug stuff
+        samples_per_frame = nes_->apu->samples_per_frame;
+        nes_->apu->samples_per_frame = 0;
 
         SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
         SDL_RenderClear(renderer_);
@@ -177,10 +185,15 @@ void NESferatuApp::RunApplication()
                 // Busy-wait
             }
         }
-        else
+
+        // Audio underrun/overflow logging
+        if (SDL_GetPerformanceCounter() - last_audio_log >= SDL_GetPerformanceFrequency())
         {
-            // Emulation behind schedule
-            next_frame = now;
+            u64 samples = nes_->apu->samples_per_sec;
+            nes_->apu->samples_per_sec = 0;
+            
+            NESFERATU_LOG("[Audio] samples per sec: {}\t samples per frame: {}\tunderruns: {}\toverflows: {}", samples, samples_per_frame, audio_->UnderrunCount(), audio_->OverflowCount());
+            last_audio_log = SDL_GetPerformanceCounter();
         }
     }
 }

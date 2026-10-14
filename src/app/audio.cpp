@@ -14,7 +14,7 @@ bool Audio::Start()
 {
     if (device_ != 0) return true;
 
-    SDL_AudioSpec desired;
+    SDL_AudioSpec desired{};
     desired.freq = 44100;
     desired.format = AUDIO_F32SYS;
     desired.channels = 1;
@@ -47,7 +47,11 @@ void Audio::PushSample(float sample)
     const uint64_t read = read_index_.load(std::memory_order_acquire);
 
     // Buffer is full, drop the sample
-    if (write - read >= BUFFER_SIZE) return;
+    if (write - read >= BUFFER_SIZE)
+    {
+        overflow_count_.fetch_add(1, std::memory_order_relaxed);
+        return;
+    }
 
     buffer_[write & BUFFER_MASK] = std::clamp(sample, -1.0f, 1.0f);
     write_index_.store(write + 1, std::memory_order_release);
@@ -86,7 +90,7 @@ void Audio::SDLAudioCallback(void *user_data, Uint8 *stream, int length)
         float sample;
         if (!audio->ReadSample(sample))
         {
-            NESFERATU_LOG("Audio buffer underrun!");
+            audio->underrun_count_.fetch_add(1, std::memory_order_relaxed);
             break;
         }
 

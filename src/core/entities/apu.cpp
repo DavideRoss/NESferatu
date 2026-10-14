@@ -78,6 +78,8 @@ void APU::GenerateAudioSample()
     if (sample_accumulator_ >= CPU_FREQUENCY)
     {
         sample_accumulator_ -= CPU_FREQUENCY;
+        samples_per_sec++;
+        samples_per_frame++;
 
         if (callback_ != nullptr)
         {
