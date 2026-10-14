@@ -24,7 +24,7 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     std::ifstream file(file_path_, std::ios::binary | std::ios::ate);
     if (!file)
     {
-        throw std::runtime_error(std::format("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string()));
+        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string());
     }
 
     const std::streamsize size = file.tellg();
@@ -33,7 +33,7 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     data_.resize(size);
     if (!file.read(reinterpret_cast<char*>(data_.data()), size))
     {
-        throw std::runtime_error(std::format("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string()));
+        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string());
     }
 
     LoadMetadata();
@@ -95,13 +95,13 @@ void Cartridge::LoadMetadata()
     // Validate header
     if (data_.size() < 16)
     {
-        throw std::runtime_error("Invalid ROM: too small");
+        NESFERATU_THROW("Invalid ROM: too small");
     }
 
     // Byte 0/1/2/3: signature
     if (data_[0] != 'N' || data_[1] != 'E' || data_[2] != 'S' || data_[3] != 0x1a)
     {
-        throw std::runtime_error("Invalid ROM: wrong header");
+        NESFERATU_THROW("Invalid ROM: wrong header");
     }
 
     // Byte 7: NES 2.0 flags
@@ -121,7 +121,7 @@ void Cartridge::LoadMetadata()
         case 1: metadata.console_type = ConsoleType::VsSystem; break;
         case 2: metadata.console_type = ConsoleType::PlayChoice; break;
         case 3: metadata.console_type = ConsoleType::ExtendedConsoleType; break;
-        default: throw std::runtime_error("Invalid ROM: unrecognized console");
+        default: NESFERATU_THROW("Invalid ROM: unrecognized console");
     }
 
     // Byte 6/7/8: mapper and submapper
@@ -138,12 +138,12 @@ void Cartridge::LoadMetadata()
     // TODO: handle exponent-multiplier notation memory calculation
     if ((data_[9] & 0x0f) == 0x0f)
     {
-        throw std::runtime_error("Exponent-multiplier notation for PRG not implemented");
+        NESFERATU_THROW("Exponent-multiplier notation for PRG not implemented");
     }
 
     if (((data_[9] & 0xf0) >> 4) == 0x0f)
     {
-        throw std::runtime_error("Exponent-multiplier notation for CHR not implemented");
+        NESFERATU_THROW("Exponent-multiplier notation for CHR not implemented");
     }
 
     // Byte 10: PRG RAM/NVRAM size
