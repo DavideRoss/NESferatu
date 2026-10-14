@@ -1,6 +1,7 @@
 #include "apu.h"
 
 #include "utils/log.h"
+#include "utils/exception.h"
 
 APU::APU()
     : pulse1_(true), pulse2_(false)
@@ -35,6 +36,7 @@ void APU::Step()
 
     triangle_.StepTimer();
     noise_.StepTimer();
+    dmc_.StepTimer();
 
     if (frame_reset_pending_)
     {
@@ -164,15 +166,14 @@ u8 APU::CPURead(u16 address)
 
             if (frame_irq_) status |= 0x40;
 
+            if (dmc_.IsActive()) status |= 0x10;
+            if (dmc_.IsIRQRequested()) status |= 0x80;
+
             frame_irq_ = false;
             return status;
         }
 
-        default: 
-        {
-            NESFERATU_LOG("Attempt to read address 0x{:04x}", address);
-            return 0x00;
-        }
+        default: NESFERATU_THROW("Attempt to read address 0x{:04x}", address);
     }
 }
 
@@ -200,6 +201,11 @@ void APU::CPUWrite(u16 address, u8 data)
             noise_.CPUWrite(address, data);
         }; break;
 
+        case 0x4010 ... 0x4013:
+        {
+            dmc_.CPUWrite(address, data);
+        }; break;
+
         // Status
         case 0x4015:
         {
@@ -208,7 +214,8 @@ void APU::CPUWrite(u16 address, u8 data)
             triangle_.SetEnabled(data & 0x04);
             noise_.SetEnabled(data & 0x08);
 
-            // TODO: implement DMC status write
+            dmc_.SetEnabled(data & 0x10);
+            dmc_.ClearIRQRequest();
         }; break;
 
         // Frame counter
@@ -223,7 +230,7 @@ void APU::CPUWrite(u16 address, u8 data)
             frame_reset_delay_ = apu_cycle_ ? 4 : 3;
         }; break;
 
-        default: NESFERATU_LOG("0x{:02x} written on address 0x{:04x}", data, address); break;
+        default: NESFERATU_THROW("Attempt to write 0x{:02x} to address 0x{:04x}", data, address);
     }
 }
 
@@ -248,11 +255,15 @@ float APU::MixPulseChannels() const
     const float pulse_sum = static_cast<float>(pulse1_.Output() + pulse2_.Output());
     const float triangle = static_cast<float>(triangle_.Output());
     const float noise = static_cast<float>(noise_.Output());
+    const float dmc = static_cast<float>(dmc_.Output());
 
     const float pulse_out = pulse_sum == 0.0f ? 0.0f : 95.88f / (8128.0f / pulse_sum + 100.0f);
 
     // Triangle/noise/DMC
-    const float tnd_input = triangle / 8227.0f + noise / 12241.0f;
+    const float tnd_input =
+        triangle / 8227.0f +
+        noise / 12241.0f +
+        dmc / 22638.0f;
 
     const float tnd_out = tnd_input == 0.0f ? 0.0f : 159.79f / (1.0f / tnd_input + 100.0f);
 

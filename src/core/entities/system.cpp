@@ -41,6 +41,24 @@ u32 System::Step()
         return 1;
     }
 
+    if (apu->DMCNeedsSampleFetch())
+    {
+        const u16 address = apu->GetDMCReadAddress();
+        const u8 data = bus->CPURead(address);
+
+        apu->SupplyDMCByte(data);
+
+        constexpr u32 DMC_DMA_CYCLES = 4;
+
+        for (u32 i = 0; i < DMC_DMA_CYCLES; ++i)
+        {
+            StepHardware();
+        }
+
+        cpu->total_cycles += DMC_DMA_CYCLES;
+        return DMC_DMA_CYCLES;
+    }
+
     const u32 cycles = cpu->Step();
 
     for (u32 i = 0; i < cycles; ++i)

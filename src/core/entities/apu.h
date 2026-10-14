@@ -5,7 +5,7 @@
 #include "apu/pulse-channel.h"
 #include "apu/noise-channel.h"
 #include "apu/triangle-channel.h"
-#include "apu/dmc.h"
+#include "apu/dmc-channel.h"
 
 class Bus;
 
@@ -22,12 +22,17 @@ public:
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
 
-    bool IsIRQRequested() const { return frame_irq_; }
+    bool IsIRQRequested() const { return frame_irq_ || dmc_.IsIRQRequested(); }
 
     using AudioSampleCallback = void (*)(void* user_data, float sample);
     void SetAudioSampleCallback(AudioSampleCallback callback, void* user_data);
 
     void GenerateAudioSample();
+
+    // DMC
+    bool DMCNeedsSampleFetch() const { return dmc_.NeedsSampleFetch(); }
+    u16 GetDMCReadAddress() const { return dmc_.GetCurrentAddress(); }
+    void SupplyDMCByte(u8 data) { dmc_.SupplySample(data); }
 
     // TODO: remove debug variable
     u64 samples_per_sec = 0;
@@ -49,7 +54,7 @@ private:
     PulseChannel pulse2_;
     TriangleChannel triangle_;
     NoiseChannel noise_;
-    DMC dmc_;
+    DMCChannel dmc_;
 
     u32 frame_counter_ = 0;
     bool apu_cycle_ = false;
