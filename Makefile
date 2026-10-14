@@ -11,6 +11,11 @@ configure:
 	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 	-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
+configure-tests:
+	cmake -S . -B $(BUILD_DIR)/tests -G Ninja \
+	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
 configure-win:
 	cmake -S . -B $(BUILD_DIR)/win -G Ninja \
 	-DCMAKE_TOOLCHAIN_FILE=windows-mingw64.cmake \
@@ -26,7 +31,7 @@ build-win: configure-win
 	cp "$$(x86_64-w64-mingw32-g++ -print-file-name=libstdc++-6.dll)" build/win/bin/
 	cp "$$(x86_64-w64-mingw32-g++ -print-file-name=libgcc_s_seh-1.dll)" build/win/bin/
 
-build-test: configure
+build-test: configure-tests
 	cmake --build $(BUILD_DIR)/tests -j32
 
 test: build-test

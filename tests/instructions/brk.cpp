@@ -4,7 +4,7 @@
 
 TEST(BRK, ForceInterrupt)
 {
-    Cartridge cart("../../tests/test-roms/reset-vector-test.nes");
+    Cartridge cart("../../../tests/test-roms/reset-vector-test.nes");
     System* nes = new System(cart);
     nes->Reset();
 
