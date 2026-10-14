@@ -159,16 +159,22 @@ void NESferatuApp::RunApplication()
         UpdateFPS();
 
         next_frame += ticks_per_frame;
-        double now = static_cast<double>(SDL_GetPerformanceCounter());
-        if (now < next_frame)
+        const double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+        for (;;)
         {
-            const double remaining_ticks = next_frame - now;
-            const auto frequency = SDL_GetPerformanceFrequency();
-            const auto remaining_ms = static_cast<Uint64>(remaining_ticks * 1000.0 / frequency);
+            const Uint64 now = SDL_GetPerformanceCounter();
+            const double remaining_ticks = next_frame - static_cast<double>(now);
 
-            if (remaining_ms > 0)
+            if (remaining_ticks <= 0.0) break;
+
+            const double remaining_ms = remaining_ticks * 1000.0 / frequency;
+            if (remaining_ms > 2.0)
             {
-                SDL_Delay(remaining_ms);
+                SDL_Delay(static_cast<Uint32>(remaining_ms - 1.0));
+            }
+            else
+            {
+                // Busy-wait
             }
         }
         else
