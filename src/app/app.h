@@ -25,6 +25,8 @@ private:
 
     void UpdateFPS();
 
+    void DrawUI();
+
     void DebuggerBreakCallback(const DebugContext& context);
 
 private:
@@ -34,11 +36,11 @@ private:
     SDL_Renderer* renderer_ = nullptr; 
     SDL_Texture* texture_ = nullptr;
 
-    std::unique_ptr<Cartridge> cartridge_;
+    std::shared_ptr<Cartridge> cartridge_;
     std::unique_ptr<System> nes_;
     std::unique_ptr<Audio> audio_;
 
-    bool run_latch_ = true;
+    bool run_latch_ = false;
     bool step_latch_ = false;
     bool request_screenshot_ = false;
 
