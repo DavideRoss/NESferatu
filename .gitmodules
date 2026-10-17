@@ -3,3 +3,4 @@
 	url = https://github.com/ocornut/imgui.git
 [submodule "third-party/nativefiledialog-extended"]
 	path = third-party/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git
