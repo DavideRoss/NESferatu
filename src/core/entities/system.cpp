@@ -1,11 +1,10 @@
 #include "system.h"
 
-System::System(Cartridge& cartridge)
-    : cartridge_(cartridge)
+System::System()
 {
     cpu = std::make_unique<CPU>();
     mem = std::make_unique<Memory>();
-    ppu = std::make_unique<PPU>(cartridge_);
+    ppu = std::make_unique<PPU>();
     apu = std::make_unique<APU>();
     controllers = std::make_unique<Controllers>();
     
@@ -14,13 +13,25 @@ System::System(Cartridge& cartridge)
         *mem,
         *ppu,
         *apu,
-        *controllers,
-        cartridge_
+        *controllers
     );
 
     debugger = std::make_unique<Debugger>();
     cpu->ConnectDebugger(debugger.get());
     bus->ConnectDebugger(debugger.get());
+
+    Reset();
+}
+
+void System::SlotCartridge(std::shared_ptr<Cartridge> cartridge)
+{
+    bus->SlotCartridge(cartridge);
+    Reset();
+}
+
+bool System::IsCartridgeSlotted() const
+{
+    return bus->IsCartridgeSlotted();
 }
 
 void System::Reset()
@@ -33,6 +44,11 @@ void System::Reset()
 
 u32 System::Step()
 {
+    if (!bus->IsCartridgeSlotted())
+    {
+        NESFERATU_THROW("Cartridge is not slotted");
+    }
+
     if (bus->IsOAMDMAActive())
     {
         bus->StepOAMDMA();
@@ -84,8 +100,7 @@ void System::StepHardware()
         }
     }
 
-    // TODO: route IRQ/NMI through bus instead?
-    if (apu->IsIRQRequested() || cartridge_.IsIRQRequested())
+    if (apu->IsIRQRequested() || bus->IsCartridgeIRQRequested())
     {
         cpu->RequestIRQ();
     }

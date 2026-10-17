@@ -8,19 +8,22 @@ Bus::Bus(
     Memory& memory,
     PPU& ppu,
     APU& apu,
-    Controllers& controllers,
-    Cartridge& cartridge
+    Controllers& controllers
 ) :
     cpu_(cpu),
     memory_(memory),
     ppu_(ppu),
     apu_(apu),
-    controllers_(controllers),
-    cartridge_(cartridge)
+    controllers_(controllers)
 {
     cpu_.ConnectBus(this);
     memory_.ConnectBus(this);
     ppu_.ConnectBus(this);
+}
+
+void Bus::SlotCartridge(std::shared_ptr<Cartridge> cartridge)
+{
+    cartridge_ = cartridge;
 }
 
 u8 Bus::CPURead(u16 address)
@@ -73,7 +76,7 @@ u8 Bus::CPURead(u16 address)
         // Cartridge
         case 0x4020 ... 0xffff:
         {
-            return cartridge_.CPURead(address);
+            return cartridge_->CPURead(address);
         }
 
         default:
@@ -151,7 +154,7 @@ void Bus::CPUWrite(u16 address, u8 data)
         // Cartridge
         case 0x4020 ... 0xffff:
         {
-            cartridge_.CPUWrite(address, data);
+            cartridge_->CPUWrite(address, data);
         }; break;
 
         default:
@@ -163,12 +166,12 @@ void Bus::CPUWrite(u16 address, u8 data)
 
 u8 Bus::PPURead(u16 address)
 {
-    return cartridge_.PPURead(address);
+    return cartridge_->PPURead(address);
 }
 
 void Bus::PPUWrite(u16 address, u8 data)
 {
-    cartridge_.PPUWrite(address, data);
+    cartridge_->PPUWrite(address, data);
 }
 
 bool Bus::IsOAMDMAActive()
@@ -211,4 +214,14 @@ void Bus::StepOAMDMA()
             }
         }; break;
     }
+}
+
+Mirroring Bus::GetCartridgeMirroring() const
+{
+    return cartridge_->GetMirroring();
+}
+
+bool Bus::IsCartridgeIRQRequested() const
+{
+    return cartridge_->IsIRQRequested();
 }
