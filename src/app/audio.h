@@ -8,7 +8,7 @@
 class Audio
 {
 public:
-    Audio() = default;
+    Audio();
     ~Audio();
 
     Audio(const Audio&) = delete;
@@ -16,6 +16,7 @@ public:
 
     bool Start();
     void Stop();
+    void Reset();
 
     void PushSample(float sample);
 

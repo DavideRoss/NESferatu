@@ -9,6 +9,8 @@ public:
         : is_pulse1_(is_pulse1)
     {}
 
+    void Reset();
+
     void QuarterFrame();
     void HalfFrame() override;
 

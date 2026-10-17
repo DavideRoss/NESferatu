@@ -23,6 +23,16 @@ void APU::Reset()
 
     frame_reset_pending_ = false;
     frame_reset_delay_ = 0;
+
+    pulse_timer_phase_ = false;
+
+    sample_accumulator_ = 0;
+
+    pulse1_.Reset();
+    pulse2_.Reset();
+    triangle_.Reset();
+    noise_.Reset();
+    dmc_.Reset();
 }
 
 void APU::Step()

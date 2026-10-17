@@ -23,6 +23,8 @@ public:
         std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
     );
 
+    virtual void Reset() = 0;
+
     virtual u8 CPURead(u16 address) = 0;
     virtual void CPUWrite(u16 address, u8 data) = 0;
 

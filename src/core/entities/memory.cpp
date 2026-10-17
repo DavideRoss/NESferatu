@@ -1,13 +1,16 @@
 #include "memory.h"
 
 #include <assert.h>
+#include <algorithm>
 
 Memory::Memory()
 {
-    for (u32 i = 0; i < 2048; i++)
-    {
-        memory_[i] = 0x0;
-    }
+    Reset();
+}
+
+void Memory::Reset()
+{
+    std::fill(memory_.begin(), memory_.end(), 0x00);
 }
 
 void Memory::ConnectBus(Bus *bus)

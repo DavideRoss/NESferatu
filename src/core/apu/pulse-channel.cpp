@@ -14,6 +14,30 @@ namespace
     }};
 }
 
+void PulseChannel::Reset()
+{
+    duty_ = 0;
+    constant_volume_ = false;
+    volume_ = 0;
+
+    sweep_enabled_ = false;
+    sweep_period_ = 0;
+    sweep_negate_ = false;
+    sweep_shift_ = 0;
+    sweep_reload_ = false;
+    sweep_divider_ = 0;
+
+    envelope_loop_ = false;
+    envelope_start_ = false;
+
+    envelope_divider_ = 0;
+    envelope_decay_ = 0;
+
+    timer_period_ = 0;
+    timer_ = 0;
+    seq_step_ = 0;
+}
+
 void PulseChannel::QuarterFrame()
 {
     if (envelope_start_)

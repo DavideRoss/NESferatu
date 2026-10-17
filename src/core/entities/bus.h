@@ -31,6 +31,8 @@ public:
         Controllers& controllers
     );
 
+    void Reset();
+
     void SlotCartridge(std::shared_ptr<Cartridge> cartridge);
     bool IsCartridgeSlotted() const { return cartridge_ != nullptr; }
 
