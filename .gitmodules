@@ -1,3 +1,5 @@
 [submodule "third-party/imgui"]
 	path = third-party/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "third-party/nativefiledialog-extended"]
+	path = third-party/nativefiledialog-extended

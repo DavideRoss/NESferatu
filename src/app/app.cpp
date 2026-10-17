@@ -14,6 +14,8 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
+#include <nfd.h>
+
 constexpr double NTSC_FPS = 60.0988;
 constexpr double PAL_FPS = 50.0070;
 
@@ -70,12 +72,22 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     ImGui::GetStyle().Alpha = 0.85f;
 
     // ========================================================================
+    // NFD
+    // ========================================================================
+
+    if (NFD_Init() != NFD_OKAY)
+    {
+        NESFERATU_THROW("Cannot initialize NFD");
+    }
+
+    // ========================================================================
     // NESFERATU
     // ========================================================================
 
-    cartridge_ = std::make_unique<Cartridge>(file_path);
-    nes_ = std::make_unique<System>(*cartridge_);
-    nes_->Reset();
+    cartridge_ = std::make_shared<Cartridge>(file_path);
+    nes_ = std::make_unique<System>();
+    // nes_->SlotCartridge(cartridge_);
+    // nes_->Reset();
 
     nes_->debugger->SetBreakCallback([this](const DebugContext& context)
     {
@@ -195,9 +207,7 @@ void NESferatuApp::RunApplication()
 
         ImGui::NewFrame();
 
-        ImGui::Begin("NESferatu test");
-        ImGui::Text("Hello from IMGui");
-        ImGui::End();
+        DrawUI();
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_);
@@ -350,6 +360,76 @@ void NESferatuApp::UpdateFPS()
 
         const std::string title = std::format("NESferatu - {:.2f} FPS", fps_);
         SDL_SetWindowTitle(window_, title.c_str());
+    }
+}
+
+void NESferatuApp::DrawUI()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    constexpr float HOVER_HEIGHT = 10.0f;
+    constexpr float MENU_HEIGHT = 20.0f;
+
+    // TODO: main menu bar should be always visible if no game is running
+    const bool show_menu = io.MousePos.y <= HOVER_HEIGHT + MENU_HEIGHT;
+    const bool menu_open = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId);
+
+    if ((show_menu || menu_open) && ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            // TODO: the shortcut is not really running
+            if (ImGui::MenuItem("Open...", "Ctrl+O"))
+            {
+                nfdu8filteritem_t filters [] = { "NES ROM", "nes" };
+
+                nfdopendialogu8args_t args = {};
+                args.filterList = filters;
+                args.filterCount = 1;
+                args.title = "Open NES ROM";
+
+                nfdu8char_t* out_path = nullptr;
+                const nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+
+                if (result == NFD_OKAY)
+                {
+                    // TODO: load ROM
+
+                    NFD_FreePathU8(out_path);
+                }
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Exit"))
+            {
+                running_ = false;
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Emulation"))
+        {
+            if (ImGui::MenuItem("Run"))
+            {
+                // TODO: implement
+            }
+
+            if (ImGui::MenuItem("Pause"))
+            {
+                // TODO: implement
+            }
+
+            if (ImGui::MenuItem("Stop"))
+            {
+                // TODO: implement
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
     }
 }
 
