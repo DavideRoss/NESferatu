@@ -48,6 +48,10 @@ private:
     float MixPulseChannels() const;
 
 private:
+    static constexpr u32 SAMPLE_RATE = 44100;
+    static constexpr u32 CPU_FREQUENCY = 1'789'773;
+
+private:
     Bus* bus_ = nullptr;
 
     PulseChannel pulse1_;
@@ -68,11 +72,7 @@ private:
 
     bool pulse_timer_phase_ = false;
 
-    static constexpr u32 SAMPLE_RATE = 44100;
-    static constexpr u32 CPU_FREQUENCY = 1'789'773;
-
     u32 sample_accumulator_ = 0;
-
     AudioSampleCallback callback_ = nullptr;
     void* audio_user_data_ = nullptr;
 };

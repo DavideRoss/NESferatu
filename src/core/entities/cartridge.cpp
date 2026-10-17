@@ -19,12 +19,11 @@
 #pragma endregion
 
 Cartridge::Cartridge(const std::filesystem::path& file_path)
-    : file_path_(file_path)
 {
-    std::ifstream file(file_path_, std::ios::binary | std::ios::ate);
+    std::ifstream file(file_path, std::ios::binary | std::ios::ate);
     if (!file)
     {
-        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string());
+        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path).string());
     }
 
     const std::streamsize size = file.tellg();
@@ -33,7 +32,7 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     data_.resize(size);
     if (!file.read(reinterpret_cast<char*>(data_.data()), size))
     {
-        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path_).string());
+        NESFERATU_THROW("Cannot open ROM file: {}", std::filesystem::absolute(file_path).string());
     }
 
     LoadMetadata();
@@ -58,11 +57,19 @@ Cartridge::Cartridge(const std::filesystem::path& file_path)
     chr_nvram_ = std::vector<u8>(metadata.chr_nvram_size);
 
     SelectMapper();
+
+    Reset();
 }
 
-Cartridge::Cartridge(std::span<const u8> data)
+void Cartridge::Reset()
 {
-    data_ = std::vector<u8>(data.begin(), data.end());
+    std::fill(prg_ram_.begin(), prg_ram_.end(), 0x00);
+    std::fill(prg_nvram_.begin(), prg_nvram_.end(), 0x00);
+
+    std::fill(chr_ram_.begin(), chr_ram_.end(), 0x00);
+    std::fill(chr_nvram_.begin(), chr_nvram_.end(), 0x00);
+
+    mapper_->Reset();
 }
 
 u8 Cartridge::CPURead(u16 address)

@@ -36,7 +36,9 @@ bool System::IsCartridgeSlotted() const
 
 void System::Reset()
 {
+    bus->Reset();
     cpu->Reset();
+    mem->Reset();
     ppu->Reset();
     apu->Reset();
     controllers->Reset();

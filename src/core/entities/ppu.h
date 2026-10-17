@@ -164,7 +164,6 @@ private:
     // Framebuffer and memories
     std::array<Pixel, FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT> framebuffer_;
 
-    // TODO: clear memories on reset
     std::array<u8, 0x800> vram_;
     std::array<u8, 0x20> palettes_;
     std::array<u8, 256> oam_;

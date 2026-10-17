@@ -11,6 +11,8 @@ public:
         std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
     );
 
+    void Reset() override {};
+
     u8 CPURead(u16 address) override;
     void CPUWrite(u16 address, u8 data) override;
 

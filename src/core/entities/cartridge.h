@@ -12,7 +12,8 @@ class Cartridge
 {
 public:
     explicit Cartridge(const std::filesystem::path& file_path);
-    explicit Cartridge(std::span<const u8> data);
+
+    void Reset();
 
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
@@ -33,7 +34,6 @@ private:
     void SelectMapper();
 
 private:
-    std::filesystem::path file_path_;
     std::vector<u8> data_;
 
     std::shared_ptr<BaseMapper> mapper_;

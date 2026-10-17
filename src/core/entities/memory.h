@@ -1,6 +1,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <array>
 
 #include "utils/types.h"
 
@@ -11,6 +12,8 @@ class Memory
 public:
     Memory();
 
+    void Reset();
+
     void ConnectBus(Bus* bus);
 
     u8 Read(u16 address) const;
@@ -20,5 +23,5 @@ public:
 private:
     Bus* bus_ = nullptr;
 
-    u8 memory_[2048];
+    std::array<u8, 2048> memory_;
 };

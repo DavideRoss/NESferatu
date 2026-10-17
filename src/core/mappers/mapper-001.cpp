@@ -9,6 +9,16 @@ Mapper001::Mapper001(
 {
 }
 
+void Mapper001::Reset()
+{
+    shifter_ = 0x10;
+    control_ = 0x0c;
+
+    prg_bank_ = 0;
+    chr_bank_0_ = 0;
+    chr_bank_1_ = 0;
+}
+
 u8 Mapper001::CPURead(u16 address)
 {
     switch (address)

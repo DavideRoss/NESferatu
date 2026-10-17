@@ -16,12 +16,16 @@ void CPU::ConnectBus(Bus *bus)
 
 void CPU::Reset()
 {
-    // TODO: check if everything is reset
     a = x = y = 0x0;
     sp = 0xfd;
     s = 0x20;
 
     total_cycles = 7;
+
+    cycles_ = 0;
+
+    irq_pending_ = false;
+    nmi_pending_ = false;
 
     // Read reset vector
     if (bus_->IsCartridgeSlotted())

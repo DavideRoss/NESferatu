@@ -19,6 +19,22 @@ Bus::Bus(
     cpu_.ConnectBus(this);
     memory_.ConnectBus(this);
     ppu_.ConnectBus(this);
+
+    Reset();
+}
+
+void Bus::Reset()
+{
+    oam_dma_active_ = false;
+    oam_dma_phase_ = OAMDMAPhase::Dummy;
+    oam_dma_page_ = 0x00;
+    oam_dma_address_ = 0x00;
+    oam_dma_data_ = 0x00;
+
+    if (IsCartridgeSlotted())
+    {
+        cartridge_->Reset();
+    }
 }
 
 void Bus::SlotCartridge(std::shared_ptr<Cartridge> cartridge)

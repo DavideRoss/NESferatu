@@ -15,11 +15,8 @@ void PPU::ConnectBus(Bus* bus)
 
 void PPU::Reset()
 {
-    // TODO: make sure everything gets reset
-
-    scanline_ = 0;
     cycle_ = 0;
-
+    scanline_ = 0;
     frame_complete_ = false;
     nmi_requested_ = false;
     odd_frame_ = false;
@@ -27,18 +24,24 @@ void PPU::Reset()
     ctrl_ = 0;
     mask_ = 0;
     status_ = 0;
+    oam_addr_ = 0x00;
 
     v_ = 0;
     t_ = 0;
     x_ = 0;
     w_ = false;
-
-    read_buffer_ = 0;
-
+    
+    next_tile_id_ = 0;
+    next_tile_attribute_ = 0;
+    next_tile_pattern_low_ = 0;
+    next_tile_pattern_high_ = 0;
+    
     pattern_shift_low_ = 0;
     pattern_shift_high_ = 0;
     attribute_shift_low_ = 0;
     attribute_shift_high_ = 0;
+    
+    read_buffer_ = 0x00;
 
     // Sprites
     sprite_eval_count_ = 0;
@@ -54,6 +57,11 @@ void PPU::Reset()
 
     // Reset framebuffer
     std::fill(framebuffer_.begin(), framebuffer_.end(), Pixel());
+
+    std::fill(vram_.begin(), vram_.end(), 0x00);
+    std::fill(palettes_.begin(), palettes_.end(), 0x00);
+    std::fill(oam_.begin(), oam_.end(), 0x00);
+    std::fill(secondary_oam_.begin(), secondary_oam_.end(), 0x00);
 }
 
 void PPU::Step()

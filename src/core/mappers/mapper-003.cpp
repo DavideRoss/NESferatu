@@ -12,6 +12,11 @@ Mapper003::Mapper003(
         Mirroring::Horizontal;
 }
 
+void Mapper003::Reset()
+{
+    chr_bank_ = 0x00;
+}
+
 u8 Mapper003::CPURead(u16 address)
 {
     switch (address)
