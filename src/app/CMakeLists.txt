@@ -21,6 +21,10 @@ if (MINGW)
     target_link_options(NESferatu PRIVATE -mconsole)
 endif()
 
+# =============================================================================
+# IMGUI
+# =============================================================================
+
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/third-party/imgui")
 
 target_sources(NESferatu PRIVATE
@@ -36,3 +40,14 @@ target_include_directories(NESferatu PRIVATE
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
 )
+
+# =============================================================================
+# NATIVEFILEDIALOG-EXTENDED
+# =============================================================================
+
+add_subdirectory(
+    ${CMAKE_SOURCE_DIR}/third-party/nativefiledialog-extended
+    ${CMAKE_BINARY_DIR}/nativefiledialog-extended
+)
+
+target_link_libraries(NESferatu PRIVATE nfd)
