@@ -71,6 +71,8 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
 
     ImGui::GetStyle().Alpha = 0.85f;
 
+    toast_ = std::make_unique<ToastManager>();
+
     // ========================================================================
     // NFD
     // ========================================================================
@@ -208,6 +210,7 @@ void NESferatuApp::RunApplication()
         ImGui::NewFrame();
 
         DrawUI();
+        toast_->Render();
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_);

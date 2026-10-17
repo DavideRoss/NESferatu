@@ -6,6 +6,7 @@
 
 #include "entities/system.h"
 #include "audio.h"
+#include "toast-manager.h"
 
 class NESferatuApp
 {
@@ -35,6 +36,8 @@ private:
     SDL_Window* window_ = nullptr;
     SDL_Renderer* renderer_ = nullptr; 
     SDL_Texture* texture_ = nullptr;
+
+    std::unique_ptr<ToastManager> toast_ = nullptr;
 
     std::shared_ptr<Cartridge> cartridge_;
     std::unique_ptr<System> nes_;
