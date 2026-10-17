@@ -5,6 +5,11 @@
 
 #include "utils/log.h"
 
+Audio::Audio()
+{
+    Reset();
+}
+
 Audio::~Audio()
 {
     Stop();
@@ -39,6 +44,11 @@ void Audio::Stop()
 
     SDL_CloseAudioDevice(device_);
     device_ = 0;
+}
+
+void Audio::Reset()
+{
+    std::fill(buffer_.begin(), buffer_.end(), 0.0f);
 }
 
 void Audio::PushSample(float sample)

@@ -433,6 +433,8 @@ void NESferatuApp::OpenROMFile()
         nes_->SlotCartridge(cartridge_);
         NFD_FreePathU8(out_path);
 
+        audio_->Reset();
+
         toast_->Show("Cartridge loaded!", 5.0f);
     }
 }
@@ -475,6 +477,7 @@ void NESferatuApp::StepFrame()
 void NESferatuApp::ResetEmulation()
 {
     nes_->Reset();
+    audio_->Reset();
 }
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
