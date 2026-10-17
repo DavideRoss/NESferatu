@@ -15,9 +15,11 @@ public:
         const std::string& message,
         const char* function,
         const char* file,
-        int line,
         #ifndef NESFERATU_DISABLE_STACKTRACE
+        int line,
         std::stacktrace trace
+        #else
+        int line
         #endif
     )
     : std::runtime_error(

@@ -28,9 +28,11 @@ public:
         Memory& memory,
         PPU& ppu,
         APU& apu,
-        Controllers& controllers,
-        Cartridge& cartridge
+        Controllers& controllers
     );
+
+    void SlotCartridge(std::shared_ptr<Cartridge> cartridge);
+    bool IsCartridgeSlotted() const { return cartridge_ != nullptr; }
 
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
@@ -41,13 +43,17 @@ public:
     bool IsOAMDMAActive();
     void StepOAMDMA();
 
+    Mirroring GetCartridgeMirroring() const;
+    bool IsCartridgeIRQRequested() const;
+
 private:
     CPU& cpu_;
     Memory& memory_;
     PPU& ppu_;
     APU& apu_;
     Controllers& controllers_;
-    Cartridge& cartridge_;
+    
+    std::shared_ptr<Cartridge> cartridge_ = nullptr;
 
     // OAM DMA
     bool oam_dma_active_ = false;

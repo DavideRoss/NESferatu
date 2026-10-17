@@ -10,6 +10,12 @@
 #include <csignal>
 #endif
 
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
+
+#include <nfd.h>
+
 constexpr double NTSC_FPS = 60.0988;
 constexpr double PAL_FPS = 50.0070;
 
@@ -52,12 +58,36 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     }
 
     // ========================================================================
+    // IMGUI
+    // ========================================================================
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window_, renderer_);
+    ImGui_ImplSDLRenderer2_Init(renderer_);
+
+    ImGui::GetStyle().Alpha = 0.85f;
+
+    toast_ = std::make_unique<ToastManager>();
+
+    // ========================================================================
+    // NFD
+    // ========================================================================
+
+    if (NFD_Init() != NFD_OKAY)
+    {
+        NESFERATU_THROW("Cannot initialize NFD");
+    }
+
+    // ========================================================================
     // NESFERATU
     // ========================================================================
 
-    cartridge_ = std::make_unique<Cartridge>(file_path);
-    nes_ = std::make_unique<System>(*cartridge_);
-    nes_->Reset();
+    cartridge_ = std::make_shared<Cartridge>(file_path);
+    nes_ = std::make_unique<System>();
 
     nes_->debugger->SetBreakCallback([this](const DebugContext& context)
     {
@@ -79,6 +109,10 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
 
 NESferatuApp::~NESferatuApp()
 {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     if (texture_ != nullptr)
     {
         SDL_DestroyTexture(texture_);
@@ -115,14 +149,17 @@ void NESferatuApp::RunApplication()
         HandleEvents();
         UpdateControllers();
 
-        while (!nes_->IsFrameComplete() && (step_latch_ || run_latch_))
+        while (!nes_->IsFrameComplete() && (step_instruction_latch_ || step_frame_latch_ || run_latch_))
         {
-            if (step_latch_ || run_latch_)
+            if (step_instruction_latch_ || step_frame_latch_ || run_latch_)
             {
                 nes_->Step();
-                step_latch_ = false;
+                step_instruction_latch_ = false;
             }
         }
+
+        // Stop stepping after first frame
+        step_frame_latch_ = false;
 
         // TODO: clean audio debug stuff
         samples_per_frame = nes_->apu->samples_per_frame;
@@ -163,8 +200,28 @@ void NESferatuApp::RunApplication()
 
         nes_->ClearFrameComplete();
 
+        // ========================================================================
+        // IMGUI
+        // ========================================================================
+
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+
+        ImGui::NewFrame();
+
+        ProcessShortcuts();
+        DrawUI();
+        toast_->Render();
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_);
+        
+        // ========================================================================
+        // END IMGUI
+        // ========================================================================
+
         SDL_RenderPresent(renderer_);
-        UpdateFPS();
+        UpdateApplicationBar();
 
         next_frame += ticks_per_frame;
         const double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
@@ -203,6 +260,8 @@ void NESferatuApp::HandleEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
         if (event.type == SDL_QUIT)
         {
             running_ = false;
@@ -210,7 +269,7 @@ void NESferatuApp::HandleEvents()
 
         if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_s)
         {
-            step_latch_ = true;
+            step_instruction_latch_ = true;
         }
 
         if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_r)
@@ -285,7 +344,7 @@ void NESferatuApp::SaveFramebuffer(std::span<const Pixel> framebuffer)
     NESFERATU_LOG("File saved: {}", name.str());
 }
 
-void NESferatuApp::UpdateFPS()
+void NESferatuApp::UpdateApplicationBar()
 {
     const u64 now = SDL_GetPerformanceCounter();
     if (fps_last_update_ == 0)
@@ -306,6 +365,116 @@ void NESferatuApp::UpdateFPS()
         const std::string title = std::format("NESferatu - {:.2f} FPS", fps_);
         SDL_SetWindowTitle(window_, title.c_str());
     }
+}
+
+void NESferatuApp::DrawUI()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    constexpr float HOVER_HEIGHT = 10.0f;
+    constexpr float MENU_HEIGHT = 20.0f;
+
+    // TODO: main menu bar should be always visible if no game is running
+    const bool show_menu = io.MousePos.y <= HOVER_HEIGHT + MENU_HEIGHT;
+    const bool menu_open = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId);
+
+    if ((show_menu || menu_open) && ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Open...", "Ctrl+O")) OpenROMFile();
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit")) running_ = false;
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Emulation"))
+        {
+            if (ImGui::MenuItem("Run", "F2", run_latch_)) RunEmulation();
+            if (ImGui::MenuItem("Step Instruction", "F3")) StepInstruction();
+            if (ImGui::MenuItem("Step Frame", "Shift+F3")) StepFrame();
+            if (ImGui::MenuItem("Reset", "F4")) ResetEmulation();
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void NESferatuApp::ProcessShortcuts()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O)) OpenROMFile();
+
+    if (ImGui::IsKeyPressed(ImGuiKey_F2)) RunEmulation();
+    if (ImGui::IsKeyPressed(ImGuiKey_F3)) StepInstruction();
+    if (io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_F3)) StepFrame();
+    if (ImGui::IsKeyPressed(ImGuiKey_F4)) ResetEmulation();
+}
+
+void NESferatuApp::OpenROMFile()
+{
+    nfdu8filteritem_t filters [] = { "NES ROM", "nes" };
+
+    nfdopendialogu8args_t args = {};
+    args.filterList = filters;
+    args.filterCount = 1;
+    args.title = "Open NES ROM";
+
+    nfdu8char_t* out_path = nullptr;
+    const nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+
+    if (result == NFD_OKAY)
+    {
+        cartridge_ = std::make_shared<Cartridge>(std::filesystem::path(out_path));
+        nes_->SlotCartridge(cartridge_);
+        NFD_FreePathU8(out_path);
+
+        toast_->Show("Cartridge loaded!", 5.0f);
+    }
+}
+
+void NESferatuApp::RunEmulation()
+{
+    if (!nes_->IsCartridgeSlotted())
+    {
+        run_latch_ = false;
+        return;
+    }
+
+    run_latch_ = !run_latch_;
+}
+
+void NESferatuApp::StepInstruction()
+{
+    if (!nes_->IsCartridgeSlotted())
+    {
+        step_instruction_latch_ = false;
+        return;
+    }
+
+    run_latch_ = false;
+    step_instruction_latch_ = true;
+}
+
+void NESferatuApp::StepFrame()
+{
+    if (!nes_->IsCartridgeSlotted())
+    {
+        step_frame_latch_ = false;
+        return;
+    }
+
+    run_latch_ = false;
+    step_frame_latch_ = true;
+}
+
+void NESferatuApp::ResetEmulation()
+{
+    nes_->Reset();
 }
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)

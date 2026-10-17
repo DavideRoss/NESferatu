@@ -16,18 +16,24 @@ void CPU::ConnectBus(Bus *bus)
 
 void CPU::Reset()
 {
+    // TODO: check if everything is reset
     a = x = y = 0x0;
-    pc = 0xfffc;
     sp = 0xfd;
     s = 0x20;
 
     total_cycles = 7;
 
     // Read reset vector
-    u8 reset_low = ReadByte(0xfffc);
-    u8 reset_high = ReadByte(0xfffd);
-    pc = (reset_high << 8) | reset_low;
-
+    if (bus_->IsCartridgeSlotted())
+    {
+        u8 reset_low = ReadByte(0xfffc);
+        u8 reset_high = ReadByte(0xfffd);
+        pc = (reset_high << 8) | reset_low;   
+    }
+    else
+    {
+        pc = 0x0000;
+    }
 }
 
 u32 CPU::Step()

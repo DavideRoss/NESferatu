@@ -13,9 +13,12 @@ class System
 {
 
 public:
-    System(Cartridge& cartridge);
+    System();
 
     void Reset();
+
+    void SlotCartridge(std::shared_ptr<Cartridge> cartridge);
+    bool IsCartridgeSlotted() const;
 
     u32 Step();
     u32 StepFrame();
@@ -36,7 +39,4 @@ public:
     std::unique_ptr<Controllers> controllers;
 
     std::unique_ptr<Debugger> debugger;
-
-private:
-    Cartridge& cartridge_;
 };

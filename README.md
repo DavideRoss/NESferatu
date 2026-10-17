@@ -11,13 +11,15 @@
 - [ ] Gate every debug function under debug define
 - [ ] Debug: CPU/PPU/APU do not expose internal registers, but return a state object
 - [ ] Proper logging: system is responsible
+- [ ] Implement extra mappers
+- [ ] Reset audio buffer on reset/constructor
 
 ## App
-- [X] Proper frame timing
-- [ ] No hardcoded ROM
-- [ ] IMGui integration
-    - [ ] Load ROM from file
-    - [ ] Execution commands: start, stop, reset, step
+- [x] Proper frame timing
+- [x] No hardcoded ROM
+- [ ] ImGui integration
+    - [x] Load ROM from file
+    - [x] Execution commands: start, stop, reset, step
     - [ ] Volatite save states
     - [ ] Export/import save states to file
 
@@ -27,3 +29,7 @@
 
 ## Bugs
 - [ ] When dragging the SDL window, the emulator should pause, but it catches up on release.
+    - Same thing happens when opening a file, pause the emulator while doing so.
+- [ ] Do not run audio processes if there's no cartridge loaded
+- [ ] Loading a ROM while another ROM is running breaks the emulation
+- [ ] The stepping on the application is awful to see, to be refactored

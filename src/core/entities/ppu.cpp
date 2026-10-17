@@ -3,18 +3,20 @@
 
 #include "utils/exception.h"
 
-PPU::PPU(Cartridge &cartridge)
-    : cartridge_(cartridge)
+PPU::PPU()
 {
+    Reset();
 }
 
-void PPU::ConnectBus(Bus *bus)
+void PPU::ConnectBus(Bus* bus)
 {
     bus_ = bus;
 }
 
 void PPU::Reset()
 {
+    // TODO: make sure everything gets reset
+
     scanline_ = 0;
     cycle_ = 0;
 
@@ -49,6 +51,9 @@ void PPU::Reset()
     {
         sprite = {};
     }
+
+    // Reset framebuffer
+    std::fill(framebuffer_.begin(), framebuffer_.end(), Pixel());
 }
 
 void PPU::Step()
@@ -419,7 +424,7 @@ u16 PPU::MapNametableAddress(u16 address)
     const u16 tile_offset = offset % 0x0400;
 
     u8 physical_page;
-    switch (cartridge_.GetMirroring())
+    switch (bus_->GetCartridgeMirroring())
     {
         case Mirroring::Vertical: physical_page = nametable & 1; break;
         case Mirroring::Horizontal: physical_page = nametable >> 1; break;

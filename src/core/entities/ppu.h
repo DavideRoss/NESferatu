@@ -64,7 +64,7 @@ struct Sprite
 class PPU : public Debuggable
 {
 public:
-    PPU(Cartridge& cartridge);
+    PPU();
 
     void ConnectBus(Bus* bus);
     void Reset();
@@ -121,7 +121,6 @@ private:
 
 private:
     Bus* bus_ = nullptr;
-    Cartridge& cartridge_;
 
     u32 cycle_ = 0;
     u32 scanline_ = 0;
