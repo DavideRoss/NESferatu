@@ -24,9 +24,18 @@ private:
 
     void SaveFramebuffer(std::span<const Pixel> framebuffer);
 
-    void UpdateFPS();
+    void UpdateApplicationBar();
 
+    // UI
     void DrawUI();
+    void ProcessShortcuts();
+
+    // Commands
+    void OpenROMFile();
+    void RunEmulation();
+    void StepInstruction();
+    void StepFrame();
+    void ResetEmulation();
 
     void DebuggerBreakCallback(const DebugContext& context);
 
@@ -44,7 +53,8 @@ private:
     std::unique_ptr<Audio> audio_;
 
     bool run_latch_ = false;
-    bool step_latch_ = false;
+    bool step_instruction_latch_ = false;
+    bool step_frame_latch_ = false;
     bool request_screenshot_ = false;
 
     u64 fps_frame_count_ = 0;
