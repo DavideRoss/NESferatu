@@ -27,6 +27,9 @@ public:
     std::span<const Pixel> GetFramebuffer();
     void ClearFrameComplete();
 
+    std::vector<std::byte> WriteSavestate();
+    void ReadSavestate(std::span<const std::byte> data);
+
 private:
     void StepHardware();
 
