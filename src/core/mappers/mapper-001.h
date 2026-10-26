@@ -21,6 +21,9 @@ public:
 
     Mirroring GetMirroring() const override;
 
+    void Serialize(class Serializer& serializer) override;
+    void Deserialize(class Deserializer& deserializer) override;
+
 private:
     size_t GetPRGOffset(u16 address) const;
     size_t GetCHROffset(u16 address) const;

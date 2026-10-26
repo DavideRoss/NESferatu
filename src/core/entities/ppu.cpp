@@ -3,6 +3,9 @@
 
 #include "utils/exception.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 PPU::PPU()
 {
     Reset();
@@ -208,6 +211,96 @@ void PPU::Step()
 std::span<const Pixel> PPU::GetFramebuffer()
 {
     return framebuffer_;
+}
+
+void PPU::Serialize(Serializer &serializer)
+{
+    serializer.Write(cycle_);
+    serializer.Write(scanline_);
+    serializer.Write(frame_complete_);
+    serializer.Write(nmi_requested_);
+    serializer.Write(odd_frame_);
+
+    serializer.Write(ctrl_);
+    serializer.Write(mask_);
+    serializer.Write(status_);
+    serializer.Write(oam_addr_);
+
+    serializer.Write(v_);
+    serializer.Write(t_);
+    serializer.Write(x_);
+    serializer.Write(w_);
+
+    serializer.Write(next_tile_id_);
+    serializer.Write(next_tile_attribute_);
+    serializer.Write(next_tile_pattern_low_);
+    serializer.Write(next_tile_pattern_high_);
+
+    serializer.Write(pattern_shift_low_);
+    serializer.Write(pattern_shift_high_);
+    serializer.Write(attribute_shift_low_);
+    serializer.Write(attribute_shift_high_);
+
+    serializer.Write(read_buffer_);
+    
+    serializer.Write(sprite_scanline_);
+    serializer.Write(sprite_render_count_);
+    serializer.Write(sprite_eval_count_);
+    serializer.Write(sprite_eval_index_);
+    serializer.Write(sprite_eval_oam_address_);
+    serializer.Write(sprite_eval_overflow_);
+    
+    // TODO: serialize framebuffer?
+    
+    serializer.Write(vram_);
+    serializer.Write(palettes_);
+    serializer.Write(oam_);
+    serializer.Write(secondary_oam_);
+}
+
+void PPU::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(cycle_);
+    deserializer.Read(scanline_);
+    deserializer.Read(frame_complete_);
+    deserializer.Read(nmi_requested_);
+    deserializer.Read(odd_frame_);
+
+    deserializer.Read(ctrl_);
+    deserializer.Read(mask_);
+    deserializer.Read(status_);
+    deserializer.Read(oam_addr_);
+
+    deserializer.Read(v_);
+    deserializer.Read(t_);
+    deserializer.Read(x_);
+    deserializer.Read(w_);
+
+    deserializer.Read(next_tile_id_);
+    deserializer.Read(next_tile_attribute_);
+    deserializer.Read(next_tile_pattern_low_);
+    deserializer.Read(next_tile_pattern_high_);
+
+    deserializer.Read(pattern_shift_low_);
+    deserializer.Read(pattern_shift_high_);
+    deserializer.Read(attribute_shift_low_);
+    deserializer.Read(attribute_shift_high_);
+
+    deserializer.Read(read_buffer_);
+    
+    deserializer.Read(sprite_scanline_);
+    deserializer.Read(sprite_render_count_);
+    deserializer.Read(sprite_eval_count_);
+    deserializer.Read(sprite_eval_index_);
+    deserializer.Read(sprite_eval_oam_address_);
+    deserializer.Read(sprite_eval_overflow_);
+    
+    // TODO: deserialize framebuffer?
+    
+    deserializer.Read(vram_);
+    deserializer.Read(palettes_);
+    deserializer.Read(oam_);
+    deserializer.Read(secondary_oam_);
 }
 
 u8 PPU::CPURead(u16 address)

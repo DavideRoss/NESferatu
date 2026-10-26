@@ -23,6 +23,8 @@ public:
         std::span<const u8> chr_rom, std::span<u8> chr_ram, std::span<u8> chr_nvram
     );
 
+    virtual ~BaseMapper() = default;
+
     virtual void Reset() = 0;
 
     virtual u8 CPURead(u16 address) = 0;
@@ -33,7 +35,8 @@ public:
 
     virtual Mirroring GetMirroring() const = 0;
 
-    virtual ~BaseMapper() = default;
+    virtual void Serialize(class Serializer& serializer) = 0;
+    virtual void Deserialize(class Deserializer& deserializer) = 0;
 
 protected:
     std::span<const u8> prg_rom_;

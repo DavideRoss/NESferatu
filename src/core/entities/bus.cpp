@@ -3,6 +3,9 @@
 #include "utils/exception.h"
 #include "utils/log.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 Bus::Bus(
     CPU& cpu,
     Memory& memory,
@@ -240,4 +243,26 @@ Mirroring Bus::GetCartridgeMirroring() const
 bool Bus::IsCartridgeIRQRequested() const
 {
     return cartridge_->IsIRQRequested();
+}
+
+void Bus::Serialize(Serializer& serializer)
+{
+    cartridge_->Serialize(serializer);
+
+    serializer.Write(oam_dma_active_);
+    serializer.Write(oam_dma_phase_);
+    serializer.Write(oam_dma_page_);
+    serializer.Write(oam_dma_address_);
+    serializer.Write(oam_dma_data_);
+}
+
+void Bus::Deserialize(Deserializer& deserializer)
+{
+    cartridge_->Deserialize(deserializer);
+
+    deserializer.Read(oam_dma_active_);
+    deserializer.Read(oam_dma_phase_);
+    deserializer.Read(oam_dma_page_);
+    deserializer.Read(oam_dma_address_);
+    deserializer.Read(oam_dma_data_);
 }

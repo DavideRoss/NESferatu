@@ -1,5 +1,8 @@
 #include "system.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 System::System()
 {
     cpu = std::make_unique<CPU>();
@@ -133,4 +136,30 @@ std::span<const Pixel> System::GetFramebuffer()
 void System::ClearFrameComplete()
 {
     ppu->ClearFrameComplete();
+}
+
+std::vector<std::byte> System::WriteSavestate()
+{
+    Serializer s;
+
+    bus->Serialize(s);
+    cpu->Serialize(s);
+    mem->Serialize(s);
+    ppu->Serialize(s);
+    apu->Serialize(s);
+    controllers->Serialize(s);
+
+    return std::move(s).Data();
+}
+
+void System::ReadSavestate(std::span<const std::byte> data)
+{
+    Deserializer d(data);
+    
+    bus->Deserialize(d);
+    cpu->Deserialize(d);
+    mem->Deserialize(d);
+    ppu->Deserialize(d);
+    apu->Deserialize(d);
+    controllers->Deserialize(d);
 }

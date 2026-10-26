@@ -281,31 +281,6 @@ void NESferatuApp::HandleEvents()
         {
             request_screenshot_ = true;
         }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::Palette);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::FineX);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::PixelPresence);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_4)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::Nametable);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_0)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::None);
-        }
     }
 }
 
@@ -382,7 +357,7 @@ void NESferatuApp::DrawUI()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open...", "Ctrl+O")) OpenROMFile();
+            if (ImGui::MenuItem("Open...", "Ctrl+O")) ShowOpenROMDialog();
             ImGui::Separator();
             if (ImGui::MenuItem("Exit")) running_ = false;
 
@@ -399,6 +374,25 @@ void NESferatuApp::DrawUI()
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Savestates"))
+        {
+            if (ImGui::MenuItem("Load Savestate 1", "1")) ReadSavestate(0);
+            if (ImGui::MenuItem("Load Savestate 2", "2")) ReadSavestate(1);
+            if (ImGui::MenuItem("Load Savestate 3", "3")) ReadSavestate(2);
+            if (ImGui::MenuItem("Load Savestate 4", "4")) ReadSavestate(3);
+            if (ImGui::MenuItem("Load Savestate 5", "5")) ReadSavestate(4);
+            
+            ImGui::Separator();
+            
+            if (ImGui::MenuItem("Save Savestate 1", "Ctrl+1")) WriteSavestate(0);
+            if (ImGui::MenuItem("Save Savestate 2", "Ctrl+2")) WriteSavestate(1);
+            if (ImGui::MenuItem("Save Savestate 3", "Ctrl+3")) WriteSavestate(2);
+            if (ImGui::MenuItem("Save Savestate 4", "Ctrl+4")) WriteSavestate(3);
+            if (ImGui::MenuItem("Save Savestate 5", "Ctrl+5")) WriteSavestate(4);
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -407,15 +401,22 @@ void NESferatuApp::ProcessShortcuts()
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O)) OpenROMFile();
+    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O)) ShowOpenROMDialog();
 
     if (ImGui::IsKeyPressed(ImGuiKey_F2)) RunEmulation();
     if (ImGui::IsKeyPressed(ImGuiKey_F3)) StepInstruction();
     if (io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_F3)) StepFrame();
     if (ImGui::IsKeyPressed(ImGuiKey_F4)) ResetEmulation();
+
+    // Savestates
+    if (ImGui::IsKeyPressed(ImGuiKey_1)) io.KeyCtrl ? WriteSavestate(0) : ReadSavestate(0);
+    if (ImGui::IsKeyPressed(ImGuiKey_2)) io.KeyCtrl ? WriteSavestate(1) : ReadSavestate(1);
+    if (ImGui::IsKeyPressed(ImGuiKey_3)) io.KeyCtrl ? WriteSavestate(2) : ReadSavestate(2);
+    if (ImGui::IsKeyPressed(ImGuiKey_4)) io.KeyCtrl ? WriteSavestate(3) : ReadSavestate(3);
+    if (ImGui::IsKeyPressed(ImGuiKey_5)) io.KeyCtrl ? WriteSavestate(4) : ReadSavestate(4);
 }
 
-void NESferatuApp::OpenROMFile()
+void NESferatuApp::ShowOpenROMDialog()
 {
     nfdu8filteritem_t filters [] = { "NES ROM", "nes" };
 
@@ -429,13 +430,8 @@ void NESferatuApp::OpenROMFile()
 
     if (result == NFD_OKAY)
     {
-        cartridge_ = std::make_shared<Cartridge>(std::filesystem::path(out_path));
-        nes_->SlotCartridge(cartridge_);
+        OpenROM(std::filesystem::path(out_path));
         NFD_FreePathU8(out_path);
-
-        audio_->Reset();
-
-        toast_->Show("Cartridge loaded!", 5.0f);
     }
 }
 
@@ -478,6 +474,26 @@ void NESferatuApp::ResetEmulation()
 {
     nes_->Reset();
     audio_->Reset();
+}
+
+void NESferatuApp::OpenROM(std::filesystem::path path)
+{
+    cartridge_ = std::make_shared<Cartridge>(path);
+    nes_->SlotCartridge(cartridge_);
+    audio_->Reset();
+    toast_->Show("Cartridge loaded!", 5.0f);
+}
+
+void NESferatuApp::ReadSavestate(u32 index)
+{
+    nes_->ReadSavestate(savestates_[index]);
+    toast_->Show(std::format("Savestate {} loaded!", index + 1), 5.0f);
+}
+
+void NESferatuApp::WriteSavestate(u32 index)
+{
+    savestates_[index] = nes_->WriteSavestate();
+    toast_->Show(std::format("Savestate {} saved!", index + 1), 5.0f);
 }
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)

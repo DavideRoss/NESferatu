@@ -1,5 +1,8 @@
 #include "triangle-channel.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 TriangleChannel::TriangleChannel()
 {
     Reset();
@@ -104,4 +107,32 @@ u8 TriangleChannel::Output() const
     }
 
     return SEQUENCE[sequence_step_];
+}
+
+void TriangleChannel::Serialize(Serializer& serializer)
+{
+    serializer.Write(ctrl_flag_);
+
+    serializer.Write(linear_counter_reload_);
+    serializer.Write(linear_counter_);
+    serializer.Write(linear_reload_);
+    
+    serializer.Write(timer_period_);
+    serializer.Write(timer_);
+    
+    serializer.Write(sequence_step_);
+}
+
+void TriangleChannel::Deserialize(Deserializer& deserializer)
+{
+    deserializer.Read(ctrl_flag_);
+
+    deserializer.Read(linear_counter_reload_);
+    deserializer.Read(linear_counter_);
+    deserializer.Read(linear_reload_);
+    
+    deserializer.Read(timer_period_);
+    deserializer.Read(timer_);
+    
+    deserializer.Read(sequence_step_);
 }

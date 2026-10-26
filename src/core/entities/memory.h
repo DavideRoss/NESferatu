@@ -20,6 +20,9 @@ public:
     void Write(u16 address, u8 value);
     void WriteSeq(u16 address, std::initializer_list<u8> data);
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     Bus* bus_ = nullptr;
 

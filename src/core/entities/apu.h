@@ -34,9 +34,12 @@ public:
     u16 GetDMCReadAddress() const { return dmc_.GetCurrentAddress(); }
     void SupplyDMCByte(u8 data) { dmc_.SupplySample(data); }
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
     // TODO: remove debug variable
-    u64 samples_per_sec = 0;
-    u64 samples_per_frame = 0;
+    [[maybe_unused]] u64 samples_per_sec = 0;
+    [[maybe_unused]] u64 samples_per_frame = 0;
 
 private:
     void StepFour();

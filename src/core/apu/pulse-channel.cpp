@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <array>
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 namespace
 {
     constexpr std::array<std::array<u8, 8>, 4> DUTY_SEQUENCES =
@@ -133,6 +136,54 @@ u8 PulseChannel::Output() const
     if (DUTY_SEQUENCES[duty_][seq_step_] == 0) return 0;
 
     return constant_volume_ ? volume_ : envelope_decay_;
+}
+
+void PulseChannel::Serialize(Serializer& serializer)
+{
+    serializer.Write(duty_);
+    serializer.Write(constant_volume_);
+    serializer.Write(volume_);
+    
+    serializer.Write(sweep_enabled_);
+    serializer.Write(sweep_period_);
+    serializer.Write(sweep_negate_);
+    serializer.Write(sweep_shift_);
+    serializer.Write(sweep_reload_);
+    serializer.Write(sweep_divider_);
+    
+    serializer.Write(envelope_loop_);
+    serializer.Write(envelope_start_);
+    
+    serializer.Write(envelope_divider_);
+    serializer.Write(envelope_decay_);
+    
+    serializer.Write(timer_period_);
+    serializer.Write(timer_);
+    serializer.Write(seq_step_);
+}
+
+void PulseChannel::Deserialize(Deserializer& deserializer)
+{
+    deserializer.Read(duty_);
+    deserializer.Read(constant_volume_);
+    deserializer.Read(volume_);
+    
+    deserializer.Read(sweep_enabled_);
+    deserializer.Read(sweep_period_);
+    deserializer.Read(sweep_negate_);
+    deserializer.Read(sweep_shift_);
+    deserializer.Read(sweep_reload_);
+    deserializer.Read(sweep_divider_);
+    
+    deserializer.Read(envelope_loop_);
+    deserializer.Read(envelope_start_);
+    
+    deserializer.Read(envelope_divider_);
+    deserializer.Read(envelope_decay_);
+    
+    deserializer.Read(timer_period_);
+    deserializer.Read(timer_);
+    deserializer.Read(seq_step_);
 }
 
 void PulseChannel::ClockSweep()

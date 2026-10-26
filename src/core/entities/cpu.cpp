@@ -1,7 +1,11 @@
 #include "cpu.h"
 
 #include "bus.h"
+
 #include "utils/log.h"
+
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
 
 #define EXECUTE_OPCODE(opcode, operation, addressing_mode, extra_cycles) \
     case Opcodes::opcode: Execute<operation, addressing_mode, extra_cycles>(); break;
@@ -415,6 +419,38 @@ u8 CPU::PullFromStack()
     const u8 data = bus_->CPURead(0x0100 | sp);
     cycles_++;
     return data;
+}
+
+void CPU::Serialize(Serializer& serializer)
+{
+    serializer.Write(a);
+    serializer.Write(x);
+    serializer.Write(y);
+    serializer.Write(pc);
+    serializer.Write(sp);
+    serializer.Write(s);
+
+    serializer.Write(total_cycles);
+    serializer.Write(cycles_);
+
+    serializer.Write(irq_pending_);
+    serializer.Write(nmi_pending_);
+}
+
+void CPU::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(a);
+    deserializer.Read(x);
+    deserializer.Read(y);
+    deserializer.Read(pc);
+    deserializer.Read(sp);
+    deserializer.Read(s);
+    
+    deserializer.Read(total_cycles);
+    deserializer.Read(cycles_);
+
+    deserializer.Read(irq_pending_);
+    deserializer.Read(nmi_pending_);
 }
 
 #pragma region Addressing Modes

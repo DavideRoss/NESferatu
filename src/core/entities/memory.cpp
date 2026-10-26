@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <algorithm>
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 Memory::Memory()
 {
     Reset();
@@ -36,4 +39,14 @@ void Memory::WriteSeq(u16 address, std::initializer_list<u8> data)
     {
         Write(address++, val);
     }
+}
+
+void Memory::Serialize(Serializer& serializer)
+{
+    serializer.Write(memory_);
+}
+
+void Memory::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(memory_);
 }

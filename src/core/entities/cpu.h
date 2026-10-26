@@ -330,6 +330,9 @@ public:
     void RequestIRQ() { irq_pending_ = true; }
     void RequestNMI() { nmi_pending_ = true; }
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 public:
     u8 a;       // Accumulator
     u8 x, y;    // GP registers

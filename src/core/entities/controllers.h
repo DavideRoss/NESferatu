@@ -25,6 +25,9 @@ public:
     void SetController1Status(u8 status);
     void SetController2Status(u8 status);
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     bool strobe_ = false;
 

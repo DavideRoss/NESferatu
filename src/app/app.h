@@ -31,11 +31,17 @@ private:
     void ProcessShortcuts();
 
     // Commands
-    void OpenROMFile();
+    void ShowOpenROMDialog();
     void RunEmulation();
     void StepInstruction();
     void StepFrame();
     void ResetEmulation();
+
+    void OpenROM(std::filesystem::path path);
+
+    // Savestates
+    void ReadSavestate(u32 index);
+    void WriteSavestate(u32 index);
 
     void DebuggerBreakCallback(const DebugContext& context);
 
@@ -60,4 +66,7 @@ private:
     u64 fps_frame_count_ = 0;
     u64 fps_last_update_ = 0;
     double fps_ = 0.0;
+
+    // Savestates
+    std::array<std::vector<std::byte>, 5> savestates_;
 };

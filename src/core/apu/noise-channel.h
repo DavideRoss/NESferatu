@@ -20,6 +20,9 @@ public:
 
     u8 Output() const;
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     static constexpr std::array<u16, 16> PERIOD_TABLE = {
         4, 8, 16, 32,
