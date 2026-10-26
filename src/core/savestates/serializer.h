@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <span>
 #include <vector>
 
 #include "utils/types.h"
@@ -49,10 +50,17 @@ public:
 
     template <typename T, std::size_t N>
         requires std::is_trivially_copyable_v<T>
-    void Write(const std::array<T, N>& value)
+    void Write(const std::span<T, N>& value)
     {
         const std::span<const std::byte> bytes = std::as_bytes(std::span{ value });
         data_.insert(data_.end(), bytes.begin(), bytes.end());
+    }
+
+    template <typename T, std::size_t N>
+        requires std::is_trivially_copyable_v<T>
+    void Write(const std::array<T, N>& value)
+    {
+        Write(std::span{ value });
     }
 
     void Write(bool value)

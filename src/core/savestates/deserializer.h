@@ -59,9 +59,9 @@ public:
     }
 
     template <typename T, std::size_t N>
-    void Read(std::array<T, N>& dest)
+    void Read(std::span<T, N> dest)
     {
-        std::span<std::byte> bytes = std::as_writable_bytes(std::span{ dest });
+        std::span<std::byte> bytes = std::as_writable_bytes(dest);
 
         if (Remaining() < bytes.size())
         {
@@ -70,6 +70,12 @@ public:
 
         std::copy_n(data_.begin() + position_, bytes.size(), bytes.begin());
         position_ += bytes.size();
+    }
+
+    template <typename T, std::size_t N>
+    void Read(std::array<T, N>& dest)
+    {
+        Read(std::span{ dest });
     }
 
     void Read(bool& value)
