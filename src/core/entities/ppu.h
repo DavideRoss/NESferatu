@@ -5,6 +5,7 @@
 #include "data/palette.h"
 #include "entities/cartridge.h"
 #include "debugger/debuggable.h"
+
 #include "utils/types.h"
 
 class Bus;
@@ -82,6 +83,9 @@ public:
 
     std::span<const Pixel> GetFramebuffer();
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
     // Debug functions
     std::array<Pixel, 32> DumpPalette() const;
     void SetDebugViewMode(DebugViewMode mode);
@@ -156,7 +160,6 @@ private:
     std::array<Sprite, 8> sprite_scanline_;
     u8 sprite_render_count_;
     u8 sprite_eval_count_;
-
     u8 sprite_eval_index_ = 0;
     u8 sprite_eval_oam_address_ = 0;
     bool sprite_eval_overflow_ = false;
