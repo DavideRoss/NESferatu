@@ -31,11 +31,13 @@ private:
     void ProcessShortcuts();
 
     // Commands
-    void OpenROMFile();
+    void ShowOpenROMDialog();
     void RunEmulation();
     void StepInstruction();
     void StepFrame();
     void ResetEmulation();
+
+    void OpenROM(std::filesystem::path path);
 
     void DebuggerBreakCallback(const DebugContext& context);
 

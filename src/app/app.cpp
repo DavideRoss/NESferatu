@@ -357,7 +357,7 @@ void NESferatuApp::DrawUI()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open...", "Ctrl+O")) OpenROMFile();
+            if (ImGui::MenuItem("Open...", "Ctrl+O")) ShowOpenROMDialog();
             ImGui::Separator();
             if (ImGui::MenuItem("Exit")) running_ = false;
 
@@ -382,7 +382,7 @@ void NESferatuApp::ProcessShortcuts()
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O)) OpenROMFile();
+    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O)) ShowOpenROMDialog();
 
     if (ImGui::IsKeyPressed(ImGuiKey_F2)) RunEmulation();
     if (ImGui::IsKeyPressed(ImGuiKey_F3)) StepInstruction();
@@ -390,7 +390,7 @@ void NESferatuApp::ProcessShortcuts()
     if (ImGui::IsKeyPressed(ImGuiKey_F4)) ResetEmulation();
 }
 
-void NESferatuApp::OpenROMFile()
+void NESferatuApp::ShowOpenROMDialog()
 {
     nfdu8filteritem_t filters [] = { "NES ROM", "nes" };
 
@@ -404,13 +404,8 @@ void NESferatuApp::OpenROMFile()
 
     if (result == NFD_OKAY)
     {
-        cartridge_ = std::make_shared<Cartridge>(std::filesystem::path(out_path));
-        nes_->SlotCartridge(cartridge_);
+        OpenROM(std::filesystem::path(out_path));
         NFD_FreePathU8(out_path);
-
-        audio_->Reset();
-
-        toast_->Show("Cartridge loaded!", 5.0f);
     }
 }
 
@@ -454,6 +449,15 @@ void NESferatuApp::ResetEmulation()
     nes_->Reset();
     audio_->Reset();
 }
+
+void NESferatuApp::OpenROM(std::filesystem::path path)
+{
+    cartridge_ = std::make_shared<Cartridge>(path);
+    nes_->SlotCartridge(cartridge_);
+    audio_->Reset();
+    toast_->Show("Cartridge loaded!", 5.0f);
+}
+
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
 {
