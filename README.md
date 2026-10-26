@@ -3,7 +3,7 @@
 ## Core
 - [x] Implement 16 pixel mode for sprites
 - [x] APU
-- [ ] Save states
+- [x] Save states
 - [ ] Remove memory as separate entity and integrate into the CPU
 - [x] Use `NESFERATU_THROW` everywhere
 - [x] Tidy up stacktrace usage on throw
@@ -19,13 +19,14 @@
 - [ ] ImGui integration
     - [x] Load ROM from file
     - [x] Execution commands: start, stop, reset, step
-    - [ ] Volatite save states
+    - [x] Volatite save states
     - [ ] Export/import save states to file
 - [x] Reset audio buffer on reset/constructor
 
 ## Release
 - [x] Compilation setup for Windows
 - [ ] Setup CI build system to release
+- [ ] Move tasks somewhere else and write proper README
 
 ## Bugs
 - [ ] When dragging the SDL window, the emulator should pause, but it catches up on release.
@@ -33,3 +34,4 @@
 - [ ] Do not run audio processes if there's no cartridge loaded
 - [x] Loading a ROM while another ROM is running breaks the emulation
 - [ ] The stepping on the application is awful to see, to be refactored
+- [ ] It's not possible to disable sound
