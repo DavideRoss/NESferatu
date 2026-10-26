@@ -2,6 +2,9 @@
 
 #include "utils/exception.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 void Controllers::Reset()
 {
     strobe_ = false;
@@ -72,4 +75,26 @@ void Controllers::SetController1Status(u8 status)
 void Controllers::SetController2Status(u8 status)
 {
     ctrl2_status_ = status;
+}
+
+void Controllers::Serialize(Serializer &serializer)
+{
+    serializer.Write(strobe_);
+
+    serializer.Write(ctrl1_status_);
+    serializer.Write(ctrl2_status_);
+
+    serializer.Write(ctrl1_shifter_);
+    serializer.Write(ctrl2_shifter_);
+}
+
+void Controllers::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(strobe_);
+
+    deserializer.Read(ctrl1_status_);
+    deserializer.Read(ctrl2_status_);
+    
+    deserializer.Read(ctrl1_shifter_);
+    deserializer.Read(ctrl2_shifter_);
 }
