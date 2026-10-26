@@ -281,31 +281,6 @@ void NESferatuApp::HandleEvents()
         {
             request_screenshot_ = true;
         }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::Palette);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::FineX);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::PixelPresence);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_4)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::Nametable);
-        }
-
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_0)
-        {
-            nes_->ppu->SetDebugViewMode(DebugViewMode::None);
-        }
     }
 }
 
