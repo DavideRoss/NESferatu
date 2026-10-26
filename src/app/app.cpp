@@ -374,6 +374,25 @@ void NESferatuApp::DrawUI()
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Savestates"))
+        {
+            if (ImGui::MenuItem("Load Savestate 1", "1")) ReadSavestate(0);
+            if (ImGui::MenuItem("Load Savestate 2", "2")) ReadSavestate(1);
+            if (ImGui::MenuItem("Load Savestate 3", "3")) ReadSavestate(2);
+            if (ImGui::MenuItem("Load Savestate 4", "4")) ReadSavestate(3);
+            if (ImGui::MenuItem("Load Savestate 5", "5")) ReadSavestate(4);
+            
+            ImGui::Separator();
+            
+            if (ImGui::MenuItem("Save Savestate 1", "Ctrl+1")) WriteSavestate(0);
+            if (ImGui::MenuItem("Save Savestate 2", "Ctrl+2")) WriteSavestate(1);
+            if (ImGui::MenuItem("Save Savestate 3", "Ctrl+3")) WriteSavestate(2);
+            if (ImGui::MenuItem("Save Savestate 4", "Ctrl+4")) WriteSavestate(3);
+            if (ImGui::MenuItem("Save Savestate 5", "Ctrl+5")) WriteSavestate(4);
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -388,6 +407,13 @@ void NESferatuApp::ProcessShortcuts()
     if (ImGui::IsKeyPressed(ImGuiKey_F3)) StepInstruction();
     if (io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_F3)) StepFrame();
     if (ImGui::IsKeyPressed(ImGuiKey_F4)) ResetEmulation();
+
+    // Savestates
+    if (ImGui::IsKeyPressed(ImGuiKey_1)) io.KeyCtrl ? WriteSavestate(0) : ReadSavestate(0);
+    if (ImGui::IsKeyPressed(ImGuiKey_2)) io.KeyCtrl ? WriteSavestate(1) : ReadSavestate(1);
+    if (ImGui::IsKeyPressed(ImGuiKey_3)) io.KeyCtrl ? WriteSavestate(2) : ReadSavestate(2);
+    if (ImGui::IsKeyPressed(ImGuiKey_4)) io.KeyCtrl ? WriteSavestate(3) : ReadSavestate(3);
+    if (ImGui::IsKeyPressed(ImGuiKey_5)) io.KeyCtrl ? WriteSavestate(4) : ReadSavestate(4);
 }
 
 void NESferatuApp::ShowOpenROMDialog()
@@ -458,6 +484,17 @@ void NESferatuApp::OpenROM(std::filesystem::path path)
     toast_->Show("Cartridge loaded!", 5.0f);
 }
 
+void NESferatuApp::ReadSavestate(u32 index)
+{
+    nes_->ReadSavestate(savestates_[index]);
+    toast_->Show(std::format("Savestate {} loaded!", index + 1), 5.0f);
+}
+
+void NESferatuApp::WriteSavestate(u32 index)
+{
+    savestates_[index] = nes_->WriteSavestate();
+    toast_->Show(std::format("Savestate {} saved!", index + 1), 5.0f);
+}
 
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
 {
