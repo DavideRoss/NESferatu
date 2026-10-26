@@ -41,6 +41,9 @@ public:
     bool IsIRQRequested() const { return irq_requested_; }
     void ClearIRQRequest() { irq_requested_ = false; }
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     void ClockOutputUnit();
     void RestartSample();

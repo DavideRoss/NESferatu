@@ -19,6 +19,9 @@ public:
 
     u8 Output() const;
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     bool ctrl_flag_ = false;
 

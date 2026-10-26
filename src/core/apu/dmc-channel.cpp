@@ -1,5 +1,8 @@
 #include "dmc-channel.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 DMCChannel::DMCChannel(Timing timing)
     : timing_(timing)
 {
@@ -133,6 +136,56 @@ void DMCChannel::SetEnabled(bool enabled)
     {
         RestartSample();
     }
+}
+
+void DMCChannel::Serialize(Serializer &serializer)
+{
+    serializer.Write(timing_);
+    
+    serializer.Write(irq_enabled_);
+    serializer.Write(loop_);
+    serializer.Write(irq_requested_);
+    
+    serializer.Write(rate_index_);
+    serializer.Write(output_level_);
+    serializer.Write(sample_address_);
+    serializer.Write(sample_length_);
+    serializer.Write(current_address_);
+    serializer.Write(bytes_remaining_);
+    serializer.Write(sample_buffer_);
+    serializer.Write(sample_buffer_full_);
+    
+    serializer.Write(shift_register_);
+    serializer.Write(bits_remaining_);
+    serializer.Write(silence_);
+    
+    serializer.Write(timer_period_);
+    serializer.Write(timer_);
+}
+
+void DMCChannel::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(timing_);
+    
+    deserializer.Read(irq_enabled_);
+    deserializer.Read(loop_);
+    deserializer.Read(irq_requested_);
+    
+    deserializer.Read(rate_index_);
+    deserializer.Read(output_level_);
+    deserializer.Read(sample_address_);
+    deserializer.Read(sample_length_);
+    deserializer.Read(current_address_);
+    deserializer.Read(bytes_remaining_);
+    deserializer.Read(sample_buffer_);
+    deserializer.Read(sample_buffer_full_);
+    
+    deserializer.Read(shift_register_);
+    deserializer.Read(bits_remaining_);
+    deserializer.Read(silence_);
+    
+    deserializer.Read(timer_period_);
+    deserializer.Read(timer_);
 }
 
 void DMCChannel::ClockOutputUnit()

@@ -1,5 +1,8 @@
 #include "noise-channel.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 NoiseChannel::NoiseChannel()
 {
     Reset();
@@ -122,4 +125,34 @@ u8 NoiseChannel::Output() const
     }
 
     return constant_volume_ ? volume_ : envelope_decay_;
+}
+
+void NoiseChannel::Serialize(Serializer& serializer)
+{
+    serializer.Write(envelope_loop_);
+    serializer.Write(constant_volume_);
+    serializer.Write(envelope_start_);
+    serializer.Write(volume_);
+    serializer.Write(envelope_decay_);
+    serializer.Write(envelope_divider_);
+    
+    serializer.Write(timer_period_);
+    serializer.Write(timer_counter_);
+    serializer.Write(shift_register_);
+    serializer.Write(mode_);
+}
+
+void NoiseChannel::Deserialize(Deserializer& deserializer)
+{
+    deserializer.Read(envelope_loop_);
+    deserializer.Read(constant_volume_);
+    deserializer.Read(envelope_start_);
+    deserializer.Read(volume_);
+    deserializer.Read(envelope_decay_);
+    deserializer.Read(envelope_divider_);
+    
+    deserializer.Read(timer_period_);
+    deserializer.Read(timer_counter_);
+    deserializer.Read(shift_register_);
+    deserializer.Read(mode_);
 }

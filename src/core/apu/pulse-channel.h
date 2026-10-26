@@ -20,6 +20,9 @@ public:
     void StepTimer();
     
     u8 Output() const;
+
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
     
 private:
     void ClockSweep();
@@ -43,7 +46,6 @@ private:
     bool envelope_loop_ = false;
     bool envelope_start_ = false;
 
-    // TODO: review what is really needed
     u8 envelope_divider_ = 0;
     u8 envelope_decay_ = 0;
 

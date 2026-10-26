@@ -3,6 +3,9 @@
 #include "utils/log.h"
 #include "utils/exception.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 APU::APU()
     : pulse1_(true), pulse2_(false)
 {}
@@ -97,6 +100,48 @@ void APU::GenerateAudioSample()
             callback_(audio_user_data_, MixPulseChannels());
         }
     }
+}
+
+void APU::Serialize(Serializer &serializer)
+{
+    pulse1_.Serialize(serializer);
+    pulse2_.Serialize(serializer);
+    triangle_.Serialize(serializer);
+    noise_.Serialize(serializer);
+    dmc_.Serialize(serializer);
+
+    serializer.Write(frame_counter_);
+    serializer.Write(apu_cycle_);
+
+    serializer.Write(frame_irq_);
+    serializer.Write(frame_irq_inhibit_);
+    serializer.Write(frame_5step_);
+    
+    serializer.Write(frame_reset_pending_);
+    serializer.Write(frame_reset_delay_);
+    
+    serializer.Write(pulse_timer_phase_);
+}
+
+void APU::Deserialize(Deserializer &deserializer)
+{
+    pulse1_.Deserialize(deserializer);
+    pulse2_.Deserialize(deserializer);
+    triangle_.Deserialize(deserializer);
+    noise_.Deserialize(deserializer);
+    dmc_.Deserialize(deserializer);
+
+    deserializer.Read(frame_counter_);
+    deserializer.Read(apu_cycle_);
+
+    deserializer.Read(frame_irq_);
+    deserializer.Read(frame_irq_inhibit_);
+    deserializer.Read(frame_5step_);
+    
+    deserializer.Read(frame_reset_pending_);
+    deserializer.Read(frame_reset_delay_);
+    
+    deserializer.Read(pulse_timer_phase_);
 }
 
 void APU::StepFour()
