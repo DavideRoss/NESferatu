@@ -1,5 +1,8 @@
 #include "mapper-000.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 Mapper000::Mapper000(
     const CartridgeMetadata& metadata,
     std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
@@ -73,4 +76,20 @@ void Mapper000::PPUWrite(u16 address, u8 data)
     }
 
     // Otherwise is CHR ROM, writes are ignored
+}
+
+void Mapper000::Serialize(Serializer& serializer)
+{
+    serializer.Write(prg_ram_);
+    serializer.Write(prg_nvram_);
+    serializer.Write(chr_ram_);
+    serializer.Write(chr_nvram_);
+}
+
+void Mapper000::Deserialize(Deserializer& deserializer)
+{
+    deserializer.Read(prg_ram_);
+    deserializer.Read(prg_nvram_);
+    deserializer.Read(chr_ram_);
+    deserializer.Read(chr_nvram_);
 }

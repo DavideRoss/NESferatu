@@ -26,6 +26,9 @@ public:
 
     Mirroring GetMirroring() const;
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 public:
     CartridgeMetadata metadata;
 

@@ -11,6 +11,9 @@
 
 #include "utils/exception.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 #pragma region Macros
 
 #define DEFINE_MAPPER(index, class) \
@@ -95,6 +98,16 @@ void Cartridge::PPUWrite(u16 address, u8 data)
 Mirroring Cartridge::GetMirroring() const
 {
     return mapper_->GetMirroring();
+}
+
+void Cartridge::Serialize(Serializer &serializer)
+{
+    mapper_->Serialize(serializer);
+}
+
+void Cartridge::Deserialize(Deserializer &deserializer)
+{
+    mapper_->Deserialize(deserializer);
 }
 
 void Cartridge::LoadMetadata()

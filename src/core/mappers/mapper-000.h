@@ -21,6 +21,9 @@ public:
 
     Mirroring GetMirroring() const override { return mirroring_; }
 
+    void Serialize(class Serializer& serializer) override;
+    void Deserialize(class Deserializer& deserializer) override;
+
 private:
     Mirroring mirroring_;
 };

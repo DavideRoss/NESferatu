@@ -21,6 +21,9 @@ public:
 
     Mirroring GetMirroring() const override { return mirroring_; }
 
+    void Serialize(class Serializer& serializer) override;
+    void Deserialize(class Deserializer& deserializer) override;
+
 private:
     Mirroring mirroring_;
     u8 chr_bank_ = 0x00;

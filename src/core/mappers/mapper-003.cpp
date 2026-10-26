@@ -1,5 +1,8 @@
 #include "mapper-003.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 Mapper003::Mapper003(
     const CartridgeMetadata& metadata,
     std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
@@ -76,4 +79,24 @@ void Mapper003::CPUWrite(u16 address, u8 data)
 void Mapper003::PPUWrite(u16 address, u8 data)
 {
     NESFERATU_THROW("Not implemented");
+}
+
+void Mapper003::Serialize(Serializer &serializer)
+{
+    serializer.Write(prg_ram_);
+    serializer.Write(prg_nvram_);
+    serializer.Write(chr_ram_);
+    serializer.Write(chr_nvram_);
+
+    serializer.Write(chr_bank_);
+}
+
+void Mapper003::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(prg_ram_);
+    deserializer.Read(prg_nvram_);
+    deserializer.Read(chr_ram_);
+    deserializer.Read(chr_nvram_);
+
+    deserializer.Read(chr_bank_);
 }

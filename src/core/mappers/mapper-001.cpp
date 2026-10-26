@@ -1,5 +1,8 @@
 #include "mapper-001.h"
 
+#include "savestates/serializer.h"
+#include "savestates/deserializer.h"
+
 Mapper001::Mapper001(
     const CartridgeMetadata& metadata,
     std::span<const u8> prg_rom, std::span<u8> prg_ram, std::span<u8> prg_nvram,
@@ -110,6 +113,34 @@ Mirroring Mapper001::GetMirroring() const
     }
 
     NESFERATU_THROW("Invalid mirroring mode");
+}
+
+void Mapper001::Serialize(Serializer &serializer)
+{
+    serializer.Write(prg_ram_);
+    serializer.Write(prg_nvram_);
+    serializer.Write(chr_ram_);
+    serializer.Write(chr_nvram_);
+
+    serializer.Write(shifter_);
+    serializer.Write(control_);
+    serializer.Write(prg_bank_);
+    serializer.Write(chr_bank_0_);
+    serializer.Write(chr_bank_1_);
+}
+
+void Mapper001::Deserialize(Deserializer &deserializer)
+{
+    deserializer.Read(prg_ram_);
+    deserializer.Read(prg_nvram_);
+    deserializer.Read(chr_ram_);
+    deserializer.Read(chr_nvram_);
+
+    deserializer.Read(shifter_);
+    deserializer.Read(control_);
+    deserializer.Read(prg_bank_);
+    deserializer.Read(chr_bank_0_);
+    deserializer.Read(chr_bank_1_);
 }
 
 size_t Mapper001::GetPRGOffset(u16 address) const
