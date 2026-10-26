@@ -48,6 +48,9 @@ public:
     Mirroring GetCartridgeMirroring() const;
     bool IsCartridgeIRQRequested() const;
 
+    void Serialize(class Serializer& serializer);
+    void Deserialize(class Deserializer& deserializer);
+
 private:
     CPU& cpu_;
     Memory& memory_;
