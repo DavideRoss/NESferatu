@@ -8,14 +8,14 @@ TEST(RTI, ReturnFromInterrupt)
     nes->cpu->pc = 0x0000;
     nes->cpu->sp = 0xFC;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::RTI_IMP
     });
 
     // Stack
-    nes->mem->Write(0x01FD, 0xa2);
-    nes->mem->Write(0x01FE, 0x23);
-    nes->mem->Write(0x01FF, 0x01);
+    nes->cpu->WriteByte(0x01FD, 0xa2);
+    nes->cpu->WriteByte(0x01FE, 0x23);
+    nes->cpu->WriteByte(0x01FF, 0x01);
 
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 6);

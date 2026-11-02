@@ -8,7 +8,7 @@ TEST(ROL, LeftRotateAccumulator)
 
     nes->cpu->a = 0x21;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ACC
     });
@@ -25,7 +25,7 @@ TEST(ROL, AcccumulatorGetCarryFlag)
     nes->cpu->a = 0x42;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ACC
     });
@@ -41,7 +41,7 @@ TEST(ROL, AcccumulatorSetCarryFlag)
 
     nes->cpu->a = 0x80;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ACC
     });
@@ -58,7 +58,7 @@ TEST(ROL, AcccumulatorSetZeroFlag)
 
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ACC
     });
@@ -75,7 +75,7 @@ TEST(ROL, AcccumulatorSetNegativeFlag)
 
     nes->cpu->a = 0x40;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ACC
     });
@@ -90,15 +90,15 @@ TEST(ROL, LeftRotateZeropage)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x21);
+    nes->cpu->WriteByte(0x0020, 0x21);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x42);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x42);
 }
 
 TEST(ROL, ZeroPageGetCarryFlag)
@@ -108,15 +108,15 @@ TEST(ROL, ZeroPageGetCarryFlag)
 
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x42);
+    nes->cpu->WriteByte(0x0020, 0x42);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x85);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x85);
 }
 
 TEST(ROL, ZeroPageSetCarryFlag)
@@ -124,15 +124,15 @@ TEST(ROL, ZeroPageSetCarryFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x80);
+    nes->cpu->WriteByte(0x0020, 0x80);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x00);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x00);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::C));
 }
 
@@ -141,15 +141,15 @@ TEST(ROL, ZeroPageSetZeroFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x00);
+    nes->cpu->WriteByte(0x0020, 0x00);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x00);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x00);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::Z));
 }
 
@@ -158,15 +158,15 @@ TEST(ROL, ZeroPageSetNegativeFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ROL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x40);
+    nes->cpu->WriteByte(0x0020, 0x40);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x80);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x80);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::N));
 }
 

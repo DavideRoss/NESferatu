@@ -11,7 +11,7 @@ TEST(CPY, SetZeroFlag)
 
     nes->cpu->y = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPY_IM, 0x42
     });
 
@@ -27,7 +27,7 @@ TEST(CPY, SetCarryFlag)
 
     nes->cpu->y = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPY_IM, 0x40
     });
 
@@ -42,7 +42,7 @@ TEST(CPY, SetNegativeFlag)
 
     nes->cpu->y = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPY_IM, 0x01
     });
 

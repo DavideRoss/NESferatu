@@ -10,10 +10,10 @@ TEST(BIT, SetZeroFlag)
 
     nes->cpu->a = 0x0f;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BIT_ZP, 0x10
     });
-    nes->mem->Write(0x0010, 0xf0);
+    nes->cpu->WriteByte(0x0010, 0xf0);
 
     nes->cpu->Step();
     EXPECT_EQ(nes->cpu->a, 0x0f);
@@ -25,10 +25,10 @@ TEST(BIT, SetNegativeFlag)
     System *nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BIT_ZP, 0x10
     });
-    nes->mem->Write(0x0010, 0x80);
+    nes->cpu->WriteByte(0x0010, 0x80);
     
     nes->cpu->Step();
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::N));
@@ -40,10 +40,10 @@ TEST(BIT, SetOverflowFlag)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::Z, true);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BIT_ZP, 0x10
     });
-    nes->mem->Write(0x0010, 0x40);
+    nes->cpu->WriteByte(0x0010, 0x40);
     
     nes->cpu->Step();
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::V));

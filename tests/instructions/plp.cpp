@@ -8,7 +8,7 @@ TEST(PLP, PullProcessorStatus)
     nes->cpu->pc = 0x0000;
     nes->cpu->sp = 0xFE;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PLP_IMP
     });
 
@@ -18,7 +18,7 @@ TEST(PLP, PullProcessorStatus)
         StatusFlag::D |
         StatusFlag::C;
 
-    nes->mem->Write(0x01ff, status);
+    nes->cpu->WriteByte(0x01ff, status);
 
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 4);

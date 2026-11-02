@@ -10,7 +10,7 @@ TEST(ASL, LeftShiftAccumulator)
 
     nes->cpu->a = 0x21;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ACC
     });
@@ -26,7 +26,7 @@ TEST(ASL, AcccumulatorSetCarryFlag)
 
     nes->cpu->a = 0x80;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ACC
     });
@@ -43,7 +43,7 @@ TEST(ASL, AcccumulatorSetZeroFlag)
 
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ACC
     });
@@ -60,7 +60,7 @@ TEST(ASL, AcccumulatorSetNegativeFlag)
 
     nes->cpu->a = 0x40;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ACC
     });
@@ -75,15 +75,15 @@ TEST(ASL, LeftShiftZeroPage)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x21);
+    nes->cpu->WriteByte(0x0020, 0x21);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x42);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x42);
 }
 
 TEST(ASL, ZeroPageSetCarryFlag)
@@ -91,15 +91,15 @@ TEST(ASL, ZeroPageSetCarryFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x80);
+    nes->cpu->WriteByte(0x0020, 0x80);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x00);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x00);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::C));
 }
 
@@ -108,15 +108,15 @@ TEST(ASL, ZeroPageSetZeroFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x00);
+    nes->cpu->WriteByte(0x0020, 0x00);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x00);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x00);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::Z));
 }
 
@@ -125,15 +125,15 @@ TEST(ASL, ZeroPageSetNegativeFlag)
     System* nes = TestUtils::CreateTestSystem();
     nes->cpu->pc = 0x0000;
 
-    nes->mem->WriteSeq(0x0000, 
+    nes->cpu->WriteSpan(0x0000, 
     {
         Opcodes::ASL_ZP, 0x20
     });
 
-    nes->mem->Write(0x0020, 0x40);
+    nes->cpu->WriteByte(0x0020, 0x40);
 
     nes->cpu->Step();
-    EXPECT_EQ(nes->mem->Read(0x0020), 0x80);
+    EXPECT_EQ(nes->cpu->CPURead(0x0020), 0x80);
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::N));
 }
 

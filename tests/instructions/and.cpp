@@ -10,7 +10,7 @@ TEST(AND, SetZeroFlag)
 
     nes->cpu->a = 0xf0;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::AND_IM, 0x0f
     });
 
@@ -29,7 +29,7 @@ TEST(AND, SetNegativeFlag)
 
     nes->cpu->a = 0xcc;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::AND_IM, 0xaa
     });
 

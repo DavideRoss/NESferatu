@@ -10,7 +10,7 @@ TEST(INY, BasicYIncrement)
 
     nes->cpu->y = 0x42;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INY_IMP,
     });
@@ -26,7 +26,7 @@ TEST(INY, SetZeroFlag)
 
     nes->cpu->y = 0xff;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INY_IMP
     });
@@ -43,7 +43,7 @@ TEST(INY, SetNegativeFlag)
 
     nes->cpu->y = 0x7f;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INY_IMP
     });

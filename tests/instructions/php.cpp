@@ -9,7 +9,7 @@ TEST(PHP, PushProcessorStatus)
     nes->cpu->sp = 0xFF;
     nes->cpu->s = StatusFlag::U;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PHP_IMP
     });
 
@@ -20,7 +20,7 @@ TEST(PHP, PushProcessorStatus)
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 3);
 
-    const u8 status = nes->mem->Read(0x01ff);
+    const u8 status = nes->cpu->CPURead(0x01ff);
     EXPECT_TRUE(status & StatusFlag::N);
     EXPECT_FALSE(status & StatusFlag::Z);
     EXPECT_FALSE(status & StatusFlag::C);

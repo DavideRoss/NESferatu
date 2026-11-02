@@ -10,7 +10,7 @@ TEST(EOR, SetZeroFlag)
 
     nes->cpu->a = 0xff;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::EOR_IM, 0xff
     });
 
@@ -25,7 +25,7 @@ TEST(EOR, SetNegativeFlag)
 
     nes->cpu->a = 0x0f;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::EOR_IM, 0xf0
     });
 

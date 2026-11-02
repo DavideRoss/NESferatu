@@ -8,7 +8,7 @@ TEST(BMI, BranchTaken)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::N, true);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BMI_REL, 0x02
     });
 
@@ -24,7 +24,7 @@ TEST(BMI, BranchNotTaken)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::N, false);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BMI_REL, 0x02
     });
 
@@ -40,7 +40,7 @@ TEST(BMI, BranchBackward)
     nes->cpu->pc = 0x0102;
     nes->cpu->SetFlag(StatusFlag::N, true);
 
-    nes->mem->WriteSeq(0x0102, {
+    nes->cpu->WriteSpan(0x0102, {
         Opcodes::BMI_REL, 0xfe
     });
 
@@ -56,7 +56,7 @@ TEST(BMI, BranchPageCrossing)
     nes->cpu->pc = 0x00fd;
     nes->cpu->SetFlag(StatusFlag::N, true);
 
-    nes->mem->WriteSeq(0x00fd, {
+    nes->cpu->WriteSpan(0x00fd, {
         Opcodes::BMI_REL, 0x02
     });
 

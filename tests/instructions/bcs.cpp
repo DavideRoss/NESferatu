@@ -8,7 +8,7 @@ TEST(BCS, BranchTaken)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BCS_REL, 0x02
     });
 
@@ -24,7 +24,7 @@ TEST(BCS, BranchNotTaken)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::C, false);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::BCS_REL, 0x02
     });
 
@@ -40,7 +40,7 @@ TEST(BCS, BranchBackward)
     nes->cpu->pc = 0x0102;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0102, {
+    nes->cpu->WriteSpan(0x0102, {
         Opcodes::BCS_REL, 0xfe
     });
 
@@ -56,7 +56,7 @@ TEST(BCS, BranchPageCrossing)
     nes->cpu->pc = 0x00fd;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x00fd, {
+    nes->cpu->WriteSpan(0x00fd, {
         Opcodes::BCS_REL, 0x02
     });
 

@@ -10,7 +10,7 @@ TEST(CMP, SetZeroFlag)
 
     nes->cpu->a = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CMP_IM, 0x42
     });
 
@@ -26,7 +26,7 @@ TEST(CMP, SetCarryFlag)
 
     nes->cpu->a = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CMP_IM, 0x40
     });
 
@@ -41,7 +41,7 @@ TEST(CMP, SetNegativeFlag)
 
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CMP_IM, 0x01
     });
 

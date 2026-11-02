@@ -9,7 +9,7 @@ TEST(TXS, TransferXToStackPointer)
     nes->cpu->x = 0x42;
     nes->cpu->sp = 0xff;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::TXS_IMP
     });
 

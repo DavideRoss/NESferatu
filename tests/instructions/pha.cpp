@@ -9,11 +9,11 @@ TEST(PHA, PushAccumulator)
     nes->cpu->sp = 0xff;
     nes->cpu->a = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PHA_IMP
     });
 
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 3);
-    EXPECT_EQ(nes->mem->Read(0x01ff), 0x42);
+    EXPECT_EQ(nes->cpu->CPURead(0x01ff), 0x42);
 }

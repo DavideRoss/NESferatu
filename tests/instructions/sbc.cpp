@@ -11,7 +11,7 @@ TEST(SBC, BasicSubtraction)
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x20
     });
@@ -28,7 +28,7 @@ TEST(SBC, WithBorrow)
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, false);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x20
     });
@@ -45,7 +45,7 @@ TEST(SBC, NoBorrowSetCarryFlag)
     nes->cpu->a = 0x50;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x20
     });
@@ -62,7 +62,7 @@ TEST(SBC, BorrowClearCarryFlag)
     nes->cpu->a = 0x20;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x30
     });
@@ -80,7 +80,7 @@ TEST(SBC, SetZeroFlag)
     nes->cpu->a = 0x42;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x42
     });
@@ -97,7 +97,7 @@ TEST(SBC, SetNegativeFlag)
     nes->cpu->a = 0x20;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x30
     });
@@ -114,7 +114,7 @@ TEST(SBC, SetOverflowFlag)
     nes->cpu->a = 0x7f;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0xff
     });
@@ -131,7 +131,7 @@ TEST(SBC, SetNegativeOverflowFlag)
     nes->cpu->a = 0x80;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::SBC_IM, 0x01
     });

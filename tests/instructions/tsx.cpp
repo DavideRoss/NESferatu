@@ -8,7 +8,7 @@ TEST(TSX, TransferStackPointerToX)
     nes->cpu->pc = 0x0000;
     nes->cpu->sp = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::TSX_IMP
     });
 
@@ -23,7 +23,7 @@ TEST(TSX, SetZeroFlag)
     nes->cpu->pc = 0x0000;
     nes->cpu->sp = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::TSX_IMP
     });
 
@@ -37,7 +37,7 @@ TEST(TSX, SetNegativeFlag)
     nes->cpu->pc = 0x0000;
     nes->cpu->sp = 0x80;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::TSX_IMP
     });
 
