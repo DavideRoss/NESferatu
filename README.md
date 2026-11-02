@@ -4,7 +4,7 @@
 - [x] Implement 16 pixel mode for sprites
 - [x] APU
 - [x] Save states
-- [ ] Remove memory as separate entity and integrate into the CPU
+- [x] Remove memory as separate entity and integrate into the CPU
 - [x] Use `NESFERATU_THROW` everywhere
 - [x] Tidy up stacktrace usage on throw
 - [x] Implement proper reset option
@@ -12,6 +12,7 @@
 - [ ] Debug: CPU/PPU/APU do not expose internal registers, but return a state object
 - [ ] Proper logging: system is responsible
 - [ ] Implement extra mappers
+- [ ] Put everything under a namespace
 
 ## App
 - [x] Proper frame timing
@@ -25,8 +26,12 @@
 
 ## Release
 - [x] Compilation setup for Windows
+- [ ] Integrate `iwyu`
+- [ ] Mode DLLs to a single statically-compile executable file
+- [ ] Integrate `cpack` for releasing
 - [ ] Setup CI build system to release
 - [ ] Move tasks somewhere else and write proper README
+- [ ] Add LICENSE
 
 ## Bugs
 - [ ] When dragging the SDL window, the emulator should pause, but it catches up on release.
