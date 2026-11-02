@@ -54,11 +54,10 @@ u8 Bus::CPURead(u16 address)
 
     switch (address)
     {
-        // Internal RAM and mirrors
+        // CPU RAM and mirrors
         case 0x000 ... 0x1fff:
         {
-            u16 unmirrored_address = address & 0x07ff;
-            return memory_.Read(unmirrored_address);
+            return cpu_.CPURead(address);
         }
 
         // PPU registers + mirrors
@@ -114,11 +113,10 @@ void Bus::CPUWrite(u16 address, u8 data)
 
     switch (address)
     {
-        // Internal RAM and mirrors
+        // CPU RAM and mirrors
         case 0x000 ... 0x1fff:
         {
-            u16 unmirrored_address = address & 0x07ff;
-            memory_.Write(unmirrored_address, data);
+            cpu_.CPUWrite(address, data);
         }; break;
 
         // PPU registers + mirrors
