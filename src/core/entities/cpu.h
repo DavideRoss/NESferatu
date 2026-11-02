@@ -321,6 +321,10 @@ public:
     
     u8 FetchByte();
 
+    // TODO: debug function for tests, move it inside a define
+    void WriteByte(u16 address, u8 data);
+    void WriteSpan(u16 address, std::initializer_list<u8> data);
+
     u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
 

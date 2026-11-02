@@ -412,6 +412,21 @@ u8 CPU::FetchByte()
     return data;
 }
 
+void CPU::WriteByte(u16 address, u8 data)
+{
+    u16 unmirrored_address = address & 0x07ff;
+    memory_[unmirrored_address] = data;
+}
+
+void CPU::WriteSpan(u16 address, std::initializer_list<u8> data)
+{
+    u16 unmirrored_address = address & 0x07ff;
+    for (u8 val : data)
+    {
+        memory_[unmirrored_address++] = val;
+    }
+}
+
 u8 CPU::GetFlag(StatusFlag flag)
 {
     return ((s & flag) > 0) ? 0x1 : 0x0;
