@@ -409,7 +409,6 @@ u8 CPU::FetchByte()
 {
     const u8 data = CPURead(pc);
     pc++;
-    cycles_++;
     return data;
 }
 
@@ -427,14 +426,12 @@ void CPU::PushToStack(const u8 data)
 {
     bus_->CPUWrite(0x0100 | sp, data);
     --sp;
-    cycles_++;
 }
 
 u8 CPU::PullFromStack()
 {
     ++sp;
     const u8 data = bus_->CPURead(0x0100 | sp);
-    cycles_++;
     return data;
 }
 
