@@ -31,6 +31,8 @@ void CPU::Reset()
     irq_pending_ = false;
     nmi_pending_ = false;
 
+    std::fill(memory_.begin(), memory_.end(), 0x00);
+
     // Read reset vector
     if (bus_->IsCartridgeSlotted())
     {
