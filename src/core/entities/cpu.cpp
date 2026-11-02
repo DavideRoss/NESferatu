@@ -405,11 +405,6 @@ void CPU::CPUWrite(u16 address, u8 data)
     cycles_++;
 }
 
-u8 CPU::PeekByte()
-{
-    return CPURead(pc);
-}
-
 u8 CPU::FetchByte()
 {
     const u8 data = CPURead(pc);

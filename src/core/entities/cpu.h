@@ -319,7 +319,6 @@ public:
     u8 CPURead(u16 address);
     void CPUWrite(u16 address, u8 data);
     
-    u8 PeekByte();
     u8 FetchByte();
 
     u8 GetFlag(StatusFlag flag);
