@@ -10,7 +10,7 @@ TEST(INX, BasicXIncrement)
 
     nes->cpu->x = 0x42;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INX_IMP,
     });
@@ -26,7 +26,7 @@ TEST(INX, SetZeroFlag)
 
     nes->cpu->x = 0xff;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INX_IMP
     });
@@ -43,7 +43,7 @@ TEST(INX, SetNegativeFlag)
 
     nes->cpu->x = 0x7f;
 
-    nes->mem->WriteSeq(0x0000,
+    nes->cpu->WriteSpan(0x0000,
     {
         Opcodes::INX_IMP
     });

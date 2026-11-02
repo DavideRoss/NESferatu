@@ -11,7 +11,7 @@ TEST(CPX, SetZeroFlag)
 
     nes->cpu->x = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPX_IM, 0x42
     });
 
@@ -27,7 +27,7 @@ TEST(CPX, SetCarryFlag)
 
     nes->cpu->x = 0x42;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPX_IM, 0x40
     });
 
@@ -42,7 +42,7 @@ TEST(CPX, SetNegativeFlag)
 
     nes->cpu->x = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::CPX_IM, 0x01
     });
 

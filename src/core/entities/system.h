@@ -4,7 +4,6 @@
 #include "bus.h"
 #include "controllers.h"
 #include "cpu.h"
-#include "memory.h"
 #include "ppu.h"
 
 #include "debugger/debugger.h"
@@ -36,7 +35,6 @@ private:
 public:
     std::unique_ptr<Bus> bus;
     std::unique_ptr<CPU> cpu;
-    std::unique_ptr<Memory> mem;
     std::unique_ptr<PPU> ppu;
     std::unique_ptr<APU> apu;
     std::unique_ptr<Controllers> controllers;

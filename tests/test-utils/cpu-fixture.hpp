@@ -17,7 +17,7 @@ protected:
 
     void Load(u16 start_address, std::initializer_list<u8> data)
     {
-        nes->mem->WriteSeq(start_address, data);
+        nes->cpu->WriteSpan(start_address, data);
     }
 
     u32 Step()

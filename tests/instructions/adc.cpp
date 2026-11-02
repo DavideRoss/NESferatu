@@ -11,7 +11,7 @@ TEST(ADC, SetZeroFlag)
 
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0x00
     });
 
@@ -31,7 +31,7 @@ TEST(ADC, SetCarryOutFlag)
 
     nes->cpu->a = 0xff;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0x01
     });
 
@@ -52,7 +52,7 @@ TEST(ADC, UsesCarryInFlag)
     nes->cpu->a = 0x10;
     nes->cpu->SetFlag(StatusFlag::C, true);
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0x20
     });
 
@@ -68,7 +68,7 @@ TEST(ADC, SetNegativeFlag)
 
     nes->cpu->a = 0x40;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0x40
     });
 
@@ -86,7 +86,7 @@ TEST(ADC, SetOverflowFlag)
 
     nes->cpu->a = 0x7f;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0x01
     });
 
@@ -106,7 +106,7 @@ TEST(ADC, SetOverflowFlagForNegative)
 
     nes->cpu->a = 0x80;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ADC_IM, 0xff
     });
 

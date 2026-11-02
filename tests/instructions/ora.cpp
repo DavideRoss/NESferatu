@@ -11,7 +11,7 @@ TEST(ORA, SetZeroFlag)
 
     nes->cpu->a = 0xf0;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ORA_IM, 0x0f
     });
 
@@ -27,7 +27,7 @@ TEST(ORA, SetNegativeFlag)
 
     nes->cpu->a = 0x0f;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::ORA_IM, 0xf0
     });
 

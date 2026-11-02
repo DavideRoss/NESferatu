@@ -4,7 +4,6 @@
 #include "cartridge.h"
 #include "controllers.h"
 #include "cpu.h"
-#include "memory.h"
 #include "ppu.h"
 
 #include "debugger/debuggable.h"
@@ -25,7 +24,6 @@ class Bus : public Debuggable
 public:
     Bus(
         CPU& cpu,
-        Memory& memory,
         PPU& ppu,
         APU& apu,
         Controllers& controllers
@@ -53,7 +51,6 @@ public:
 
 private:
     CPU& cpu_;
-    Memory& memory_;
     PPU& ppu_;
     APU& apu_;
     Controllers& controllers_;

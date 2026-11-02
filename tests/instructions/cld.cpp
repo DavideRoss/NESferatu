@@ -8,7 +8,7 @@ TEST(CLD, ClearDecimalModeFlag)
     nes->cpu->pc = 0x0000;
     nes->cpu->SetFlag(StatusFlag::D, true);
 
-    nes->mem->Write(0x0000, Opcodes::CLD_IMP);
+    nes->cpu->WriteByte(0x0000, Opcodes::CLD_IMP);
 
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 2);

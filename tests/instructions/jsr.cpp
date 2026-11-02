@@ -8,7 +8,7 @@ TEST(JSR, JumpToSubroutine)
     nes->cpu->pc = 0x0123;
     nes->cpu->sp = 0xff;
 
-    nes->mem->WriteSeq(0x0123, {
+    nes->cpu->WriteSpan(0x0123, {
         Opcodes::JSR_ABS, 0x34, 0x12
     });
 
@@ -18,6 +18,6 @@ TEST(JSR, JumpToSubroutine)
     EXPECT_EQ(nes->cpu->sp, 0xfd);
 
     // Check stack
-    EXPECT_EQ(nes->mem->Read(0x01ff), 0x01);
-    EXPECT_EQ(nes->mem->Read(0x01fe), 0x25);
+    EXPECT_EQ(nes->cpu->CPURead(0x01ff), 0x01);
+    EXPECT_EQ(nes->cpu->CPURead(0x01fe), 0x25);
 }

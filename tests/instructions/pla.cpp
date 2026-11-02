@@ -9,11 +9,11 @@ TEST(PLA, PullAccumulator)
     nes->cpu->sp = 0xfe;
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PLA_IMP
     });
 
-    nes->mem->Write(0x01ff, 0x42);
+    nes->cpu->WriteByte(0x01ff, 0x42);
 
     const u32 cycles = nes->cpu->Step();
     EXPECT_EQ(cycles, 4);
@@ -27,11 +27,11 @@ TEST(PLA, SetZeroFlag)
     nes->cpu->sp = 0xfe;
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PLA_IMP
     });
 
-    nes->mem->Write(0x01ff, 0x00);
+    nes->cpu->WriteByte(0x01ff, 0x00);
 
     nes->cpu->Step();
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::Z));
@@ -44,11 +44,11 @@ TEST(PLA, SetNegativeFlag)
     nes->cpu->sp = 0xfe;
     nes->cpu->a = 0x00;
 
-    nes->mem->WriteSeq(0x0000, {
+    nes->cpu->WriteSpan(0x0000, {
         Opcodes::PLA_IMP
     });
 
-    nes->mem->Write(0x01ff, 0x82);
+    nes->cpu->WriteByte(0x01ff, 0x82);
 
     nes->cpu->Step();
     EXPECT_TRUE(nes->cpu->GetFlag(StatusFlag::N));

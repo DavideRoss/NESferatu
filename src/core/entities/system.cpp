@@ -6,14 +6,12 @@
 System::System()
 {
     cpu = std::make_unique<CPU>();
-    mem = std::make_unique<Memory>();
     ppu = std::make_unique<PPU>();
     apu = std::make_unique<APU>();
     controllers = std::make_unique<Controllers>();
     
     bus = std::make_unique<Bus>(
         *cpu,
-        *mem,
         *ppu,
         *apu,
         *controllers
@@ -41,7 +39,6 @@ void System::Reset()
 {
     bus->Reset();
     cpu->Reset();
-    mem->Reset();
     ppu->Reset();
     apu->Reset();
     controllers->Reset();
@@ -144,7 +141,6 @@ std::vector<std::byte> System::WriteSavestate()
 
     bus->Serialize(s);
     cpu->Serialize(s);
-    mem->Serialize(s);
     ppu->Serialize(s);
     apu->Serialize(s);
     controllers->Serialize(s);
@@ -158,7 +154,6 @@ void System::ReadSavestate(std::span<const std::byte> data)
     
     bus->Deserialize(d);
     cpu->Deserialize(d);
-    mem->Deserialize(d);
     ppu->Deserialize(d);
     apu->Deserialize(d);
     controllers->Deserialize(d);

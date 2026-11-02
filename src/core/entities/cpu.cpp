@@ -31,11 +31,13 @@ void CPU::Reset()
     irq_pending_ = false;
     nmi_pending_ = false;
 
+    std::fill(memory_.begin(), memory_.end(), 0x00);
+
     // Read reset vector
     if (bus_->IsCartridgeSlotted())
     {
-        u8 reset_low = ReadByte(0xfffc);
-        u8 reset_high = ReadByte(0xfffd);
+        u8 reset_low = CPURead(0xfffc);
+        u8 reset_high = CPURead(0xfffd);
         pc = (reset_high << 8) | reset_low;   
     }
     else
@@ -58,7 +60,7 @@ u32 CPU::Step()
 
         SetFlag(StatusFlag::I, true);
 
-        pc = static_cast<u16>((ReadByte(0xfffb) << 8) | ReadByte(0xfffa));
+        pc = static_cast<u16>((CPURead(0xfffb) << 8) | CPURead(0xfffa));
         cycles_ += 2;
 
         total_cycles += cycles_;
@@ -75,7 +77,7 @@ u32 CPU::Step()
 
         SetFlag(StatusFlag::I, true);
 
-        pc = static_cast<u16>((ReadByte(0xffff) << 8) | ReadByte(0xfffe));
+        pc = static_cast<u16>((CPURead(0xffff) << 8) | CPURead(0xfffe));
         cycles_ += 2;
 
         total_cycles += cycles_;
@@ -370,30 +372,61 @@ u32 CPU::Step()
     return cycles_;
 }
 
-u8 CPU::PeekByte()
+u8 CPU::CPURead(u16 address)
 {
-    return bus_->CPURead(pc);
-}
+    u8 data;
 
-u8 CPU::FetchByte()
-{
-    const u8 data = bus_->CPURead(pc);
-    pc++;
+    // Internal memory address
+    if (address <= 0x1fff)
+    {
+        u16 unmirrored_address = address & 0x07ff;
+        data = memory_[unmirrored_address];
+    }
+    else
+    {
+        data = bus_->CPURead(address);
+    }
+
     cycles_++;
     return data;
 }
 
-u8 CPU::ReadByte(u16 address)
+void CPU::CPUWrite(u16 address, u8 data)
 {
-    const u8 data = bus_->CPURead(address);
+    // Internal memory address
+    if (address <= 0x1fff)
+    {
+        u16 unmirrored_address = address & 0x07ff;
+        memory_[unmirrored_address] = data;
+    }
+    else
+    {
+        bus_->CPUWrite(address, data);
+    }
+
     cycles_++;
+}
+
+u8 CPU::FetchByte()
+{
+    const u8 data = CPURead(pc);
+    pc++;
     return data;
 }
 
 void CPU::WriteByte(u16 address, u8 data)
 {
-    bus_->CPUWrite(address, data);
-    cycles_++;
+    u16 unmirrored_address = address & 0x07ff;
+    memory_[unmirrored_address] = data;
+}
+
+void CPU::WriteSpan(u16 address, std::initializer_list<u8> data)
+{
+    u16 unmirrored_address = address & 0x07ff;
+    for (u8 val : data)
+    {
+        memory_[unmirrored_address++] = val;
+    }
 }
 
 u8 CPU::GetFlag(StatusFlag flag)
@@ -410,14 +443,12 @@ void CPU::PushToStack(const u8 data)
 {
     bus_->CPUWrite(0x0100 | sp, data);
     --sp;
-    cycles_++;
 }
 
 u8 CPU::PullFromStack()
 {
     ++sp;
     const u8 data = bus_->CPURead(0x0100 | sp);
-    cycles_++;
     return data;
 }
 
@@ -432,6 +463,8 @@ void CPU::Serialize(Serializer& serializer)
 
     serializer.Write(total_cycles);
     serializer.Write(cycles_);
+
+    serializer.Write(memory_);
 
     serializer.Write(irq_pending_);
     serializer.Write(nmi_pending_);
@@ -448,6 +481,8 @@ void CPU::Deserialize(Deserializer &deserializer)
     
     deserializer.Read(total_cycles);
     deserializer.Read(cycles_);
+
+    deserializer.Read(memory_);
 
     deserializer.Read(irq_pending_);
     deserializer.Read(nmi_pending_);
@@ -517,7 +552,7 @@ DEFINE_ADDRESSING_MODE(AbsoluteX)
     if (page_crossed)
     {
         const u16 dummy_address = (base & 0xff00) | (addr & 0x00ff);
-        cpu.ReadByte(dummy_address);
+        cpu.CPURead(dummy_address);
     }
 
     return addr;
@@ -535,7 +570,7 @@ DEFINE_ADDRESSING_MODE(AbsoluteY)
     if (page_crossed)
     {
         const u16 dummy_address = (base & 0xff00) | (addr & 0x00ff);
-        cpu.ReadByte(dummy_address);
+        cpu.CPURead(dummy_address);
     }
 
     return addr;
@@ -548,8 +583,8 @@ DEFINE_ADDRESSING_MODE(Indirect)
     const u8 target_high = cpu.FetchByte();
     const u16 target = static_cast<u16>((target_high << 8) | target_low);
 
-    const u8 addr_low = cpu.ReadByte(target);
-    const u8 addr_high = cpu.ReadByte((target & 0xff00) | ((target + 1) & 0x00ff));
+    const u8 addr_low = cpu.CPURead(target);
+    const u8 addr_high = cpu.CPURead((target & 0xff00) | ((target + 1) & 0x00ff));
 
     return static_cast<u16>((addr_high << 8) | addr_low);
 }
@@ -557,8 +592,8 @@ DEFINE_ADDRESSING_MODE(Indirect)
 DEFINE_ADDRESSING_MODE(IndirectX)
 {
     const u16 zero_page = cpu.FetchByte();
-    const u16 addr_low = cpu.ReadByte((zero_page + cpu.x) & 0x00ff);
-    const u16 addr_high = cpu.ReadByte((zero_page + cpu.x + 1) & 0x00ff);
+    const u16 addr_low = cpu.CPURead((zero_page + cpu.x) & 0x00ff);
+    const u16 addr_high = cpu.CPURead((zero_page + cpu.x + 1) & 0x00ff);
     cycles++;
 
     return static_cast<u16>((addr_high << 8) | addr_low);
@@ -567,8 +602,8 @@ DEFINE_ADDRESSING_MODE(IndirectX)
 DEFINE_ADDRESSING_MODE(IndirectY)
 {
     const u16 zero_page = cpu.FetchByte();
-    const u16 addr_low = cpu.ReadByte(zero_page & 0x00ff);
-    const u16 addr_high = cpu.ReadByte((zero_page + 1) & 0x00ff);
+    const u16 addr_low = cpu.CPURead(zero_page & 0x00ff);
+    const u16 addr_high = cpu.CPURead((zero_page + 1) & 0x00ff);
 
     const u16 base = (addr_high << 8) | addr_low;
     const u16 addr = base + cpu.y;
@@ -577,7 +612,7 @@ DEFINE_ADDRESSING_MODE(IndirectY)
     if (page_crossed)
     {
         const u16 dummy_address = (base & 0xff00) | (addr & 0x00ff);
-        cpu.ReadByte(dummy_address);
+        cpu.CPURead(dummy_address);
     }
 
     return addr;
@@ -589,7 +624,7 @@ DEFINE_ADDRESSING_MODE(IndirectY)
 
 DEFINE_OPERATION(ADC)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     u16 temp = cpu.a + data + cpu.GetFlag(StatusFlag::C);
 
     cpu.SetFlag(StatusFlag::C, temp > 255);
@@ -602,7 +637,7 @@ DEFINE_OPERATION(ADC)
 
 DEFINE_OPERATION(AND)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
 
     cpu.a &= data;
 
@@ -612,10 +647,10 @@ DEFINE_OPERATION(AND)
 
 DEFINE_OPERATION(ASL)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     const u8 carry = data >> 7;
     data = (data << 1) & 0x00ff;
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
@@ -698,7 +733,7 @@ DEFINE_OPERATION(BMI)
 
 DEFINE_OPERATION(BIT)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
 
     cpu.SetFlag(StatusFlag::Z, !(data & cpu.a));
     cpu.SetFlag(StatusFlag::V, data & 0x40);
@@ -745,8 +780,8 @@ DEFINE_OPERATION(BRK)
 
     cpu.SetFlag(StatusFlag::I, true);
 
-    const u8 addr_low = cpu.ReadByte(0xfffe);
-    const u8 addr_high = cpu.ReadByte(0xffff);
+    const u8 addr_low = cpu.CPURead(0xfffe);
+    const u8 addr_high = cpu.CPURead(0xffff);
     cpu.pc = static_cast<u16>((addr_high << 8) | addr_low);
 }
 
@@ -806,7 +841,7 @@ DEFINE_OPERATION_NO_ADDRESS(CLV)
 
 DEFINE_OPERATION(CMP)
 {
-    const u8 data = cpu.ReadByte(address);
+    const u8 data = cpu.CPURead(address);
     const u8 result = cpu.a - data;
 
     cpu.SetFlag(StatusFlag::C, cpu.a >= data);
@@ -816,7 +851,7 @@ DEFINE_OPERATION(CMP)
 
 DEFINE_OPERATION(CPX)
 {
-    const u8 data = cpu.ReadByte(address);
+    const u8 data = cpu.CPURead(address);
     const u8 result = cpu.x - data;
 
     cpu.SetFlag(StatusFlag::C, cpu.x >= data);
@@ -826,7 +861,7 @@ DEFINE_OPERATION(CPX)
 
 DEFINE_OPERATION(CPY)
 {
-    const u8 data = cpu.ReadByte(address);
+    const u8 data = cpu.CPURead(address);
     const u8 result = cpu.y - data;
 
     cpu.SetFlag(StatusFlag::C, cpu.y >= data);
@@ -836,9 +871,9 @@ DEFINE_OPERATION(CPY)
 
 DEFINE_OPERATION(DEC)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     data = (data - 1) & 0x00ff;
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
@@ -862,7 +897,7 @@ DEFINE_OPERATION(DEY)
 
 DEFINE_OPERATION(EOR)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
 
     cpu.a ^= data;
 
@@ -872,9 +907,9 @@ DEFINE_OPERATION(EOR)
 
 DEFINE_OPERATION(INC)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     data = (data + 1) & 0x00ff;
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
@@ -910,7 +945,7 @@ DEFINE_OPERATION(JSR)
 
 DEFINE_OPERATION(LDA)
 {
-    cpu.a = cpu.ReadByte(address);
+    cpu.a = cpu.CPURead(address);
 
     cpu.SetFlag(StatusFlag::Z, cpu.a == 0);
     cpu.SetFlag(StatusFlag::N, cpu.a & 0x80);
@@ -918,7 +953,7 @@ DEFINE_OPERATION(LDA)
 
 DEFINE_OPERATION(LDX)
 {
-    cpu.x = cpu.ReadByte(address);
+    cpu.x = cpu.CPURead(address);
 
     cpu.SetFlag(StatusFlag::Z, cpu.x == 0);
     cpu.SetFlag(StatusFlag::N, cpu.x & 0x80);
@@ -926,7 +961,7 @@ DEFINE_OPERATION(LDX)
 
 DEFINE_OPERATION(LDY)
 {
-    cpu.y = cpu.ReadByte(address);
+    cpu.y = cpu.CPURead(address);
 
     cpu.SetFlag(StatusFlag::Z, cpu.y == 0);
     cpu.SetFlag(StatusFlag::N, cpu.y & 0x80);
@@ -944,12 +979,12 @@ DEFINE_OPERATION_NO_ADDRESS(LSR)
 
 DEFINE_OPERATION(LSR)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     
     cpu.SetFlag(StatusFlag::C, data & 0x01);
     data >>= 1;
 
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::Z, data == 0);
     cpu.SetFlag(StatusFlag::N, data & 0x80);
@@ -957,7 +992,7 @@ DEFINE_OPERATION(LSR)
 
 DEFINE_OPERATION(ORA)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
 
     cpu.a |= data;
 
@@ -1006,11 +1041,11 @@ DEFINE_OPERATION_NO_ADDRESS(ROL)
 
 DEFINE_OPERATION(ROL)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     const bool carry = data >> 7;
     data = ((data << 1) | cpu.GetFlag(StatusFlag::C)) & 0xff;
 
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
@@ -1029,11 +1064,11 @@ DEFINE_OPERATION_NO_ADDRESS(ROR)
 
 DEFINE_OPERATION(ROR)
 {
-    u8 data = cpu.ReadByte(address);
+    u8 data = cpu.CPURead(address);
     const bool carry = data & 0x01;
     data = (data >> 1) | (cpu.GetFlag(StatusFlag::C) << 7);
     
-    cpu.WriteByte(address, data);
+    cpu.CPUWrite(address, data);
 
     cpu.SetFlag(StatusFlag::C, carry);
     cpu.SetFlag(StatusFlag::Z, data == 0);
@@ -1061,7 +1096,7 @@ DEFINE_OPERATION(RTS)
 
 DEFINE_OPERATION(SBC)
 {
-    u8 data = cpu.ReadByte(address) ^ 0x00ff;
+    u8 data = cpu.CPURead(address) ^ 0x00ff;
     u16 temp = cpu.a + data + cpu.GetFlag(StatusFlag::C);
 
     cpu.SetFlag(StatusFlag::C, temp & 0xff00);
@@ -1091,17 +1126,17 @@ DEFINE_OPERATION_NO_ADDRESS(SEI)
 
 DEFINE_OPERATION(STA)
 {
-    cpu.WriteByte(address, cpu.a);
+    cpu.CPUWrite(address, cpu.a);
 }
 
 DEFINE_OPERATION(STX)
 {
-    cpu.WriteByte(address, cpu.x);
+    cpu.CPUWrite(address, cpu.x);
 }
 
 DEFINE_OPERATION(STY)
 {
-    cpu.WriteByte(address, cpu.y);
+    cpu.CPUWrite(address, cpu.y);
 }
 
 DEFINE_OPERATION(TAX)

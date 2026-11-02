@@ -120,7 +120,7 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0020, 0x42);
+        nes->cpu->WriteByte(0x0020, 0x42);
     }
     
     void SetupZeroPageX(u8 opcode)
@@ -131,7 +131,7 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0025, 0x42);
+        nes->cpu->WriteByte(0x0025, 0x42);
     }
 
     void SetupZeroPageY(u8 opcode)
@@ -142,7 +142,7 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0025, 0x42);
+        nes->cpu->WriteByte(0x0025, 0x42);
     }
     
     void SetupAbsolute(u8 opcode)
@@ -151,7 +151,7 @@ protected:
             opcode, 0xaa, 0x06
         });
 
-        nes->mem->Write(0x06aa, 0x42);
+        nes->cpu->WriteByte(0x06aa, 0x42);
     }
     
     void SetupAbsoluteX(u8 opcode)
@@ -162,7 +162,7 @@ protected:
             opcode, 0xaa, 0x06
         });
 
-        nes->mem->Write(0x06af, 0x42);
+        nes->cpu->WriteByte(0x06af, 0x42);
     }
     
     void SetupAbsoluteXPageCrossing(u8 opcode)
@@ -173,7 +173,7 @@ protected:
             opcode, 0xff, 0x06
         });
 
-        nes->mem->Write(0x0700, 0x42);
+        nes->cpu->WriteByte(0x0700, 0x42);
     }
     
     void SetupAbsoluteY(u8 opcode)
@@ -184,7 +184,7 @@ protected:
             opcode, 0xaa, 0x06
         });
 
-        nes->mem->Write(0x06af, 0x42);
+        nes->cpu->WriteByte(0x06af, 0x42);
     }
     
     void SetupAbsoluteYPageCrossing(u8 opcode)
@@ -195,7 +195,7 @@ protected:
             opcode, 0xff, 0x06
         });
 
-        nes->mem->Write(0x0700, 0x42);
+        nes->cpu->WriteByte(0x0700, 0x42);
     }
     
     void SetupIndirectX(u8 opcode)
@@ -206,10 +206,10 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0024, 0xaa);
-        nes->mem->Write(0x0025, 0x06);
+        nes->cpu->WriteByte(0x0024, 0xaa);
+        nes->cpu->WriteByte(0x0025, 0x06);
 
-        nes->mem->Write(0x06aa, 0x42);
+        nes->cpu->WriteByte(0x06aa, 0x42);
     }
     
     void SetupIndirectY(u8 opcode)
@@ -220,10 +220,10 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0020, 0xaa);
-        nes->mem->Write(0x0021, 0x06);
+        nes->cpu->WriteByte(0x0020, 0xaa);
+        nes->cpu->WriteByte(0x0021, 0x06);
         
-        nes->mem->Write(0x06af, 0x42);
+        nes->cpu->WriteByte(0x06af, 0x42);
     }
 
     void SetupIndirectYPageCrossing(u8 opcode)
@@ -234,9 +234,9 @@ protected:
             opcode, 0x20
         });
 
-        nes->mem->Write(0x0020, 0xff);
-        nes->mem->Write(0x0021, 0x06);
+        nes->cpu->WriteByte(0x0020, 0xff);
+        nes->cpu->WriteByte(0x0021, 0x06);
         
-        nes->mem->Write(0x0700, 0x42);
+        nes->cpu->WriteByte(0x0700, 0x42);
     }
 };

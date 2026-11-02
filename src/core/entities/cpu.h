@@ -316,10 +316,14 @@ public:
 
     u32 Step();
 
-    u8 PeekByte();
+    u8 CPURead(u16 address);
+    void CPUWrite(u16 address, u8 data);
+    
     u8 FetchByte();
-    u8 ReadByte(u16 address);
+
+    // TODO: debug function for tests, move it inside a define
     void WriteByte(u16 address, u8 data);
+    void WriteSpan(u16 address, std::initializer_list<u8> data);
 
     u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
@@ -446,6 +450,8 @@ private:
 private:
     Bus* bus_ = nullptr;
     u32 cycles_ = 0;
+
+    std::array<u8, 2048> memory_;
 
     bool irq_pending_ = false;
     bool nmi_pending_ = false;
