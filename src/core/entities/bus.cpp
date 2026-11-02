@@ -8,19 +8,16 @@
 
 Bus::Bus(
     CPU& cpu,
-    Memory& memory,
     PPU& ppu,
     APU& apu,
     Controllers& controllers
 ) :
     cpu_(cpu),
-    memory_(memory),
     ppu_(ppu),
     apu_(apu),
     controllers_(controllers)
 {
     cpu_.ConnectBus(this);
-    memory_.ConnectBus(this);
     ppu_.ConnectBus(this);
 
     Reset();
