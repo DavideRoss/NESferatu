@@ -455,6 +455,8 @@ void CPU::Serialize(Serializer& serializer)
     serializer.Write(total_cycles);
     serializer.Write(cycles_);
 
+    serializer.Write(memory_);
+
     serializer.Write(irq_pending_);
     serializer.Write(nmi_pending_);
 }
@@ -470,6 +472,8 @@ void CPU::Deserialize(Deserializer &deserializer)
     
     deserializer.Read(total_cycles);
     deserializer.Read(cycles_);
+
+    deserializer.Read(memory_);
 
     deserializer.Read(irq_pending_);
     deserializer.Read(nmi_pending_);
