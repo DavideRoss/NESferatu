@@ -89,16 +89,19 @@ u32 CPU::Step()
     u16 prev_pc = pc;
     u8 instruction = FetchByte();
 
+    // TODO: clean up logging
     // NESFERATU_LOG(
     //     "{:04X}\t{:0X}\t\t\tA:{:02X} X:{:02X} Y:{:02X} SP:{:02X} PPU:0, 0 CYC:{}",
     //     prev_pc, instruction, a, x, y, sp, total_cycles
     // );
     
+    #ifdef NESFERATU_DEBUG
     Debug({
         .event = DebugEventType::CPUExecute,
         .pc = prev_pc,
         .instruction = instruction
     });
+    #endif
 
     switch (instruction)
     {
@@ -412,21 +415,6 @@ u8 CPU::FetchByte()
     const u8 data = CPURead(pc);
     pc++;
     return data;
-}
-
-void CPU::WriteByte(u16 address, u8 data)
-{
-    u16 unmirrored_address = address & 0x07ff;
-    memory_[unmirrored_address] = data;
-}
-
-void CPU::WriteSpan(u16 address, std::initializer_list<u8> data)
-{
-    u16 unmirrored_address = address & 0x07ff;
-    for (u8 val : data)
-    {
-        memory_[unmirrored_address++] = val;
-    }
 }
 
 u8 CPU::GetFlag(StatusFlag flag)
@@ -1180,3 +1168,22 @@ DEFINE_OPERATION(TYA)
 }
 
 #pragma endregion
+
+#ifdef NESFERATU_DEBUG
+
+void CPU::WriteByte(u16 address, u8 data)
+{
+    u16 unmirrored_address = address & 0x07ff;
+    memory_[unmirrored_address] = data;
+}
+
+void CPU::WriteSpan(u16 address, std::initializer_list<u8> data)
+{
+    u16 unmirrored_address = address & 0x07ff;
+    for (u8 val : data)
+    {
+        memory_[unmirrored_address++] = val;
+    }
+}
+
+#endif

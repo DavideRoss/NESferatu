@@ -17,9 +17,11 @@ System::System()
         *controllers
     );
 
+    #ifdef NESFERATU_DEBUG
     debugger = std::make_unique<Debugger>();
     cpu->ConnectDebugger(debugger.get());
     bus->ConnectDebugger(debugger.get());
+    #endif
 
     Reset();
 }
@@ -120,14 +122,14 @@ u32 System::StepFrame()
     return cycles;
 }
 
-bool System::IsFrameComplete() const
-{
-    return ppu->IsFrameComplete();
-}
-
 std::span<const Pixel> System::GetFramebuffer()
 {
     return ppu->GetFramebuffer();
+}
+
+bool System::IsFrameComplete() const
+{
+    return ppu->IsFrameComplete();
 }
 
 void System::ClearFrameComplete()

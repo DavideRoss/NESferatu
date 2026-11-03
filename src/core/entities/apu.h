@@ -37,9 +37,10 @@ public:
     void Serialize(class Serializer& serializer);
     void Deserialize(class Deserializer& deserializer);
 
-    // TODO: remove debug variable
+    #ifdef NESFERATU_DEBUG
     [[maybe_unused]] u64 samples_per_sec = 0;
     [[maybe_unused]] u64 samples_per_frame = 0;
+    #endif
 
 private:
     void StepFour();

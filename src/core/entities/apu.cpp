@@ -92,8 +92,11 @@ void APU::GenerateAudioSample()
     if (sample_accumulator_ >= CPU_FREQUENCY)
     {
         sample_accumulator_ -= CPU_FREQUENCY;
+        
+        #ifdef NESFERATU_DEBUG
         samples_per_sec++;
         samples_per_frame++;
+        #endif
 
         if (callback_ != nullptr)
         {

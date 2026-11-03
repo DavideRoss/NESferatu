@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debugger/debuggable.h"
+#include "utils/defines.h"
 #include "utils/types.h"
 #include "utils/log.h"
 
@@ -308,7 +308,7 @@ namespace Opcodes
     static constexpr u8 TYA_IMP = 0x98;
 }
 
-class CPU : public Debuggable
+class CPU NESFERATU_DEBUGGABLE
 {
 public:
     void ConnectBus(Bus* bus);
@@ -321,10 +321,6 @@ public:
     
     u8 FetchByte();
 
-    // TODO: debug function for tests, move it inside a define
-    void WriteByte(u16 address, u8 data);
-    void WriteSpan(u16 address, std::initializer_list<u8> data);
-
     u8 GetFlag(StatusFlag flag);
     void SetFlag(StatusFlag flag, bool val);
 
@@ -336,6 +332,11 @@ public:
 
     void Serialize(class Serializer& serializer);
     void Deserialize(class Deserializer& deserializer);
+
+    #ifdef NESFERATU_DEBUG
+    void WriteByte(u16 address, u8 data);
+    void WriteSpan(u16 address, std::initializer_list<u8> data);
+    #endif
 
 public:
     u8 a;       // Accumulator
