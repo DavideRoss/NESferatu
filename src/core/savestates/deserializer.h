@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstring>
 
 #include "utils/exception.h"
 #include "utils/types.h"
@@ -68,7 +69,7 @@ public:
             NESFERATU_THROW("Unexpected end of save state");
         }
 
-        std::copy_n(data_.begin() + position_, bytes.size(), bytes.begin());
+        std::memcpy(bytes.data(), data_.data() + position_, bytes.size());
         position_ += bytes.size();
     }
 
