@@ -89,10 +89,12 @@ NESferatuApp::NESferatuApp(const std::filesystem::path& file_path)
     cartridge_ = std::make_shared<Cartridge>(file_path);
     nes_ = std::make_unique<System>();
 
+    #ifdef NESFERATU_DEBUG
     nes_->debugger->SetBreakCallback([this](const DebugContext& context)
     {
         DebuggerBreakCallback(context);
     });
+    #endif
 
     // ========================================================================
     // AUDIO
@@ -161,9 +163,10 @@ void NESferatuApp::RunApplication()
         // Stop stepping after first frame
         step_frame_latch_ = false;
 
-        // TODO: clean audio debug stuff
+        #ifdef NESFERATU_DEBUG
         samples_per_frame = nes_->apu->samples_per_frame;
         nes_->apu->samples_per_frame = 0;
+        #endif
 
         SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
         SDL_RenderClear(renderer_);
@@ -243,6 +246,7 @@ void NESferatuApp::RunApplication()
             }
         }
 
+        #ifdef NESFERATU_DEBUG
         // Audio underrun/overflow logging
         if (SDL_GetPerformanceCounter() - last_audio_log >= SDL_GetPerformanceFrequency())
         {
@@ -252,6 +256,7 @@ void NESferatuApp::RunApplication()
             NESFERATU_LOG("[Audio] samples per sec: {}\t samples per frame: {}\tunderruns: {}\toverflows: {}", samples, samples_per_frame, audio_->UnderrunCount(), audio_->OverflowCount());
             last_audio_log = SDL_GetPerformanceCounter();
         }
+        #endif
     }
 }
 
@@ -496,6 +501,7 @@ void NESferatuApp::WriteSavestate(u32 index)
     toast_->Show(std::format("Savestate {} saved!", index + 1), 5.0f);
 }
 
+#ifdef NESFERATU_DEBUG
 void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
 {
     #ifdef _WIN32
@@ -504,3 +510,4 @@ void NESferatuApp::DebuggerBreakCallback(const DebugContext &context)
     std::raise(SIGTRAP);
     #endif
 }
+#endif

@@ -43,7 +43,9 @@ private:
     void ReadSavestate(u32 index);
     void WriteSavestate(u32 index);
 
+    #ifdef NESFERATU_DEBUG
     void DebuggerBreakCallback(const DebugContext& context);
+    #endif
 
 private:
     bool running_ = false;
