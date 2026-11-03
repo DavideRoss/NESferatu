@@ -44,10 +44,12 @@ void Bus::SlotCartridge(std::shared_ptr<Cartridge> cartridge)
 
 u8 Bus::CPURead(u16 address)
 {
+    #ifdef NESFERATU_DEBUG
     Debug({
         .event = DebugEventType::CPURead,
         .address = address
     });
+    #endif
 
     switch (address)
     {
@@ -103,10 +105,12 @@ u8 Bus::CPURead(u16 address)
 
 void Bus::CPUWrite(u16 address, u8 data)
 {
+    #ifdef NESFERATU_DEBUG
     Debug({
         .event = DebugEventType::CPUWrite,
         .address = address
     });
+    #endif
 
     switch (address)
     {

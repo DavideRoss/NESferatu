@@ -4,8 +4,8 @@
 
 #include "data/palette.h"
 #include "entities/cartridge.h"
-#include "debugger/debuggable.h"
 
+#include "utils/defines.h"
 #include "utils/types.h"
 
 class Bus;
@@ -42,15 +42,6 @@ enum PPUStatusFlag : u8
     VerticalBlank = (1 << 7)
 };
 
-enum DebugViewMode : u8
-{
-    None,
-    Palette,
-    FineX,
-    PixelPresence,
-    Nametable
-};
-
 struct Sprite
 {
     u8 y;
@@ -62,7 +53,20 @@ struct Sprite
     u8 pattern_high;
 };
 
-class PPU : public Debuggable
+#ifdef NESFERATU_DEBUG
+
+enum DebugViewMode : u8
+{
+    None,
+    Palette,
+    FineX,
+    PixelPresence,
+    Nametable
+};
+
+#endif
+
+class PPU NESFERATU_DEBUGGABLE
 {
 public:
     PPU();
@@ -86,9 +90,10 @@ public:
     void Serialize(class Serializer& serializer);
     void Deserialize(class Deserializer& deserializer);
 
-    // Debug functions
+    #ifdef NESFERATU_DEBUG
     std::array<Pixel, 32> DumpPalette() const;
     void SetDebugViewMode(DebugViewMode mode);
+    #endif
 
 private:
     u8 PPURead(u16 address);
@@ -172,6 +177,7 @@ private:
     std::array<u8, 256> oam_;
     std::array<u8, 32> secondary_oam_;
 
-    // Debug variable
+    #ifdef NESFERATU_DEBUG
     DebugViewMode debug_view_mode_ = DebugViewMode::None;
+    #endif
 };

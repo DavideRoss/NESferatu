@@ -6,7 +6,9 @@
 #include "cpu.h"
 #include "ppu.h"
 
+#ifdef NESFERATU_DEBUG
 #include "debugger/debugger.h"
+#endif
 
 class System
 {
@@ -22,10 +24,10 @@ public:
     u32 Step();
     u32 StepFrame();
 
-    bool IsFrameComplete() const;
     std::span<const Pixel> GetFramebuffer();
+    bool IsFrameComplete() const;
     void ClearFrameComplete();
-
+    
     std::vector<std::byte> WriteSavestate();
     void ReadSavestate(std::span<const std::byte> data);
 
@@ -39,5 +41,7 @@ public:
     std::unique_ptr<APU> apu;
     std::unique_ptr<Controllers> controllers;
 
+    #ifdef NESFERATU_DEBUG
     std::unique_ptr<Debugger> debugger;
+    #endif
 };

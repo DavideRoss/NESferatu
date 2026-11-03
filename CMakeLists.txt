@@ -18,6 +18,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 option(NESFERATU_BUILD_TESTS "Build tests" ON)
 option(NESFERATU_SANITIZERS "Enable ASan and UBSan" OFF)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(NESFERATU_DEBUG)
+endif()
+
 add_library(NESferatuCompileOptions INTERFACE)
 add_library(NESferatuLinkerOptions INTERFACE)
 

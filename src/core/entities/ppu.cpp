@@ -69,11 +69,13 @@ void PPU::Reset()
 
 void PPU::Step()
 {
+    #ifdef NESFERATU_DEBUG
     Debug({
         .event = DebugEventType::PPUTiming,
         .ppu_scanline = scanline_,
         .ppu_cycle = cycle_
     });
+    #endif
 
     const bool render_enabled =
         GetFlag(mask_, PPUMaskFlag::EnableBackground) ||
@@ -177,9 +179,11 @@ void PPU::Step()
     // trigger vblank interrupt
     if (scanline_ == 241 && cycle_ == 1)
     {
+        #ifdef NESFERATU_DEBUG
         Debug({
             .event = DebugEventType::VBlank
         });
+        #endif
 
         SetFlag(status_, PPUStatusFlag::VerticalBlank, true);
         if (GetFlag(ctrl_, PPUCtrlFlag::NMIEnable))
@@ -197,9 +201,11 @@ void PPU::Step()
 
         if (scanline_ >= SCANLINES_PER_FRAME)
         {
+            #ifdef NESFERATU_DEBUG
             Debug({
                 .event = DebugEventType::Frame
             });
+            #endif
 
             scanline_ = 0;
             odd_frame_ = !odd_frame_;
@@ -250,8 +256,6 @@ void PPU::Serialize(Serializer &serializer)
     serializer.Write(sprite_eval_oam_address_);
     serializer.Write(sprite_eval_overflow_);
     
-    // TODO: serialize framebuffer?
-    
     serializer.Write(vram_);
     serializer.Write(palettes_);
     serializer.Write(oam_);
@@ -294,8 +298,6 @@ void PPU::Deserialize(Deserializer &deserializer)
     deserializer.Read(sprite_eval_index_);
     deserializer.Read(sprite_eval_oam_address_);
     deserializer.Read(sprite_eval_overflow_);
-    
-    // TODO: deserialize framebuffer?
     
     deserializer.Read(vram_);
     deserializer.Read(palettes_);
@@ -930,6 +932,8 @@ void PPU::RenderPixel()
         SetFlag(status_, PPUStatusFlag::SpriteZeroHit, true);
     }
 
+    #ifdef NESFERATU_DEBUG
+
     // Debug modes
     if (debug_view_mode_ == DebugViewMode::Palette)
     {
@@ -980,7 +984,11 @@ void PPU::RenderPixel()
         const u8 nametable = (v_ >> 10) & 0x03;
         framebuffer_[framebuffer_index] = Pixel::Lerp(colors[nametable], framebuffer_[framebuffer_index], 0.5f);
     }
+
+    #endif
 }
+
+#ifdef NESFERATU_DEBUG
 
 std::array<Pixel, 32> PPU::DumpPalette() const
 {
@@ -998,3 +1006,5 @@ void PPU::SetDebugViewMode(DebugViewMode mode)
 {
     debug_view_mode_ = debug_view_mode_ == mode ? DebugViewMode::None : mode;
 }
+
+#endif

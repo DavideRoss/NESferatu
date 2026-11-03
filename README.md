@@ -8,7 +8,7 @@
 - [x] Use `NESFERATU_THROW` everywhere
 - [x] Tidy up stacktrace usage on throw
 - [x] Implement proper reset option
-- [ ] Gate every debug function under debug define
+- [x] Gate every debug function under debug define
 - [ ] Debug: CPU/PPU/APU do not expose internal registers, but return a state object
 - [ ] Proper logging: system is responsible
 - [ ] Implement extra mappers
@@ -40,3 +40,4 @@
 - [x] Loading a ROM while another ROM is running breaks the emulation
 - [ ] The stepping on the application is awful to see, to be refactored
 - [ ] It's not possible to disable sound
+- [ ] It's possible to load an empty savestate (change UI as well)

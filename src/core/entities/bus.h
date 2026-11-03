@@ -6,8 +6,7 @@
 #include "cpu.h"
 #include "ppu.h"
 
-#include "debugger/debuggable.h"
-
+#include "utils/defines.h"
 #include "utils/types.h"
 
 enum class OAMDMAPhase
@@ -18,7 +17,7 @@ enum class OAMDMAPhase
     Write
 };
 
-class Bus : public Debuggable
+class Bus NESFERATU_DEBUGGABLE
 {
 
 public:
